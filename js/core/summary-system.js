@@ -307,7 +307,7 @@ class SummarySystem {
         if (allOps.length === 0) return null;
 
         // 格式化为prompt文本
-        let prompt = '```operations\n【最近操作】（已经执行过，不要重复）\n';
+        let prompt = '```operations\n' + I18n.t('【最近操作】（已经执行过，不要重复）') + '\n';
         allOps.forEach((op, index) => {
             prompt += `${index + 1}. ${op.toString()}\n`;
             if (op.details && op.details.before !== undefined && op.details.after !== undefined) {
@@ -420,7 +420,7 @@ class SummarySystem {
 
         // 大总结
         if (this.megaSummaries.length > 0) {
-            prompt += '【大总结】\n';
+            prompt += I18n.t('【大总结】') + '\n';
             this.megaSummaries.forEach(mega => {
                 prompt += `${mega.content}\n\n`;
             });
@@ -430,7 +430,7 @@ class SummarySystem {
         const keep = this.config.globalSummary.keepRecentSingleSummaries;
         const recentSingles = keep >= singles.length ? singles : (keep > 0 ? singles.slice(-keep) : []);
         if (recentSingles.length > 0) {
-            prompt += `【之前的剧情（按时间）】\n`;
+            prompt += I18n.t('【之前的剧情（按时间）】') + '\n';
             recentSingles.forEach((single, index) => {
                 prompt += `${index + 1}. ${single.content}\n`;
             });
@@ -439,7 +439,7 @@ class SummarySystem {
 
         // 最近的原始消息
         if (this.originalMessages.length > 0) {
-            prompt += `【最近${this.originalMessages.length}条原始消息】\n`;
+            prompt += I18n.t('【最近{n}条原始消息】', { n: this.originalMessages.length }) + '\n';
             this.originalMessages.forEach(msg => {
                 const roleLabel = msg.role === 'user' ? 'User' : 'AI';
                 prompt += `- ${roleLabel}: ${msg.content}\n`;
@@ -625,7 +625,7 @@ class SummarySystem {
                 if (summary) lines.push(`- ${sibling.name}: ${summary.content}`);
             }
             if (lines.length > 0) {
-                sections.push(`[当前父级: ${moduleSystem.getModule(parentId).name}]\n${lines.join('\n')}`);
+                sections.push(I18n.t('[当前父级: {name}]', { name: moduleSystem.getModule(parentId).name }) + '\n' + lines.join('\n'));
             }
 
             // 各级父级模块自己的总结（不含其他子模块）
@@ -633,13 +633,13 @@ class SummarySystem {
             while (ancestorId) {
                 const ancestorModule = moduleSystem.getModule(ancestorId);
                 const ancestorSummary = this.getModuleSummary(ancestorId);
-                if (ancestorSummary) sections.push(`[父级模块: ${ancestorModule.name}]\n${ancestorSummary.content}`);
+                if (ancestorSummary) sections.push(I18n.t('[父级模块: {name}]', { name: ancestorModule.name }) + '\n' + ancestorSummary.content);
                 ancestorId = ancestorModule.parentModuleId;
             }
         }
 
         if (sections.length === 0) return null;
-        return '```module_summary\n【相关模块总结】\n\n' + sections.join('\n\n') + '\n```';
+        return '```module_summary\n' + I18n.t('【相关模块总结】') + '\n\n' + sections.join('\n\n') + '\n```';
     }
 
     /**
