@@ -177,7 +177,8 @@ Object.assign(App, {
                 const tab = line.indexOf('\t');
                 const id = tab >= 0 ? line.slice(0, tab).trim() : line.trim();
                 const value = tab >= 0 ? line.slice(tab + 1).trim() : '';
-                return { id, completed: /完成|true|是/i.test(value) };
+                const notDone = /未完成|not\s*done|not\s*completed|incomplete|undone|uncompleted|false|^(no|否)$/i.test(value);
+                return { id, completed: !notDone && /完成|true|是|done|complete|confirmed|received|yes/i.test(value) };
             }).filter((x) => x.id);
             processed = processed.replace(/<delivery_completed>[\s\S]*?<\/delivery_completed>/gi, '');
         }

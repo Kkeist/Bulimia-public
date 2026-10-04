@@ -7,23 +7,23 @@
  */
 Object.assign(DebugModuleJump, {
     _SM_TYPE_ORDER: ['timeline', 'trigger_chain', 'free_trigger'],
-    _SM_TYPE_CN: { timeline: '时间线', trigger_chain: '触发器链', free_trigger: '自由触发器' },
+    _SM_TYPE_CN: { timeline: I18n.t('时间线'), trigger_chain: I18n.t('触发器链'), free_trigger: I18n.t('自由触发器') },
     _SM_OPS: [['>=', '≥'], ['<=', '≤'], ['==', '＝'], ['!=', '≠'], ['>', '>'], ['<', '<']],
-    _SM_TIME_PARAMS: [['year', '年'], ['month', '月'], ['day', '日'], ['hour', '时'], ['minute', '分']],
+    _SM_TIME_PARAMS: [['year', I18n.t('年')], ['month', I18n.t('月')], ['day', I18n.t('日')], ['hour', I18n.t('时')], ['minute', I18n.t('分')]],
 
     /** 设置项：path 是 summarySystem.config 里的位置 */
     _SM_CFG: [
-        { title: '全局总结', rows: [
-            { path: 'globalSummary.enabled', label: '启用全局总结', kind: 'bool' },
-            { path: 'globalSummary.keepRecentOriginalMessages', label: '发送最近原文', kind: 'num', unit: '条', min: 0, max: 1000 },
-            { path: 'globalSummary.keepRecentSingleSummaries', label: '发送最近单条总结', kind: 'num', unit: '条', min: 0, max: 1000 },
-            { path: 'globalSummary.compressSummariesEvery', label: '每隔多少条单条总结合并为大总结', kind: 'num', unit: '条', min: 1, max: 1000 },
-            { path: 'globalSummary.autoHideOlder', label: '合并后清除已合并的单条总结', kind: 'bool' }
+        { title: I18n.t('全局总结'), rows: [
+            { path: 'globalSummary.enabled', label: I18n.t('启用全局总结'), kind: 'bool' },
+            { path: 'globalSummary.keepRecentOriginalMessages', label: I18n.t('发送最近原文'), kind: 'num', unit: I18n.t('条'), min: 0, max: 1000 },
+            { path: 'globalSummary.keepRecentSingleSummaries', label: I18n.t('发送最近单条总结'), kind: 'num', unit: I18n.t('条'), min: 0, max: 1000 },
+            { path: 'globalSummary.compressSummariesEvery', label: I18n.t('每隔多少条单条总结合并为大总结'), kind: 'num', unit: I18n.t('条'), min: 1, max: 1000 },
+            { path: 'globalSummary.autoHideOlder', label: I18n.t('合并后清除已合并的单条总结'), kind: 'bool' }
         ] },
-        { title: '操作记录', rows: [
-            { path: 'operationSummary.enabled', label: '记录操作', kind: 'bool' },
-            { path: 'operationSummary.displayInPrompt', label: '发送操作记录', kind: 'bool' },
-            { path: 'operationSummary.recentInteractionCount', label: '发送最近几轮的操作', kind: 'num', unit: '轮', min: 0, max: 1000 }
+        { title: I18n.t('操作记录'), rows: [
+            { path: 'operationSummary.enabled', label: I18n.t('记录操作'), kind: 'bool' },
+            { path: 'operationSummary.displayInPrompt', label: I18n.t('发送操作记录'), kind: 'bool' },
+            { path: 'operationSummary.recentInteractionCount', label: I18n.t('发送最近几轮的操作'), kind: 'num', unit: I18n.t('轮'), min: 0, max: 1000 }
         ] }
     ],
 
@@ -53,14 +53,14 @@ Object.assign(DebugModuleJump, {
         const s = State.summaries;
         const sameShape = s && !Array.isArray(s) && typeof s === 'object' && ('singleSummaries' in s || 'moduleSummaries' in s || 'conditionalDeliveries' in s);
         if (s && !Array.isArray(s) && !sameShape && Object.keys(s).length) {
-            DebugCtl.notify('存档里的总结格式与当前不同，这次修改没有写进存档。', 'error');
+            DebugCtl.notify(I18n.t('存档里的总结格式与当前不同，这次修改没有写进存档。'), 'error');
             return;
         }
         State.summaries = ss.exportState();
         ss.__stateRef = State.summaries;
     },
 
-    _smSaved() { DebugCtl.notify('已保存。', 'success'); },
+    _smSaved() { DebugCtl.notify(I18n.t('已保存。'), 'success'); },
 
     // ---------- 入口 ----------
     renderSummaryTab() {
@@ -70,7 +70,7 @@ Object.assign(DebugModuleJump, {
         DebugCtl.undo.hide();
         DebugCtl.closePicks(null);
         const ss = this._smSS(), ms = this.moduleSystem;
-        if (!ss || !ms || !ms.rootModuleId) { box.innerHTML = '<div class="sm cx"><div class="cx-empty">尚未加载故事。</div></div>'; return; }
+        if (!ss || !ms || !ms.rootModuleId) { box.innerHTML = '<div class="sm cx"><div class="cx-empty">' + I18n.t('尚未加载故事。') + '</div></div>'; return; }
         this._smAdopt(ss);
         const cfg = ss.config = ss.config || {};
         cfg.globalSummary = cfg.globalSummary || {};
@@ -134,8 +134,8 @@ Object.assign(DebugModuleJump, {
 
     _smBoolHtml(on, attrs, label) {
         return `<div class="cx-seg" role="radiogroup" aria-label="${DebugCtl.esc(label || '')}">` +
-            `<button type="button" role="radio" aria-checked="${on}" class="cx-segb${on ? ' on' : ''}" ${attrs} data-bool="1">是</button>` +
-            `<button type="button" role="radio" aria-checked="${!on}" class="cx-segb${on ? '' : ' on'}" ${attrs} data-bool="0">否</button></div>`;
+            `<button type="button" role="radio" aria-checked="${on}" class="cx-segb${on ? ' on' : ''}" ${attrs} data-bool="1">${I18n.t('是')}</button>` +
+            `<button type="button" role="radio" aria-checked="${!on}" class="cx-segb${on ? '' : ' on'}" ${attrs} data-bool="0">${I18n.t('否')}</button></div>`;
     },
 
     _smNumHtml(val, attrs, opts) {
@@ -158,8 +158,8 @@ Object.assign(DebugModuleJump, {
             }).join('');
             return `<div class="sm-cfggroup"><div class="sm-sub">${e(g.title)}</div>${rows}</div>`;
         }).join('');
-        const action = `<div class="sm-actions"><button type="button" class="cx-btn is-accent" data-act="compressnow">立即整理总结</button><span class="sm-status" id="sm-compress-status" aria-live="polite"></span></div>`;
-        return `<div class="cx-sttl">总结设置</div>${blocks}${action}`;
+        const action = `<div class="sm-actions"><button type="button" class="cx-btn is-accent" data-act="compressnow">${I18n.t('立即整理总结')}</button><span class="sm-status" id="sm-compress-status" aria-live="polite"></span></div>`;
+        return `<div class="cx-sttl">${I18n.t('总结设置')}</div>${blocks}${action}`;
     },
 
     /** 手动整理：把已滑出对话窗口的单条总结现在就并成一条大总结（需要先配好并连上 AI） */
@@ -167,7 +167,7 @@ Object.assign(DebugModuleJump, {
         const status = document.getElementById('sm-compress-status');
         const before = this._smSS().megaSummaries.length;
         btn.disabled = true;
-        if (status) status.textContent = '正在整理，请稍等。';
+        if (status) status.textContent = I18n.t('正在整理，请稍等。');
         let done = false;
         try { done = await App.compressSummariesNow(); }
         finally { btn.disabled = false; }
@@ -176,7 +176,7 @@ Object.assign(DebugModuleJump, {
         this._smAdopt(ss);
         this._smReplace('sm-sec-global');
         const st = document.getElementById('sm-compress-status');
-        if (st) st.textContent = done ? `已整理，现在有 ${ss.megaSummaries.length} 条大总结。` : (ss.megaSummaries.length > before ? '' : '没有整理。');
+        if (st) st.textContent = done ? I18n.t('已整理，现在有 {n} 条大总结。', { n: ss.megaSummaries.length }) : (ss.megaSummaries.length > before ? '' : I18n.t('没有整理。'));
     },
 
     // ---------- 全局总结 ----------
@@ -189,30 +189,30 @@ Object.assign(DebugModuleJump, {
     _smGlobalHtml(ss) {
         const e = DebugCtl.esc; const st = this._sm();
         const cats = [
-            { cat: 'single', title: '单条总结', arr: ss.singleSummaries, add: true },
-            { cat: 'mega', title: '大总结', arr: ss.megaSummaries, add: true },
-            { cat: 'orig', title: '原始消息', arr: ss.originalMessages, add: true, role: true },
-            { cat: 'pluginc', title: '插件总结条目', arr: ss.pluginSummaryContents, add: true }
+            { cat: 'single', title: I18n.t('单条总结'), arr: ss.singleSummaries, add: true },
+            { cat: 'mega', title: I18n.t('大总结'), arr: ss.megaSummaries, add: true },
+            { cat: 'orig', title: I18n.t('原始消息'), arr: ss.originalMessages, add: true, role: true },
+            { cat: 'pluginc', title: I18n.t('插件总结条目'), arr: ss.pluginSummaryContents, add: true }
         ];
         const block = (c) => {
             const key = 'g|' + c.cat; const col = !!st.collapsed[key];
             const items = (c.arr || []).map((x, i) => this._smEntryHtml(c.cat, null, i, x, !!c.role)).join('');
             const add = c.add ? `<div class="sm-addrow" data-cat="${c.cat}">` +
                 (c.role ? this._smRoleHtml('user', 'data-act="newrole"') : '') +
-                `<textarea class="cx-in cx-grow sm-newtext" rows="1" placeholder="新增内容" aria-label="新增内容"></textarea>` +
-                `<button type="button" class="cx-btn" data-act="gadd" data-cat="${c.cat}">添加</button></div>` : '';
-            return this._smFold(key, c.title, (c.arr || []).length, col, (items || '<div class="cx-muted cx-emptyline">空</div>') + add);
+                `<textarea class="cx-in cx-grow sm-newtext" rows="1" placeholder="${I18n.t('新增内容')}" aria-label="${I18n.t('新增内容')}"></textarea>` +
+                `<button type="button" class="cx-btn" data-act="gadd" data-cat="${c.cat}">${I18n.t('添加')}</button></div>` : '';
+            return this._smFold(key, c.title, (c.arr || []).length, col, (items || '<div class="cx-muted cx-emptyline">' + I18n.t('空') + '</div>') + add);
         };
         // 操作记录：本轮 + 历史各轮
         const okey = 'g|ops'; const ocol = !!st.collapsed[okey];
         const curOps = (ss.operations || []).map((x, i) => this._smEntryHtml('op', 'cur', i, x, false)).join('');
         const hist = (ss.interactions || []).map((it, gi) => {
             const list = (it && Array.isArray(it.operations)) ? it.operations : [];
-            return `<div class="sm-sub">第 ${gi + 1} 轮</div>` + (list.length ? list.map((x, i) => this._smEntryHtml('op', String(gi), i, x, false)).join('') : '<div class="cx-muted cx-emptyline">空</div>');
+            return `<div class="sm-sub">${I18n.t('第 {n} 轮', { n: gi + 1 })}</div>` + (list.length ? list.map((x, i) => this._smEntryHtml('op', String(gi), i, x, false)).join('') : '<div class="cx-muted cx-emptyline">' + I18n.t('空') + '</div>');
         }).join('');
-        const opsBody = `<div class="sm-sub">本轮</div>${curOps || '<div class="cx-muted cx-emptyline">空</div>'}${hist}`;
+        const opsBody = `<div class="sm-sub">${I18n.t('本轮')}</div>${curOps || '<div class="cx-muted cx-emptyline">' + I18n.t('空') + '</div>'}${hist}`;
         const total = (ss.operations || []).length + (ss.interactions || []).reduce((n, it) => n + ((it && it.operations) ? it.operations.length : 0), 0);
-        return `<div class="cx-sttl">全局总结</div>` + cats.map(block).join('') + this._smFold(okey, '操作记录', total, ocol, opsBody);
+        return `<div class="cx-sttl">${I18n.t('全局总结')}</div>` + cats.map(block).join('') + this._smFold(okey, I18n.t('操作记录'), total, ocol, opsBody);
     },
 
     _smFold(key, title, count, collapsed, body) {
@@ -224,8 +224,8 @@ Object.assign(DebugModuleJump, {
 
     _smRoleHtml(role, attrs) {
         const user = role === 'user';
-        return `<div class="cx-seg sm-role" role="radiogroup" aria-label="发送方">` +
-            `<button type="button" role="radio" aria-checked="${user}" class="cx-segb${user ? ' on' : ''}" ${attrs} data-role="user">用户</button>` +
+        return `<div class="cx-seg sm-role" role="radiogroup" aria-label="${I18n.t('发送方')}">` +
+            `<button type="button" role="radio" aria-checked="${user}" class="cx-segb${user ? ' on' : ''}" ${attrs} data-role="user">${I18n.t('用户')}</button>` +
             `<button type="button" role="radio" aria-checked="${!user}" class="cx-segb${user ? '' : ' on'}" ${attrs} data-role="assistant">AI</button></div>`;
     },
 
@@ -234,8 +234,8 @@ Object.assign(DebugModuleJump, {
         const g = grp == null ? '' : ` data-grp="${e(grp)}"`;
         const roleHtml = role ? this._smRoleHtml(x && x.role === 'assistant' ? 'assistant' : 'user', `data-act="entrole" data-cat="${cat}" data-idx="${i}"`) : '';
         return `<div class="sm-entry"><span class="cx-idx">${i + 1}</span><div class="sm-entrybody">${roleHtml}` +
-            `<textarea class="cx-in cx-grow sm-edit" rows="1" data-cat="${cat}"${g} data-idx="${i}" aria-label="第 ${i + 1} 条内容">${e(this._smItemText(x))}</textarea></div>` +
-            `<button type="button" class="cx-btn cx-del" data-act="gdel" data-cat="${cat}"${g} data-idx="${i}">删除</button></div>`;
+            `<textarea class="cx-in cx-grow sm-edit" rows="1" data-cat="${cat}"${g} data-idx="${i}" aria-label="${I18n.t('第 {n} 条内容', { n: i + 1 })}">${e(this._smItemText(x))}</textarea></div>` +
+            `<button type="button" class="cx-btn cx-del" data-act="gdel" data-cat="${cat}"${g} data-idx="${i}">${I18n.t('删除')}</button></div>`;
     },
 
     /** 取分类对应的数组 */
@@ -254,7 +254,7 @@ Object.assign(DebugModuleJump, {
 
     // ---------- 模块记忆树 ----------
     _smModulesHtml(ms, ss) {
-        return `<div class="cx-sttl">模块总结</div><div class="sm-split">` +
+        return `<div class="cx-sttl">${I18n.t('模块总结')}</div><div class="sm-split">` +
             `<div class="sm-treebox"><div class="sm-tree" id="sm-tree">${this._smTreeHtml(ms, ss)}</div></div>` +
             `<div class="sm-detail" id="sm-detail">${this._smDetailHtml(ms, ss, this._sm().sel)}</div></div>`;
     },
@@ -271,7 +271,7 @@ Object.assign(DebugModuleJump, {
 
     _smTreeHtml(ms, ss) {
         const e = DebugCtl.esc; const st = this._sm();
-        const root = ms.getModule(ms.rootModuleId); if (!root) return '<div class="cx-muted">该故事暂无模块。</div>';
+        const root = ms.getModule(ms.rootModuleId); if (!root) return '<div class="cx-muted">' + I18n.t('该故事暂无模块。') + '</div>';
         const col = (k) => !!st.collapsed[k];
         const toggle = (k, label, cls) => `<button type="button" class="sm-fh ${cls || ''}" data-act="ntoggle" data-k="${e(k)}" aria-expanded="${col(k) ? 'false' : 'true'}"><span class="cx-caret" aria-hidden="true"></span><span class="sm-fhname">${e(label)}</span></button>`;
         const node = (m) => {
@@ -279,9 +279,9 @@ Object.assign(DebugModuleJump, {
             const kids = m.getAllSubModules ? [...m.getAllSubModules()] : [];
             const has = this._smHasSummary(ss, id);
             const row = `<div class="sm-node${id === st.sel ? ' on' : ''}" data-nid="${e(id)}">` +
-                (kids.length ? `<button type="button" class="sm-twist" data-act="ntoggle" data-k="${e(key)}" aria-expanded="${col(key) ? 'false' : 'true'}" aria-label="展开或折叠"><span class="cx-caret" aria-hidden="true"></span></button>` : '<span class="sm-twist sm-twist-empty"></span>') +
-                `<button type="button" class="sm-name" data-act="nsel" data-id="${e(id)}">${e(m.name || '未命名模块')}</button>` +
-                `<span class="sm-badge${has ? ' has' : ''}">${has ? '有总结' : '空'}</span></div>`;
+                (kids.length ? `<button type="button" class="sm-twist" data-act="ntoggle" data-k="${e(key)}" aria-expanded="${col(key) ? 'false' : 'true'}" aria-label="${I18n.t('展开或折叠')}"><span class="cx-caret" aria-hidden="true"></span></button>` : '<span class="sm-twist sm-twist-empty"></span>') +
+                `<button type="button" class="sm-name" data-act="nsel" data-id="${e(id)}">${e(m.name || I18n.t('未命名模块'))}</button>` +
+                `<span class="sm-badge${has ? ' has' : ''}">${has ? I18n.t('有总结') : I18n.t('空')}</span></div>`;
             return row + (kids.length ? `<div class="sm-kids" data-kids="${e(key)}" data-collapsed="${col(key) ? '1' : '0'}">${flows(m)}</div>` : '');
         };
         const flows = (mod) => {
@@ -295,10 +295,10 @@ Object.assign(DebugModuleJump, {
                 const types = this._SM_TYPE_ORDER.filter((t) => byType[t]).concat(Object.keys(byType).filter((t) => this._SM_TYPE_ORDER.indexOf(t) < 0));
                 const inner = types.map((t) => {
                     const tk = 't|' + mod.id + '|' + fn + '|' + t;
-                    return `<div class="sm-type">${toggle(tk, `${this._SM_TYPE_CN[t] || '其他'}（${byType[t].length}）`, 'sm-fh-type')}` +
+                    return `<div class="sm-type">${toggle(tk, `${this._SM_TYPE_CN[t] || I18n.t('其他')}${I18n.t('（{n}）', { n: byType[t].length })}`, 'sm-fh-type')}` +
                         `<div class="sm-kids" data-kids="${e(tk)}" data-collapsed="${col(tk) ? '1' : '0'}">${byType[t].map(node).join('')}</div></div>`;
                 }).join('');
-                const title = fn === 'main' ? '主流程' : '分流程：' + this._smFlowName(mod, fn);
+                const title = fn === 'main' ? I18n.t('主流程') : I18n.t('分流程：{name}', { name: this._smFlowName(mod, fn) });
                 return `<div class="sm-flow">${toggle(fk, title, 'sm-fh-flow')}<div class="sm-kids" data-kids="${e(fk)}" data-collapsed="${col(fk) ? '1' : '0'}">${inner}</div></div>`;
             }).join('');
         };
@@ -308,20 +308,20 @@ Object.assign(DebugModuleJump, {
     _smDetailHtml(ms, ss, id) {
         const e = DebugCtl.esc;
         const m = id ? ms.getModule(id) : null;
-        if (!m) return '<div class="cx-muted">在左侧选择一个模块。</div>';
+        if (!m) return '<div class="cx-muted">' + I18n.t('在左侧选择一个模块。') + '</div>';
         const sm = ss.moduleSummaries.get(id);
         const content = sm && sm.content ? sm.content : '';
         const on = !!(m.summary && m.summary.enabled);
-        let h = `<div class="sm-dhead"><span class="sm-dtitle">${e(m.name || '未命名模块')}</span><span class="sm-badge${on ? ' has' : ''}">${on ? '已启用总结' : '未启用总结'}</span></div>` +
-            `<div class="sm-sub">模块总结</div>` +
-            `<textarea class="cx-in cx-grow sm-modtext" rows="2" data-mid="${e(id)}" aria-label="模块总结">${e(content)}</textarea>` +
-            `<div class="sm-actions"><button type="button" class="cx-btn cx-del" data-act="mclear" data-mid="${e(id)}">清除</button></div>`;
+        let h = `<div class="sm-dhead"><span class="sm-dtitle">${e(m.name || I18n.t('未命名模块'))}</span><span class="sm-badge${on ? ' has' : ''}">${on ? I18n.t('已启用总结') : I18n.t('未启用总结')}</span></div>` +
+            `<div class="sm-sub">${I18n.t('模块总结')}</div>` +
+            `<textarea class="cx-in cx-grow sm-modtext" rows="2" data-mid="${e(id)}" aria-label="${I18n.t('模块总结')}">${e(content)}</textarea>` +
+            `<div class="sm-actions"><button type="button" class="cx-btn cx-del" data-act="mclear" data-mid="${e(id)}">${I18n.t('清除')}</button></div>`;
         const flows = m.flows ? Object.keys(m.flows).filter((f) => f !== 'main') : [];
         flows.forEach((f) => {
             const fs = ss.flowSummaries && ss.flowSummaries.get ? ss.flowSummaries.get(id + ':' + f) : null;
-            h += `<div class="sm-sub">分流程总结：${e(this._smFlowName(m, f))}</div>` +
-                `<textarea class="cx-in cx-grow sm-flowtext" rows="2" data-mid="${e(id)}" data-flow="${e(f)}" aria-label="分流程总结">${e(fs && fs.content ? fs.content : '')}</textarea>` +
-                `<div class="sm-actions"><button type="button" class="cx-btn cx-del" data-act="fclear" data-mid="${e(id)}" data-flow="${e(f)}">清除</button></div>`;
+            h += `<div class="sm-sub">${I18n.t('分流程总结：{name}', { name: e(this._smFlowName(m, f)) })}</div>` +
+                `<textarea class="cx-in cx-grow sm-flowtext" rows="2" data-mid="${e(id)}" data-flow="${e(f)}" aria-label="${I18n.t('分流程总结')}">${e(fs && fs.content ? fs.content : '')}</textarea>` +
+                `<div class="sm-actions"><button type="button" class="cx-btn cx-del" data-act="fclear" data-mid="${e(id)}" data-flow="${e(f)}">${I18n.t('清除')}</button></div>`;
         });
         return h;
     },
@@ -344,19 +344,19 @@ Object.assign(DebugModuleJump, {
         const cards = list.map((x, i) => ({ x, i })).filter((p) => this._smIsForeshadow(p.x)).map((p) => {
             const x = p.x, i = p.i;
             return `<div class="sm-card" data-di="${i}" data-kind="fs">` +
-                `<div class="sm-field"><span class="sm-flab">标题</span><input type="text" class="cx-in sm-fs-title" data-di="${i}" value="${e(x.title || '')}" aria-label="伏笔标题"></div>` +
-                `<div class="sm-field"><span class="sm-flab">内容</span><textarea class="cx-in cx-grow sm-fs-content" rows="2" data-di="${i}" aria-label="伏笔内容">${e(x.content || '')}</textarea></div>` +
-                `<div class="sm-field"><span class="sm-flab">回流轮数</span>${this._smNumHtml(x.recallRounds == null ? 0 : x.recallRounds, `data-act-n="fsrounds" data-di="${i}"`, { min: 0, max: 999, unit: '轮', label: '回流轮数' })}</div>` +
-                `<div class="sm-field"><span class="sm-flab">已完成</span>${this._smBoolHtml(!!x.completed, `data-act="dlbool" data-di="${i}"`, '已完成')}</div>` +
-                `<div class="sm-actions"><button type="button" class="cx-btn cx-del" data-act="dldel" data-di="${i}">删除</button></div></div>`;
+                `<div class="sm-field"><span class="sm-flab">${I18n.t('标题')}</span><input type="text" class="cx-in sm-fs-title" data-di="${i}" value="${e(x.title || '')}" aria-label="${I18n.t('伏笔标题')}"></div>` +
+                `<div class="sm-field"><span class="sm-flab">${I18n.t('内容')}</span><textarea class="cx-in cx-grow sm-fs-content" rows="2" data-di="${i}" aria-label="${I18n.t('伏笔内容')}">${e(x.content || '')}</textarea></div>` +
+                `<div class="sm-field"><span class="sm-flab">${I18n.t('回流轮数')}</span>${this._smNumHtml(x.recallRounds == null ? 0 : x.recallRounds, `data-act-n="fsrounds" data-di="${i}"`, { min: 0, max: 999, unit: I18n.t('轮'), label: I18n.t('回流轮数') })}</div>` +
+                `<div class="sm-field"><span class="sm-flab">${I18n.t('已完成')}</span>${this._smBoolHtml(!!x.completed, `data-act="dlbool" data-di="${i}"`, I18n.t('已完成'))}</div>` +
+                `<div class="sm-actions"><button type="button" class="cx-btn cx-del" data-act="dldel" data-di="${i}">${I18n.t('删除')}</button></div></div>`;
         }).join('');
         const n = list.filter((x) => this._smIsForeshadow(x)).length;
-        return `<div class="cx-sttl">伏笔（${n}）</div>${cards || '<div class="cx-muted cx-emptyline">暂无伏笔。</div>'}` +
-            `<div class="sm-card sm-new" data-kind="fsnew"><div class="sm-sub">新增伏笔</div>` +
-            `<div class="sm-field"><span class="sm-flab">标题</span><input type="text" class="cx-in sm-new-title" aria-label="新伏笔标题"></div>` +
-            `<div class="sm-field"><span class="sm-flab">内容</span><textarea class="cx-in cx-grow sm-new-content" rows="2" aria-label="新伏笔内容"></textarea></div>` +
-            `<div class="sm-field"><span class="sm-flab">回流轮数</span>${this._smNumHtml(5, 'data-new="rounds"', { min: 0, max: 999, unit: '轮', label: '回流轮数' })}</div>` +
-            `<div class="sm-actions"><button type="button" class="cx-btn cx-btn-main" data-act="fsadd">添加伏笔</button></div></div>`;
+        return `<div class="cx-sttl">${I18n.t('伏笔（{n}）', { n })}</div>${cards || '<div class="cx-muted cx-emptyline">' + I18n.t('暂无伏笔。') + '</div>'}` +
+            `<div class="sm-card sm-new" data-kind="fsnew"><div class="sm-sub">${I18n.t('新增伏笔')}</div>` +
+            `<div class="sm-field"><span class="sm-flab">${I18n.t('标题')}</span><input type="text" class="cx-in sm-new-title" aria-label="${I18n.t('新伏笔标题')}"></div>` +
+            `<div class="sm-field"><span class="sm-flab">${I18n.t('内容')}</span><textarea class="cx-in cx-grow sm-new-content" rows="2" aria-label="${I18n.t('新伏笔内容')}"></textarea></div>` +
+            `<div class="sm-field"><span class="sm-flab">${I18n.t('回流轮数')}</span>${this._smNumHtml(5, 'data-new="rounds"', { min: 0, max: 999, unit: I18n.t('轮'), label: I18n.t('回流轮数') })}</div>` +
+            `<div class="sm-actions"><button type="button" class="cx-btn cx-btn-main" data-act="fsadd">${I18n.t('添加伏笔')}</button></div></div>`;
     },
 
     _smDeliveryHtml(ms, ss) {
@@ -367,20 +367,20 @@ Object.assign(DebugModuleJump, {
         if (ms.modules && ms.modules.forEach) ms.modules.forEach((m) => {
             const di = Array.isArray(m.deliveryInfo) ? m.deliveryInfo : [];
             if (!di.length) return;
-            mods += `<div class="sm-sub">${e(m.name || '未命名模块')}</div>` + di.map((d, k) =>
-                `<div class="sm-card sm-mdel"><div class="sm-dtext"><b>${e(d.title || '未命名投递')}</b>${d.content ? `<div class="sm-dbody">${e(d.content)}</div>` : ''}</div>` +
-                `<div class="sm-field"><span class="sm-flab">已完成</span>${this._smBoolHtml(!!d.completed, `data-act="mdelbool" data-mid="${e(m.id)}" data-title="${e(d.title || '')}"`, '已完成')}</div></div>`).join('');
+            mods += `<div class="sm-sub">${e(m.name || I18n.t('未命名模块'))}</div>` + di.map((d, k) =>
+                `<div class="sm-card sm-mdel"><div class="sm-dtext"><b>${e(d.title || I18n.t('未命名投递'))}</b>${d.content ? `<div class="sm-dbody">${e(d.content)}</div>` : ''}</div>` +
+                `<div class="sm-field"><span class="sm-flab">${I18n.t('已完成')}</span>${this._smBoolHtml(!!d.completed, `data-act="mdelbool" data-mid="${e(m.id)}" data-title="${e(d.title || '')}"`, I18n.t('已完成'))}</div></div>`).join('');
         });
         const cards = list.map((x, i) => ({ x, i })).filter((p) => !this._smIsForeshadow(p.x)).map((p) => this._smCondCardHtml(ss, p.x, p.i)).join('');
         const n = list.filter((x) => !this._smIsForeshadow(x)).length;
-        return `<div class="cx-sttl">投递</div>` +
-            `<div class="sm-sub">模组投递的完成情况</div>${mods || '<div class="cx-muted cx-emptyline">暂无模组投递。</div>'}` +
-            `<div class="sm-sub">按条件投递（${n}）</div>${cards || '<div class="cx-muted cx-emptyline">暂无按条件的投递。</div>'}` +
-            `<div class="sm-card sm-new" data-kind="dlnew"><div class="sm-sub">新增投递</div>` +
-            `<div class="sm-field"><span class="sm-flab">标题</span><input type="text" class="cx-in sm-new-title" aria-label="新投递标题"></div>` +
-            `<div class="sm-field"><span class="sm-flab">内容</span><textarea class="cx-in cx-grow sm-new-content" rows="2" aria-label="新投递内容"></textarea></div>` +
-            `<div class="sm-field"><span class="sm-flab">触发条件</span><div class="sm-cond" data-cond="new">${this._smCondBuilderHtml(this._smCondDraft('variable'))}</div></div>` +
-            `<div class="sm-actions"><button type="button" class="cx-btn cx-btn-main" data-act="dladd">添加投递</button></div></div>`;
+        return `<div class="cx-sttl">${I18n.t('投递')}</div>` +
+            `<div class="sm-sub">${I18n.t('模组投递的完成情况')}</div>${mods || '<div class="cx-muted cx-emptyline">' + I18n.t('暂无模组投递。') + '</div>'}` +
+            `<div class="sm-sub">${I18n.t('按条件投递（{n}）', { n })}</div>${cards || '<div class="cx-muted cx-emptyline">' + I18n.t('暂无按条件的投递。') + '</div>'}` +
+            `<div class="sm-card sm-new" data-kind="dlnew"><div class="sm-sub">${I18n.t('新增投递')}</div>` +
+            `<div class="sm-field"><span class="sm-flab">${I18n.t('标题')}</span><input type="text" class="cx-in sm-new-title" aria-label="${I18n.t('新投递标题')}"></div>` +
+            `<div class="sm-field"><span class="sm-flab">${I18n.t('内容')}</span><textarea class="cx-in cx-grow sm-new-content" rows="2" aria-label="${I18n.t('新投递内容')}"></textarea></div>` +
+            `<div class="sm-field"><span class="sm-flab">${I18n.t('触发条件')}</span><div class="sm-cond" data-cond="new">${this._smCondBuilderHtml(this._smCondDraft('variable'))}</div></div>` +
+            `<div class="sm-actions"><button type="button" class="cx-btn cx-btn-main" data-act="dladd">${I18n.t('添加投递')}</button></div></div>`;
     },
 
     _smCondCardHtml(ss, x, i) {
@@ -388,23 +388,23 @@ Object.assign(DebugModuleJump, {
         const status = this._smCondStatus(ss, x);
         const parsed = x.conditionParsed ? this._smCondFromParsed(x.conditionParsed) : this._smCondDraft('variable');
         return `<div class="sm-card" data-di="${i}" data-kind="dl">` +
-            `<div class="sm-field"><span class="sm-flab">标题</span><input type="text" class="cx-in sm-dl-title" data-di="${i}" value="${e(x.title || '')}" aria-label="投递标题"></div>` +
-            `<div class="sm-field"><span class="sm-flab">内容</span><textarea class="cx-in cx-grow sm-dl-content" rows="2" data-di="${i}" aria-label="投递内容">${e(x.content || '')}</textarea></div>` +
-            `<div class="sm-field"><span class="sm-flab">触发条件</span><div class="sm-cond" data-cond="${i}">${this._smCondBuilderHtml(parsed)}</div></div>` +
-            `<div class="sm-field"><span class="sm-flab">已完成</span>${this._smBoolHtml(!!x.completed, `data-act="dlbool" data-di="${i}"`, '已完成')}<span class="sm-status">${e(status)}</span></div>` +
-            `<div class="sm-actions"><button type="button" class="cx-btn cx-del" data-act="dldel" data-di="${i}">删除</button></div></div>`;
+            `<div class="sm-field"><span class="sm-flab">${I18n.t('标题')}</span><input type="text" class="cx-in sm-dl-title" data-di="${i}" value="${e(x.title || '')}" aria-label="${I18n.t('投递标题')}"></div>` +
+            `<div class="sm-field"><span class="sm-flab">${I18n.t('内容')}</span><textarea class="cx-in cx-grow sm-dl-content" rows="2" data-di="${i}" aria-label="${I18n.t('投递内容')}">${e(x.content || '')}</textarea></div>` +
+            `<div class="sm-field"><span class="sm-flab">${I18n.t('触发条件')}</span><div class="sm-cond" data-cond="${i}">${this._smCondBuilderHtml(parsed)}</div></div>` +
+            `<div class="sm-field"><span class="sm-flab">${I18n.t('已完成')}</span>${this._smBoolHtml(!!x.completed, `data-act="dlbool" data-di="${i}"`, I18n.t('已完成'))}<span class="sm-status">${e(status)}</span></div>` +
+            `<div class="sm-actions"><button type="button" class="cx-btn cx-del" data-act="dldel" data-di="${i}">${I18n.t('删除')}</button></div></div>`;
     },
 
     // ---------- 触发条件编辑 ----------
     _smVarOptions() {
         const vs = this.variableSystem; const out = [];
-        if (vs && vs.variables) vs.variables.forEach((v, id) => { if (v && ['number', 'string', 'boolean'].indexOf(v.type) >= 0) out.push({ value: id, label: v.name || '未命名变量' }); });
+        if (vs && vs.variables) vs.variables.forEach((v, id) => { if (v && ['number', 'string', 'boolean'].indexOf(v.type) >= 0) out.push({ value: id, label: v.name || I18n.t('未命名变量') }); });
         return out;
     },
 
     _smModOptions() {
         const ms = this.moduleSystem; const out = [];
-        if (ms && ms.modules && ms.modules.forEach) ms.modules.forEach((m) => { if (m) out.push({ value: m.id, label: m.name || '未命名模块' }); });
+        if (ms && ms.modules && ms.modules.forEach) ms.modules.forEach((m) => { if (m) out.push({ value: m.id, label: m.name || I18n.t('未命名模块') }); });
         return out;
     },
 
@@ -438,23 +438,23 @@ Object.assign(DebugModuleJump, {
 
     _smCondBuilderHtml(c) {
         const e = DebugCtl.esc;
-        let h = this._smChips([['variable', '变量'], ['time', '时间'], ['module', '模块状态']], c.type, 'ctype');
+        let h = this._smChips([['variable', I18n.t('变量')], ['time', I18n.t('时间')], ['module', I18n.t('模块状态')]], c.type, 'ctype');
         if (c.type === 'module') {
-            h += DebugCtl.pickHtml({ key: 'cmod', value: c.moduleId, options: this._smModOptions(), emptyLabel: '选择模块' });
-            h += this._smChips([['entered', '已进入'], ['completed', '已完成']], c.state, 'cstate');
+            h += DebugCtl.pickHtml({ key: 'cmod', value: c.moduleId, options: this._smModOptions(), emptyLabel: I18n.t('选择模块') });
+            h += this._smChips([['entered', I18n.t('已进入')], ['completed', I18n.t('已完成')]], c.state, 'cstate');
         } else if (c.type === 'time') {
             h += this._smChips(this._SM_TIME_PARAMS, c.param, 'cparam');
             h += this._smChips(this._SM_OPS, c.operator, 'cop');
-            h += this._smNumHtml(c.value, 'data-cval="1"', { min: 0, max: 99999, label: '数值' });
+            h += this._smNumHtml(c.value, 'data-cval="1"', { min: 0, max: 99999, label: I18n.t('数值') });
         } else {
-            h += DebugCtl.pickHtml({ key: 'cvar', value: c.variableId, options: this._smVarOptions(), emptyLabel: '选择变量' });
+            h += DebugCtl.pickHtml({ key: 'cvar', value: c.variableId, options: this._smVarOptions(), emptyLabel: I18n.t('选择变量') });
             const v = c.variableId ? this.variableSystem.getVariable(c.variableId) : null;
             const t = v ? v.type : 'number';
             const ops = t === 'number' ? this._SM_OPS : this._SM_OPS.filter((o) => o[0] === '==' || o[0] === '!=');
             h += this._smChips(ops, c.operator, 'cop');
-            if (t === 'boolean') h += this._smBoolHtml(c.value === true, 'data-act="cbool"', '比较值');
-            else if (t === 'string') h += `<input type="text" class="cx-in sm-cval-text" value="${e(c.value == null ? '' : c.value)}" aria-label="比较值">`;
-            else h += this._smNumHtml(c.value, 'data-cval="1"', { label: '比较值' }).replace('data-int="1"', '');
+            if (t === 'boolean') h += this._smBoolHtml(c.value === true, 'data-act="cbool"', I18n.t('比较值'));
+            else if (t === 'string') h += `<input type="text" class="cx-in sm-cval-text" value="${e(c.value == null ? '' : c.value)}" aria-label="${I18n.t('比较值')}">`;
+            else h += this._smNumHtml(c.value, 'data-cval="1"', { label: I18n.t('比较值') }).replace('data-int="1"', '');
         }
         return h;
     },
@@ -485,7 +485,7 @@ Object.assign(DebugModuleJump, {
         const psys = this.pluginSystem; const plugins = [];
         if (psys && psys.plugins && psys.plugins.forEach) psys.plugins.forEach((p) => { if (p) plugins.push(p); });
         const known = new Set(plugins.map((p) => p.id));
-        if (ss.pluginSummaries && ss.pluginSummaries.forEach) ss.pluginSummaries.forEach((v, id) => { if (!known.has(id)) plugins.push({ id, name: '未知插件', type: '' }); });
+        if (ss.pluginSummaries && ss.pluginSummaries.forEach) ss.pluginSummaries.forEach((v, id) => { if (!known.has(id)) plugins.push({ id, name: I18n.t('未知插件'), type: '' }); });
         const cfg = ss.config.pluginSummary = ss.config.pluginSummary || {};
         const by = cfg.byPlugin = cfg.byPlugin || {};
         const globalKeep = this._smCfgGet('globalSummary.keepRecentOriginalMessages');
@@ -495,17 +495,17 @@ Object.assign(DebugModuleJump, {
             const evs = events.map((ev, i) => {
                 const text = ev && typeof ev.event === 'string' ? ev.event : null;
                 const body = text !== null
-                    ? `<textarea class="cx-in cx-grow sm-pl-event" rows="1" data-pid="${e(p.id)}" data-idx="${i}" aria-label="第 ${i + 1} 条总结">${e(text)}</textarea>`
+                    ? `<textarea class="cx-in cx-grow sm-pl-event" rows="1" data-pid="${e(p.id)}" data-idx="${i}" aria-label="${I18n.t('第 {n} 条总结', { n: i + 1 })}">${e(text)}</textarea>`
                     : `<div class="sm-dtext">${e(JSON.stringify(ev && ev.event !== undefined ? ev.event : ev))}</div>`;
                 return `<div class="sm-entry"><span class="cx-idx">${i + 1}</span><div class="sm-entrybody">${body}</div>` +
-                    `<button type="button" class="cx-btn cx-del" data-act="pldel" data-pid="${e(p.id)}" data-idx="${i}">删除</button></div>`;
+                    `<button type="button" class="cx-btn cx-del" data-act="pldel" data-pid="${e(p.id)}" data-idx="${i}">${I18n.t('删除')}</button></div>`;
             }).join('');
-            return `<div class="sm-card" data-pid="${e(p.id)}"><div class="sm-dhead"><span class="sm-dtitle">${e(p.name || '未命名插件')}</span>${p.type && this._plTypeCN ? `<span class="cx-vt">${e(this._plTypeCN(p.type))}</span>` : ''}</div>` +
-                `<div class="sm-field"><span class="sm-flab">总结轮数</span>${this._smNumHtml(c.summaryRounds == null ? 10 : c.summaryRounds, `data-plcfg="summaryRounds" data-pid="${e(p.id)}"`, { min: 1, max: 999, unit: '轮', label: '总结轮数' })}</div>` +
-                `<div class="sm-field"><span class="sm-flab">原始消息保留轮数</span>${this._smNumHtml(c.keepRecentOriginalMessages == null ? globalKeep : c.keepRecentOriginalMessages, `data-plcfg="keepRecentOriginalMessages" data-pid="${e(p.id)}"`, { min: 0, max: 999, unit: '轮', label: '原始消息保留轮数' })}</div>` +
-                `<div class="sm-sub">已有总结（${events.length}）</div>${evs || '<div class="cx-muted cx-emptyline">暂无。</div>'}</div>`;
+            return `<div class="sm-card" data-pid="${e(p.id)}"><div class="sm-dhead"><span class="sm-dtitle">${e(p.name || I18n.t('未命名插件'))}</span>${p.type && this._plTypeCN ? `<span class="cx-vt">${e(this._plTypeCN(p.type))}</span>` : ''}</div>` +
+                `<div class="sm-field"><span class="sm-flab">${I18n.t('总结轮数')}</span>${this._smNumHtml(c.summaryRounds == null ? 10 : c.summaryRounds, `data-plcfg="summaryRounds" data-pid="${e(p.id)}"`, { min: 1, max: 999, unit: I18n.t('轮'), label: I18n.t('总结轮数') })}</div>` +
+                `<div class="sm-field"><span class="sm-flab">${I18n.t('原始消息保留轮数')}</span>${this._smNumHtml(c.keepRecentOriginalMessages == null ? globalKeep : c.keepRecentOriginalMessages, `data-plcfg="keepRecentOriginalMessages" data-pid="${e(p.id)}"`, { min: 0, max: 999, unit: I18n.t('轮'), label: I18n.t('原始消息保留轮数') })}</div>` +
+                `<div class="sm-sub">${I18n.t('已有总结（{n}）', { n: events.length })}</div>${evs || '<div class="cx-muted cx-emptyline">' + I18n.t('暂无。') + '</div>'}</div>`;
         }).join('');
-        return `<div class="cx-sttl">插件总结</div>${cards || '<div class="cx-muted cx-emptyline">暂无插件。</div>'}`;
+        return `<div class="cx-sttl">${I18n.t('插件总结')}</div>${cards || '<div class="cx-muted cx-emptyline">' + I18n.t('暂无插件。') + '</div>'}`;
     },
 
     // ---------- 事件 ----------
@@ -545,12 +545,12 @@ Object.assign(DebugModuleJump, {
             const id = t.getAttribute('data-mid'); const prev = ss.moduleSummaries.get(id);
             if (!prev) return;
             ss.clearModuleSummary(id); this._smSync(); this._smRefreshModules();
-            DebugCtl.undo.show('已清除模块总结。', () => { ss.moduleSummaries.set(id, prev); this._smSync(); this._smRefreshModules(); });
+            DebugCtl.undo.show(I18n.t('已清除模块总结。'), () => { ss.moduleSummaries.set(id, prev); this._smSync(); this._smRefreshModules(); });
         } else if (act === 'fclear') {
             const key = t.getAttribute('data-mid') + ':' + t.getAttribute('data-flow'); const prev = ss.flowSummaries.get(key);
             if (!prev) return;
             ss.flowSummaries.delete(key); this._smSync(); this._smRefreshModules();
-            DebugCtl.undo.show('已清除分流程总结。', () => { ss.flowSummaries.set(key, prev); this._smSync(); this._smRefreshModules(); });
+            DebugCtl.undo.show(I18n.t('已清除分流程总结。'), () => { ss.flowSummaries.set(key, prev); this._smSync(); this._smRefreshModules(); });
         } else if (act === 'dlbool') {
             const x = this._smCDList(ss)[Number(t.getAttribute('data-di'))]; if (!x) return;
             x.completed = t.getAttribute('data-bool') === '1'; this._smSync(); this._smReplace('sm-sec-fs'); this._smReplace('sm-sec-dl'); this._smSaved();
@@ -602,7 +602,7 @@ Object.assign(DebugModuleJump, {
         } else if (el.matches('textarea.sm-pl-event')) {
             const arr = ss.pluginSummaries.get(el.getAttribute('data-pid')); const x = arr && arr[Number(el.getAttribute('data-idx'))];
             if (!x) return;
-            if (el.value.trim() === '') { DebugCtl.notify('内容不能为空；要移除请点删除。', 'error'); el.value = x.event; DebugCtl.fit(el); return; }
+            if (el.value.trim() === '') { DebugCtl.notify(I18n.t('内容不能为空；要移除请点删除。'), 'error'); el.value = x.event; DebugCtl.fit(el); return; }
             x.event = el.value; this._smSync(); this._smSaved();
         }
     },
@@ -611,7 +611,7 @@ Object.assign(DebugModuleJump, {
         const box = this._sm().bound; const ss = this._smSS(); if (!box) return;
         box.querySelectorAll('.sm-node').forEach((n) => {
             const has = this._smHasSummary(ss, n.getAttribute('data-nid'));
-            const b = n.querySelector('.sm-badge'); if (b) { b.classList.toggle('has', has); b.textContent = has ? '有总结' : '空'; }
+            const b = n.querySelector('.sm-badge'); if (b) { b.classList.toggle('has', has); b.textContent = has ? I18n.t('有总结') : I18n.t('空'); }
         });
     },
 
@@ -632,7 +632,7 @@ Object.assign(DebugModuleJump, {
         const arr = this._smArr(ss, el.getAttribute('data-cat'), el.getAttribute('data-grp'));
         const i = Number(el.getAttribute('data-idx')); const x = arr && arr[i];
         if (x === undefined) return;
-        if (el.value.trim() === '') { DebugCtl.notify('内容不能为空；要移除请点删除。', 'error'); el.value = this._smItemText(x); DebugCtl.fit(el); return; }
+        if (el.value.trim() === '') { DebugCtl.notify(I18n.t('内容不能为空；要移除请点删除。'), 'error'); el.value = this._smItemText(x); DebugCtl.fit(el); return; }
         if (typeof x === 'string') arr[i] = el.value; else x.content = el.value;
         this._smSync(); this._smSaved();
     },
@@ -643,13 +643,13 @@ Object.assign(DebugModuleJump, {
         if (!arr || i < 0 || i >= arr.length) return;
         const item = arr.splice(i, 1)[0];
         this._smSync(); this._smReplace('sm-sec-global');
-        DebugCtl.undo.show('已删除一条。', () => { const a = this._smArr(ss, cat, grp); if (a) { a.splice(Math.min(i, a.length), 0, item); this._smSync(); this._smReplace('sm-sec-global'); } });
+        DebugCtl.undo.show(I18n.t('已删除一条。'), () => { const a = this._smArr(ss, cat, grp); if (a) { a.splice(Math.min(i, a.length), 0, item); this._smSync(); this._smReplace('sm-sec-global'); } });
     },
 
     _smGlobalAdd(btn) {
         const ss = this._smSS(); const row = btn.closest('.sm-addrow'); const cat = btn.getAttribute('data-cat');
         const ta = row.querySelector('.sm-newtext'); const text = ta.value.trim();
-        if (!text) { DebugCtl.notify('请先填写内容。', 'error'); ta.focus(); return; }
+        if (!text) { DebugCtl.notify(I18n.t('请先填写内容。'), 'error'); ta.focus(); return; }
         const arr = this._smArr(ss, cat);
         if (cat === 'orig') { const on = row.querySelector('.cx-segb.on'); arr.push({ role: on ? on.getAttribute('data-role') : 'user', content: text, timestamp: new Date() }); }
         else if (cat === 'mega') arr.push({ content: text, timestamp: new Date(), sourceCount: 0 });
@@ -664,8 +664,8 @@ Object.assign(DebugModuleJump, {
     _smTitleEdit(el) {
         const ss = this._smSS(); const i = Number(el.getAttribute('data-di')); const x = this._smCDList(ss)[i]; if (!x) return;
         const v = el.value.trim();
-        if (!v) { DebugCtl.notify('标题不能为空。', 'error'); el.value = x.title || ''; return; }
-        if (this._smTitleExists(ss, v, i)) { DebugCtl.notify('已有同名的伏笔或投递。', 'error'); el.value = x.title || ''; return; }
+        if (!v) { DebugCtl.notify(I18n.t('标题不能为空。'), 'error'); el.value = x.title || ''; return; }
+        if (this._smTitleExists(ss, v, i)) { DebugCtl.notify(I18n.t('已有同名的伏笔或投递。'), 'error'); el.value = x.title || ''; return; }
         x.title = v; this._smSync(); this._smSaved();
     },
 
@@ -673,9 +673,9 @@ Object.assign(DebugModuleJump, {
         const ss = this._smSS(); const card = btn.closest('.sm-card');
         const title = card.querySelector('.sm-new-title').value.trim(); const content = card.querySelector('.sm-new-content').value;
         const rEl = card.querySelector('input[data-new="rounds"]'); const r = DebugCtl.parseNum(rEl.value, DebugCtl.numSpec(rEl));
-        if (!title) { DebugCtl.notify('请先填写标题。', 'error'); card.querySelector('.sm-new-title').focus(); return; }
-        if (this._smTitleExists(ss, title, -1)) { DebugCtl.notify('已有同名的伏笔或投递。', 'error'); return; }
-        if (!r.ok) { DebugCtl.notify('回流轮数需要填写数字。', 'error'); return; }
+        if (!title) { DebugCtl.notify(I18n.t('请先填写标题。'), 'error'); card.querySelector('.sm-new-title').focus(); return; }
+        if (this._smTitleExists(ss, title, -1)) { DebugCtl.notify(I18n.t('已有同名的伏笔或投递。'), 'error'); return; }
+        if (!r.ok) { DebugCtl.notify(I18n.t('回流轮数需要填写数字。'), 'error'); return; }
         this._smCDList(ss).push({ title, content, conditionStr: '', conditionParsed: null, completed: false, recallRounds: r.n, kind: 'foreshadow' });
         this._smSync(); this._smReplace('sm-sec-fs'); this._smSaved();
     },
@@ -683,13 +683,13 @@ Object.assign(DebugModuleJump, {
     _smDeliveryAdd(btn) {
         const ss = this._smSS(); const card = btn.closest('.sm-card');
         const title = card.querySelector('.sm-new-title').value.trim(); const content = card.querySelector('.sm-new-content').value;
-        if (!title) { DebugCtl.notify('请先填写标题。', 'error'); card.querySelector('.sm-new-title').focus(); return; }
-        if (this._smTitleExists(ss, title, -1)) { DebugCtl.notify('已有同名的伏笔或投递。', 'error'); return; }
+        if (!title) { DebugCtl.notify(I18n.t('请先填写标题。'), 'error'); card.querySelector('.sm-new-title').focus(); return; }
+        if (this._smTitleExists(ss, title, -1)) { DebugCtl.notify(I18n.t('已有同名的伏笔或投递。'), 'error'); return; }
         const cond = this._smCondRead(card.querySelector('.sm-cond'));
         const str = this._smCondStr(cond);
-        if (!str) { DebugCtl.notify('请先把触发条件填完整。', 'error'); return; }
+        if (!str) { DebugCtl.notify(I18n.t('请先把触发条件填完整。'), 'error'); return; }
         const parsed = ss._parseForeshadowCondition(str);
-        if (!parsed) { DebugCtl.notify('这个触发条件无法识别，请重新选择。', 'error'); return; }
+        if (!parsed) { DebugCtl.notify(I18n.t('这个触发条件无法识别，请重新选择。'), 'error'); return; }
         this._smCDList(ss).push({ title, content, conditionStr: str, conditionParsed: parsed, completed: false });
         this._smSync(); this._smReplace('sm-sec-dl'); this._smSaved();
     },
@@ -699,7 +699,7 @@ Object.assign(DebugModuleJump, {
         if (i < 0 || i >= list.length) return;
         const item = list.splice(i, 1)[0];
         this._smSync(); this._smReplace('sm-sec-fs'); this._smReplace('sm-sec-dl');
-        DebugCtl.undo.show('已删除一条。', () => { const l = this._smCDList(ss); l.splice(Math.min(i, l.length), 0, item); this._smSync(); this._smReplace('sm-sec-fs'); this._smReplace('sm-sec-dl'); });
+        DebugCtl.undo.show(I18n.t('已删除一条。'), () => { const l = this._smCDList(ss); l.splice(Math.min(i, l.length), 0, item); this._smSync(); this._smReplace('sm-sec-fs'); this._smReplace('sm-sec-dl'); });
     },
 
     _smPluginEventDelete(btn) {
@@ -707,7 +707,7 @@ Object.assign(DebugModuleJump, {
         const arr = ss.pluginSummaries.get(pid); if (!arr || i < 0 || i >= arr.length) return;
         const item = arr.splice(i, 1)[0];
         this._smSync(); this._smReplace('sm-sec-plugins');
-        DebugCtl.undo.show('已删除一条插件总结。', () => { const a = ss.pluginSummaries.get(pid) || []; a.splice(Math.min(i, a.length), 0, item); ss.pluginSummaries.set(pid, a); this._smSync(); this._smReplace('sm-sec-plugins'); });
+        DebugCtl.undo.show(I18n.t('已删除一条插件总结。'), () => { const a = ss.pluginSummaries.get(pid) || []; a.splice(Math.min(i, a.length), 0, item); ss.pluginSummaries.set(pid, a); this._smSync(); this._smReplace('sm-sec-plugins'); });
     },
 
     /** 模组里写好的投递：改完成状态，同时写进全局状态里的已完成记录 */
@@ -757,9 +757,9 @@ Object.assign(DebugModuleJump, {
         if (key === 'new') return;
         const ss = this._smSS(); const x = this._smCDList(ss)[Number(key)]; if (!x) return;
         const cond = this._smCondRead(host); const str = this._smCondStr(cond);
-        if (!str) { DebugCtl.notify('触发条件还不完整，没有保存。', 'error'); return; }
+        if (!str) { DebugCtl.notify(I18n.t('触发条件还不完整，没有保存。'), 'error'); return; }
         const parsed = ss._parseForeshadowCondition(str);
-        if (!parsed) { DebugCtl.notify('这个触发条件无法识别，没有保存。', 'error'); return; }
+        if (!parsed) { DebugCtl.notify(I18n.t('这个触发条件无法识别，没有保存。'), 'error'); return; }
         x.conditionStr = str; x.conditionParsed = parsed;
         this._smSync(); this._smSaved();
         const card = host.closest('.sm-card');
@@ -769,13 +769,13 @@ Object.assign(DebugModuleJump, {
 
     /** 按投递现在的条件说明状态；检查条件时出错就把出错的原因写出来 */
     _smCondStatus(ss, x) {
-        if (x.completed) return '已完成';
-        if (!x.conditionParsed) return '条件未设置';
+        if (x.completed) return I18n.t('已完成');
+        if (!x.conditionParsed) return I18n.t('条件未设置');
         try {
-            return ss._evaluateConditionalDeliveryCondition(x.conditionParsed) ? '条件已满足，待发送' : '条件未满足';
+            return ss._evaluateConditionalDeliveryCondition(x.conditionParsed) ? I18n.t('条件已满足，待发送') : I18n.t('条件未满足');
         } catch (err) {
             console.error(err);
-            return '检查条件时出错：' + err.message;
+            return I18n.t('检查条件时出错：') + err.message;
         }
     }
 });

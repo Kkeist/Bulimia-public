@@ -20,6 +20,14 @@ let running = 0;
 
 export const RP_SYSTEM = '你是一套互动叙事系统的文本生成引擎，按输入里的格式要求生成剧情正文和规定的结构化标签。';
 
+/** 非中文界面时发给命令行的固定文字（lang 由浏览器传来，没有或不认识就用中文） */
+const EN_TEXT = {
+    system: 'You are the text-generation engine of an interactive storytelling system. Follow the format requirements in the input to produce the story text and the required structured tags.',
+    sysHead: '[System instructions]',
+    user: 'User', sys: 'System', assistant: 'Assistant'
+};
+const wantsEn = (lang) => lang === 'en';
+
 /** 命令名：环境变量 CLAUDE_BIN 可指向别的可执行文件，CLAUDE_BIN_ARGS（JSON 数组）是它的前置参数（自动化测试用假命令） */
 function claudeCommand() {
     return process.env.CLAUDE_BIN || 'claude';
@@ -34,16 +42,19 @@ function claudePrefixArgs() {
 }
 
 /** messages[] 转成单个提示文本（system 单独前置；多轮按角色标注拼接） */
-export function buildInput({ system, messages }) {
+export function buildInput({ system, messages, lang }) {
+    const en = wantsEn(lang);
     let input = '';
-    if (system) input += `[系统指令]\n${system}\n\n`;
+    if (system) input += `${en ? EN_TEXT.sysHead : '[系统指令]'}\n${system}\n\n`;
     const list = Array.isArray(messages) ? messages : [];
     if (list.length === 1 && list[0] && list[0].role !== 'system') {
         input += String(list[0].content ?? '');
         return input;
     }
     input += list.map((m) => {
-        const role = m.role === 'user' ? '用户' : m.role === 'system' ? '系统' : '助手';
+        const role = en
+            ? (m.role === 'user' ? EN_TEXT.user : m.role === 'system' ? EN_TEXT.sys : EN_TEXT.assistant)
+            : (m.role === 'user' ? '用户' : m.role === 'system' ? '系统' : '助手');
         return `[${role}]\n${m.content ?? ''}`;
     }).join('\n\n');
     return input;
@@ -99,7 +110,8 @@ router.post('/', express.json({ limit: '8mb' }), (req, res) => {
     if (model && !MODEL_RE.test(model)) {
         return res.status(400).json({ error: true, code: 'bad-model', message: '模型名称不正确。' });
     }
-    const input = buildInput({ system, messages });
+    const lang = body.lang === 'en' ? 'en' : 'zh';
+    const input = buildInput({ system, messages, lang });
     if (input.length > MAX_INPUT_CHARS) {
         return res.status(413).json({ error: true, code: 'cli-too-long', message: '内容太长，本机 Claude 命令行无法处理。' });
     }
@@ -123,7 +135,7 @@ router.post('/', express.json({ limit: '8mb' }), (req, res) => {
     };
 
     // 不用 --bare：它会关掉登录态。cwd 用系统临时目录，claude 就不会读到本项目的记忆文件。
-    const cliArgs = [...claudePrefixArgs(), '-p', '--output-format', 'stream-json', '--verbose', '--system-prompt', RP_SYSTEM];
+    const cliArgs = [...claudePrefixArgs(), '-p', '--output-format', 'stream-json', '--verbose', '--system-prompt', wantsEn(lang) ? EN_TEXT.system : RP_SYSTEM];
     if (model) cliArgs.push('--model', model);
 
     running++;

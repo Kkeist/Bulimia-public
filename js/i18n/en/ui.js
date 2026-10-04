@@ -1,5 +1,7 @@
 /** 英文词典：ui */
 I18n.add('en', {
+    '已选择 {n} 条消息': '{n} messages selected',
+    '已选择 0 条消息': '0 messages selected',
     // chat-display
     '思考过程': 'Thinking',
     '思维链': 'Chain of thought',

@@ -44,7 +44,7 @@ Object.assign(App, {
             } else if (cur.folderKey) {
                 let res;
                 try {
-                    res = await fetch(`module/${cur.folderKey}/module.json`, { cache: 'no-cache' });
+                    res = await ModuleManager._fetchModuleJson(cur.folderKey);
                 } catch (e) {
                     throw new Error(I18n.t('读取模组文件失败，请确认用本地服务器打开页面后再试'));
                 }

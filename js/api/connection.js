@@ -941,7 +941,7 @@ const APIConnection = {
         }
         const sys = messages.find(m => m.role === 'system');
         const chat = messages.filter(m => m.role !== 'system');
-        const body = { system: sys ? sys.content : '', messages: chat.length ? chat : messages, model: cfg.model || '' };
+        const body = { system: sys ? sys.content : '', messages: chat.length ? chat : messages, model: cfg.model || '', lang: I18n.lang };
 
         const guard = this._makeGuard(options.signal);
         guard.arm(options.timeoutMs || this.REQUEST_MS);

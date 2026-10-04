@@ -632,9 +632,9 @@ const ChatDisplay = {
      * 更新选中计数
      */
     _updateSelectedCount() {
-        const countEl = document.getElementById('selected-count');
-        if (countEl) {
-            countEl.textContent = this.selectedMessageIds.size;
+        const infoEl = document.getElementById('selected-info');
+        if (infoEl) {
+            infoEl.textContent = I18n.t('已选择 {n} 条消息', { n: this.selectedMessageIds.size });
         }
     },
 

@@ -99,7 +99,7 @@ Object.assign(App, {
             config = JSON.parse(JSON.stringify(cur.sourceConfig));
         } else {
             try {
-                const res = await fetch(`module/${folderKey}/module.json`);
+                const res = await ModuleManager._fetchModuleJson(folderKey);
                 if (!res.ok) throw new Error(res.statusText || I18n.t('无法加载'));
                 config = await res.json();
             } catch (e) {
