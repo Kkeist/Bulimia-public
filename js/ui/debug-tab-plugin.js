@@ -7,14 +7,14 @@
  */
 const PluginTester = {
     sessions: {},
-    widths: [['320', '手机窄屏'], ['390', '手机'], ['600', '平板'], ['0', '占满']],
+    widths: [['320', I18n.t('手机窄屏')], ['390', I18n.t('手机')], ['600', I18n.t('平板')], ['0', I18n.t('占满')]],
 
     esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); },
 
     fmt(v) {
-        if (v === undefined || v === null || v === '') return '空';
+        if (v === undefined || v === null || v === '') return I18n.t('空');
         const s = PluginRuntime.formatValue(v);
-        return s === '' ? '空' : s;
+        return s === '' ? I18n.t('空') : s;
     },
 
     // ---------- 变量副本 ----------
@@ -57,7 +57,7 @@ const PluginTester = {
                     const tpl = p.config.moduleTemplate;
                     p.config.moduleTemplate.plugins.forEach(sp => {
                         if (!sp || !sp.id) return;
-                        add(sp, m, { modName: (tpl.name || tpl.id || '生成的模块') + '（由「' + (p.name || p.id) + '」生成）', isDynamic: true, dynamicOwnerName: tpl.name || tpl.id, flow: p.config.outputFlow || 'main' });
+                        add(sp, m, { modName: I18n.t('{name}（由「{owner}」生成）', { name: tpl.name || tpl.id || I18n.t('生成的模块'), owner: p.name || p.id }), isDynamic: true, dynamicOwnerName: tpl.name || tpl.id, flow: p.config.outputFlow || 'main' });
                     });
                 }
             });
@@ -125,11 +125,11 @@ const PluginTester = {
         const cur = s.vs.getValue(id);
         const attr = 'data-plvar="' + esc(id) + '" data-vt="' + esc(type) + '"';
         const locked = v && (v.category === 'builtin' || v.readonly) ? ' disabled' : '';
-        if (type === 'boolean' || type === 'switch') return '<label class="pl-switch"><input type="checkbox" ' + attr + (cur === true ? ' checked' : '') + locked + '><span>' + (cur === true ? '开' : '关') + '</span></label>';
+        if (type === 'boolean' || type === 'switch') return '<label class="pl-switch"><input type="checkbox" ' + attr + (cur === true ? ' checked' : '') + locked + '><span>' + (cur === true ? I18n.t('开') : I18n.t('关')) + '</span></label>';
         if (type === 'number') return '<input type="number" step="any" class="pl-in" ' + attr + ' value="' + esc(typeof cur === 'number' ? cur : '') + '"' + locked + '>';
         if (type === 'list' || type === 'list_of_object') {
             const txt = (Array.isArray(cur) ? cur : []).map(x => typeof x === 'object' ? PluginRuntime.safeStringify(x) : String(x)).join('\n');
-            return '<textarea class="pl-in pl-ta" rows="3" ' + attr + ' placeholder="每行一项"' + locked + '>' + esc(txt) + '</textarea>';
+            return '<textarea class="pl-in pl-ta" rows="3" ' + attr + ' placeholder="' + I18n.t('每行一项') + '"' + locked + '>' + esc(txt) + '</textarea>';
         }
         if (type === 'object') return '<textarea class="pl-in pl-ta" rows="3" ' + attr + locked + '>' + esc(cur && typeof cur === 'object' ? JSON.stringify(cur, null, 2) : '') + '</textarea>';
         const sv = cur == null || typeof cur === 'object' ? '' : String(cur);
@@ -153,7 +153,7 @@ const PluginTester = {
         this.dbg = dbg;
         const list = this.allPlugins(dbg);
         this.list = list;
-        if (!list.length) { box.innerHTML = '<div class="mjx"><div class="mjx-empty">还没有加载模组，或这个模组没有插件。</div></div>'; return; }
+        if (!list.length) { box.innerHTML = '<div class="mjx"><div class="mjx-empty">' + I18n.t('还没有加载模组，或这个模组没有插件。') + '</div></div>'; return; }
         if (!this.sel || !list.find(x => x.key === this.sel)) this.sel = list[0].key;
         if (!this.collapsed) this.collapsed = {};
         const esc = this.esc;
@@ -165,7 +165,7 @@ const PluginTester = {
             const g = byMod[k];
             tree += '<div class="pl-group"><button type="button" class="pl-group-head" data-plcol="' + esc(k) + '" aria-expanded="' + (this.collapsed[k] ? 'false' : 'true') + '">' + esc(g.name) + '</button>' +
                 '<div class="pl-group-body"' + (this.collapsed[k] ? ' hidden' : '') + '>' +
-                g.items.map(x => '<button type="button" class="pl-leaf' + (x.key === this.sel ? ' on' : '') + '" data-plsel="' + esc(x.key) + '"><span class="pl-leaf-name">' + esc(x.p.name || '未命名插件') + '</span>' +
+                g.items.map(x => '<button type="button" class="pl-leaf' + (x.key === this.sel ? ' on' : '') + '" data-plsel="' + esc(x.key) + '"><span class="pl-leaf-name">' + esc(x.p.name || I18n.t('未命名插件')) + '</span>' +
                     '<span class="pl-leaf-type">' + esc(PluginRuntime.typeLabel(x.p.type)) + '<span class="pl-leaf-issue" data-plissue="' + esc(x.key) + '"></span></span></button>').join('') + '</div></div>';
         });
         tree += '</div>';
@@ -195,7 +195,7 @@ const PluginTester = {
         list.forEach(x => {
             const n = this.validate(this.dbg, x, list, sys.getPlugin(x.p.id, x.modId)).filter(i => i.level === 'error').length;
             const el = box.querySelector('[data-plissue="' + (window.CSS && CSS.escape ? CSS.escape(x.key) : x.key) + '"]');
-            if (el) el.textContent = n ? ' · ' + n + ' 个问题' : '';
+            if (el) el.textContent = n ? ' · ' + I18n.t('{n} 个问题', { n }) : '';
         });
     },
 
@@ -225,7 +225,7 @@ const PluginTester = {
         const right = document.getElementById('pl-right');
         if (!right) return;
         const entry = this.list.find(x => x.key === this.sel);
-        if (!entry) { right.innerHTML = '<div class="mjx-empty">从左边选一个插件。</div>'; return; }
+        if (!entry) { right.innerHTML = '<div class="mjx-empty">' + I18n.t('从左边选一个插件。') + '</div>'; return; }
         const s = this.session(dbg, entry);
         await this.ensureSystem(dbg, s, this.list);
         if (this.sel !== entry.key || document.getElementById('pl-right') !== right) return;
@@ -237,18 +237,18 @@ const PluginTester = {
             flowName: entry.flow === 'main' ? 'main' : dbg._flowName(entry.flow),
             isDynamicEvent: !!entry.isDynamic, ownerDisplayName: entry.isDynamic ? entry.dynamicOwnerName : undefined
         });
-        const inherit = summary.inheritedNames.length ? '，旗下 ' + summary.inheritedNames.length + ' 个子模块自动继承' : '';
+        const inherit = summary.inheritedNames.length ? I18n.t('，旗下 {n} 个子模块自动继承', { n: summary.inheritedNames.length }) : '';
         let condDesc = '';
         if (def.condition && def.condition.conditionDef && dbg._describeDef) { try { condDesc = dbg._describeDef(def.condition.conditionDef); } catch (e) { condDesc = ''; } }
         const issues = this.validate(dbg, entry, this.list, s.plugin);
-        let html = '<div class="pl-head"><span class="pl-title">' + esc(def.name || '未命名插件') + '</span><span class="pl-type">' + esc(PluginRuntime.typeLabel(type)) + '</span></div>' +
-            '<div class="pl-actions"><button type="button" class="mjx-b mjx-b-edit" data-pl="edit">在模组编辑里修改</button><button type="button" class="mjx-b" data-pl="reset">全部重置</button></div>' +
-            '<section class="pl-sec"><h5>信息</h5><dl class="pl-info">' +
-            '<dt>所属模块</dt><dd>' + esc(summary.scopeText + inherit) + '</dd>' +
-            '<dt>可见性</dt><dd>' + esc(summary.visText + (condDesc ? '：' + condDesc : '')) + '</dd>' +
-            '<dt>作用</dt><dd>' + esc(this.purpose(def)) + '</dd></dl></section>';
+        let html = '<div class="pl-head"><span class="pl-title">' + esc(def.name || I18n.t('未命名插件')) + '</span><span class="pl-type">' + esc(PluginRuntime.typeLabel(type)) + '</span></div>' +
+            '<div class="pl-actions"><button type="button" class="mjx-b mjx-b-edit" data-pl="edit">' + I18n.t('在模组编辑里修改') + '</button><button type="button" class="mjx-b" data-pl="reset">' + I18n.t('全部重置') + '</button></div>' +
+            '<section class="pl-sec"><h5>' + I18n.t('信息') + '</h5><dl class="pl-info">' +
+            '<dt>' + I18n.t('所属模块') + '</dt><dd>' + esc(summary.scopeText + inherit) + '</dd>' +
+            '<dt>' + I18n.t('可见性') + '</dt><dd>' + esc(summary.visText + (condDesc ? I18n.t('：') + condDesc : '')) + '</dd>' +
+            '<dt>' + I18n.t('作用') + '</dt><dd>' + esc(this.purpose(def)) + '</dd></dl></section>';
         if (issues.length) {
-            html += '<section class="pl-sec pl-sec-warn"><h5>需要处理的问题（' + issues.length + '）</h5>' + issues.map(i => '<div class="pl-issue pl-issue-' + i.level + '"><div>' + esc(i.text) + '</div>' + (i.hint ? '<div class="pl-issue-hint">' + esc(i.hint) + '</div>' : '') + '</div>').join('') + '</section>';
+            html += '<section class="pl-sec pl-sec-warn"><h5>' + I18n.t('需要处理的问题（{n}）', { n: issues.length }) + '</h5>' + issues.map(i => '<div class="pl-issue pl-issue-' + i.level + '"><div>' + esc(i.text) + '</div>' + (i.hint ? '<div class="pl-issue-hint">' + esc(i.hint) + '</div>' : '') + '</div>').join('') + '</section>';
         }
         html += '<div id="pl-body"></div>';
         right.innerHTML = html;
@@ -258,15 +258,15 @@ const PluginTester = {
 
     purpose(def) {
         switch (def.type) {
-            case 'randomizer': return '进入所属模块时从随机池里抽一项；结果可以存进一个变量，供变量读取器等使用。';
-            case 'variable_reader': return '进入所属模块时，把上游插件的结果写进变量。';
-            case 'variable_op': return '进入所属模块时，按设定改变一批变量。';
-            case 'module_generator': return '进入所属模块时，按模板生成一个模块，放进指定流程。';
-            case 'summary': return '把几个变量整理成一段文字，随提示词一起发给 AI。';
-            case 'display': return '在所属模块里显示一个页面，用来展示变量；不发给 AI。';
-            case 'interactive': return '在所属模块里显示一个页面；玩家的操作会暂存并随下一条消息发给 AI，AI 的回复写回变量。';
-            case 'display_interactive': return '显示一个页面；每次发消息时把设定的内容发给 AI，AI 的回复写回变量并显示。';
-            default: return '这个类型的插件不认识。';
+            case 'randomizer': return I18n.t('进入所属模块时从随机池里抽一项；结果可以存进一个变量，供变量读取器等使用。');
+            case 'variable_reader': return I18n.t('进入所属模块时，把上游插件的结果写进变量。');
+            case 'variable_op': return I18n.t('进入所属模块时，按设定改变一批变量。');
+            case 'module_generator': return I18n.t('进入所属模块时，按模板生成一个模块，放进指定流程。');
+            case 'summary': return I18n.t('把几个变量整理成一段文字，随提示词一起发给 AI。');
+            case 'display': return I18n.t('在所属模块里显示一个页面，用来展示变量；不发给 AI。');
+            case 'interactive': return I18n.t('在所属模块里显示一个页面；玩家的操作会暂存并随下一条消息发给 AI，AI 的回复写回变量。');
+            case 'display_interactive': return I18n.t('显示一个页面；每次发消息时把设定的内容发给 AI，AI 的回复写回变量并显示。');
+            default: return I18n.t('这个类型的插件不认识。');
         }
     },
 
@@ -301,24 +301,24 @@ const PluginTester = {
         const type = def.type;
         const esc = this.esc;
         let html = '';
-        if (!type) { body.innerHTML = '<section class="pl-sec"><h5>测试</h5><div class="pl-muted">这个插件的类型不认识，先在模组编辑里改成已有的类型。</div></section>'; return; }
+        if (!type) { body.innerHTML = '<section class="pl-sec"><h5>' + I18n.t('测试') + '</h5><div class="pl-muted">' + I18n.t('这个插件的类型不认识，先在模组编辑里改成已有的类型。') + '</div></section>'; return; }
 
         if (type === 'display' || type === 'interactive' || type === 'display_interactive') {
-            html += '<section class="pl-sec"><h5>页面</h5><div class="pl-toolbar"><label class="pl-lab">宽度</label><select class="pl-sel" data-plwidth="1">' +
-                this.widths.map(w => '<option value="' + w[0] + '"' + (String(s.width) === w[0] ? ' selected' : '') + '>' + w[1] + (w[0] === '0' ? '' : '（' + w[0] + '）') + '</option>').join('') +
+            html += '<section class="pl-sec"><h5>' + I18n.t('页面') + '</h5><div class="pl-toolbar"><label class="pl-lab">' + I18n.t('宽度') + '</label><select class="pl-sel" data-plwidth="1">' +
+                this.widths.map(w => '<option value="' + w[0] + '"' + (String(s.width) === w[0] ? ' selected' : '') + '>' + I18n.t(w[1]) + (w[0] === '0' ? '' : I18n.t('（{w}）', { w: w[0] })) + '</option>').join('') +
                 '</select></div><div class="pl-stage" id="pl-stage"></div><div id="pl-stage-msg" class="pl-muted"></div></section>';
         }
-        html += '<section class="pl-sec"><h5>测试用变量</h5><div class="pl-muted">在这里改的只是测试用的副本，不影响游戏。</div><div id="pl-vars"></div></section>';
-        if (type === 'display' || type === 'interactive' || type === 'display_interactive') html += '<section class="pl-sec" id="pl-sim-click"><h5>模拟点击</h5><div id="pl-actions"></div></section>';
+        html += '<section class="pl-sec"><h5>' + I18n.t('测试用变量') + '</h5><div class="pl-muted">' + I18n.t('在这里改的只是测试用的副本，不影响游戏。') + '</div><div id="pl-vars"></div></section>';
+        if (type === 'display' || type === 'interactive' || type === 'display_interactive') html += '<section class="pl-sec" id="pl-sim-click"><h5>' + I18n.t('模拟点击') + '</h5><div id="pl-actions"></div></section>';
         if (type === 'interactive' || type === 'display_interactive') {
-            html += '<section class="pl-sec"><h5>暂存的操作</h5><div class="pl-muted">玩家点击后先暂存，下次发送消息时一起发给 AI。</div><div id="pl-pending"></div></section>' +
-                '<section class="pl-sec"><h5>发给 AI 的内容</h5><div id="pl-prompt"></div></section>' +
-                '<section class="pl-sec"><h5>模拟 AI 回复</h5><div id="pl-reply"></div></section>';
+            html += '<section class="pl-sec"><h5>' + I18n.t('暂存的操作') + '</h5><div class="pl-muted">' + I18n.t('玩家点击后先暂存，下次发送消息时一起发给 AI。') + '</div><div id="pl-pending"></div></section>' +
+                '<section class="pl-sec"><h5>' + I18n.t('发给 AI 的内容') + '</h5><div id="pl-prompt"></div></section>' +
+                '<section class="pl-sec"><h5>' + I18n.t('模拟 AI 回复') + '</h5><div id="pl-reply"></div></section>';
         }
         if (type === 'randomizer' || type === 'variable_reader' || type === 'variable_op' || type === 'module_generator' || type === 'summary') {
-            html += '<section class="pl-sec"><h5>运行</h5><div id="pl-run"></div></section>';
+            html += '<section class="pl-sec"><h5>' + I18n.t('运行') + '</h5><div id="pl-run"></div></section>';
         }
-        html += '<section class="pl-sec"><h5>本次测试改变的变量</h5><div id="pl-changes"></div></section>';
+        html += '<section class="pl-sec"><h5>' + I18n.t('本次测试改变的变量') + '</h5><div id="pl-changes"></div></section>';
         body.innerHTML = html;
         this.bindBody(body, entry, s, def);
         this.renderVars(entry, s, def);
@@ -349,7 +349,7 @@ const PluginTester = {
         const box = document.getElementById('pl-vars');
         if (!box) return;
         const ids = this.boundIds(s, def);
-        if (!ids.length) { box.innerHTML = '<div class="pl-muted">这个插件没有用到变量。</div>'; return; }
+        if (!ids.length) { box.innerHTML = '<div class="pl-muted">' + I18n.t('这个插件没有用到变量。') + '</div>'; return; }
         box.innerHTML = ids.map(id => {
             const v = s.vs.getVariable(id);
             return '<div class="pl-vrow"><span class="pl-vname">' + this.esc((v && v.name) || id) + '</span>' + this.varControl(s, id) + '</div>';
@@ -362,16 +362,16 @@ const PluginTester = {
         if (!box) return;
         const rows = this.diffSinceStart(s);
         box.innerHTML = rows.length
-            ? '<table class="pl-table"><thead><tr><th>变量</th><th>开始时</th><th>现在</th></tr></thead><tbody>' + rows.map(r => '<tr><td>' + this.esc(r.name) + '</td><td>' + this.esc(this.fmt(r.before)) + '</td><td>' + this.esc(this.fmt(r.after)) + '</td></tr>').join('') + '</tbody></table>'
-            : '<div class="pl-muted">还没有变量被改变。</div>';
+            ? '<table class="pl-table"><thead><tr><th>' + I18n.t('变量') + '</th><th>' + I18n.t('开始时') + '</th><th>' + I18n.t('现在') + '</th></tr></thead><tbody>' + rows.map(r => '<tr><td>' + this.esc(r.name) + '</td><td>' + this.esc(this.fmt(r.before)) + '</td><td>' + this.esc(this.fmt(r.after)) + '</td></tr>').join('') + '</tbody></table>'
+            : '<div class="pl-muted">' + I18n.t('还没有变量被改变。') + '</div>';
     },
 
     renderPending(s) {
         const box = document.getElementById('pl-pending');
         if (!box) return;
         box.innerHTML = s.pending.length
-            ? s.pending.map((a, i) => '<div class="pl-pend"><span>' + this.esc((a.pluginName || '') + '：' + (a.actionDesc || a.type)) + '</span><button type="button" class="mjx-b" data-plpend-del="' + i + '">删除</button></div>').join('')
-            : '<div class="pl-muted">现在没有暂存的操作。</div>';
+            ? s.pending.map((a, i) => '<div class="pl-pend"><span>' + this.esc((a.pluginName || '') + I18n.t('：') + (a.actionDesc || a.type)) + '</span><button type="button" class="mjx-b" data-plpend-del="' + i + '">' + I18n.t('删除') + '</button></div>').join('')
+            : '<div class="pl-muted">' + I18n.t('现在没有暂存的操作。') + '</div>';
     },
 
     /** 发给 AI 的内容：提示词里这个插件的说明段，加上随用户消息发出的暂存操作 */
@@ -381,12 +381,12 @@ const PluginTester = {
         const block = this.promptBlock(s, def);
         const pend = PluginRuntime.formatPending(s.pending);
         const parts = [];
-        parts.push('<div class="pl-label">提示词里的插件说明</div><pre class="pl-pre">' + this.esc(block || '（这个插件没有往提示词里写说明）') + '</pre>');
-        parts.push('<div class="pl-label">随玩家消息发出的操作</div><pre class="pl-pre">' + this.esc(pend || '（没有暂存的操作，不会发任何内容）') + '</pre>');
+        parts.push('<div class="pl-label">' + I18n.t('提示词里的插件说明') + '</div><pre class="pl-pre">' + this.esc(block || I18n.t('（这个插件没有往提示词里写说明）')) + '</pre>');
+        parts.push('<div class="pl-label">' + I18n.t('随玩家消息发出的操作') + '</div><pre class="pl-pre">' + this.esc(pend || I18n.t('（没有暂存的操作，不会发任何内容）')) + '</pre>');
         const missing = [];
         const tpl = (def.config || {}).promptTemplate || (def.config || {}).updatePrompt || '';
         PluginRuntime.findPlaceholders(tpl).forEach(k => { if (!s.vs.getVariable(k)) missing.push(k); });
-        if (missing.length) parts.push('<div class="pl-issue pl-issue-warn">提示词里用到了不存在的变量：' + this.esc(missing.join('、')) + '，发出去时这部分是空的。</div>');
+        if (missing.length) parts.push('<div class="pl-issue pl-issue-warn">' + this.esc(I18n.t('提示词里用到了不存在的变量：{names}，发出去时这部分是空的。', { names: missing.join(I18n.t('、')) })) + '</div>');
         box.innerHTML = parts.join('');
     },
 
@@ -397,7 +397,7 @@ const PluginTester = {
         pg.setVariableSystem(s.vs);
         const item = { id: def.id, name: def.name, type: def.type, config: def.config, ownerModuleId: s.entry.modId };
         pg.setPluginSystem({ getActivePlugins: (type) => (type == null || type === def.type) ? [item] : [] });
-        try { return pg.generateInteractors(s.entry.modId) || ''; } catch (e) { return '提示词生成出错：' + e.message; }
+        try { return pg.generateInteractors(s.entry.modId) || ''; } catch (e) { return I18n.t('提示词生成出错：') + e.message; }
     },
 
     replyBlock(def) { return (def.config || {}).blockId || def.id; },
@@ -406,13 +406,13 @@ const PluginTester = {
         const box = document.getElementById('pl-reply');
         if (!box) return;
         const block = this.replyBlock(def);
-        if (s.replyText == null) s.replyText = def.config && def.config.replyBinding && def.config.replyBinding.prefix ? def.config.replyBinding.prefix + '这是一条测试回复。' : '这是一条测试回复。';
+        if (s.replyText == null) s.replyText = def.config && def.config.replyBinding && def.config.replyBinding.prefix ? def.config.replyBinding.prefix + I18n.t('这是一条测试回复。') : I18n.t('这是一条测试回复。');
         const rb = PluginRuntime.resolveReplyBinding(def, this.store(s));
         const target = rb ? ((s.vs.getVariable(rb.variableId) || {}).name || rb.variableId) : null;
-        box.innerHTML = '<div class="pl-label">AI 回复的内容（可以改）</div><textarea class="pl-in pl-ta" rows="3" id="pl-reply-text">' + this.esc(s.replyText) + '</textarea>' +
-            '<div class="pl-muted">回复会写进：' + (target ? this.esc('变量「' + target + '」（' + ({ set: '覆盖', append_line: '追加一行', append_text: '接在后面' }[rb.mode] || rb.mode) + '）') : '还没有设置，这个插件的回复不会被保存') + '</div>' +
-            '<div class="pl-toolbar"><button type="button" class="mjx-b mjx-b-jump" data-plreply="1">模拟 AI 回复</button></div><div id="pl-reply-out"></div>' +
-            '<details class="pl-details"><summary>完整的模拟回复</summary><pre class="pl-pre" id="pl-reply-raw"></pre></details>';
+        box.innerHTML = '<div class="pl-label">' + I18n.t('AI 回复的内容（可以改）') + '</div><textarea class="pl-in pl-ta" rows="3" id="pl-reply-text">' + this.esc(s.replyText) + '</textarea>' +
+            '<div class="pl-muted">' + (target ? this.esc(I18n.t('回复会写进：变量「{name}」（{mode}）', { name: target, mode: { set: I18n.t('覆盖'), append_line: I18n.t('追加一行'), append_text: I18n.t('接在后面') }[rb.mode] || rb.mode })) : I18n.t('回复会写进：还没有设置，这个插件的回复不会被保存')) + '</div>' +
+            '<div class="pl-toolbar"><button type="button" class="mjx-b mjx-b-jump" data-plreply="1">' + I18n.t('模拟 AI 回复') + '</button></div><div id="pl-reply-out"></div>' +
+            '<details class="pl-details"><summary>' + I18n.t('完整的模拟回复') + '</summary><pre class="pl-pre" id="pl-reply-raw"></pre></details>';
         this.updateRawReply(s, def);
         if (window.FormControls) FormControls.enhance(box);
     },
@@ -435,7 +435,7 @@ const PluginTester = {
             face.loadDoc = () => {
                 const d = plugin.displayDoc();
                 const files = plugin.fileReport();
-                if (!d.html) return Promise.resolve({ error: files.display && files.display.error ? files.display.error : '没有设置要显示的内容。' });
+                if (!d.html) return Promise.resolve({ error: files.display && files.display.error ? files.display.error : I18n.t('没有设置要显示的内容。') });
                 face.doc = { html: d.html, css: d.css, js: typeof plugin.loadedFiles.logic === 'string' ? plugin.loadedFiles.logic : '' };
                 return Promise.resolve(face.doc);
             };
@@ -453,7 +453,7 @@ const PluginTester = {
         const before = PluginRenderer.fullVarSnapshot(s.vs);
         const store = this.store(s);
         const res = PluginRuntime.runAction(def, msg, store);
-        if (res.errors.length && inst && inst.notice) inst.notice('这次操作没有完全生效：' + res.errors.join('；'));
+        if (res.errors.length && inst && inst.notice) inst.notice(I18n.t('这次操作没有完全生效：') + res.errors.join(I18n.t('；')));
         if (res.pendingText) s.pending.push({ pluginId: def.id, pluginName: def.name, type: msg.action, label: msg.label, text: msg.text, actionDesc: res.pendingText });
         s.log.push({ msg, res, before });
         this.afterChange(s, def, res.errors);
@@ -466,7 +466,7 @@ const PluginTester = {
         this.renderPending(s);
         this.renderPrompt(s, def);
         const msg = document.getElementById('pl-stage-msg');
-        if (msg && errors && errors.length) msg.textContent = errors.join('；');
+        if (msg && errors && errors.length) msg.textContent = errors.join(I18n.t('；'));
     },
 
     renderActionButtons(s, def) {
@@ -478,12 +478,12 @@ const PluginTester = {
         const cfgActions = PluginRuntime.getActions(def);
         const list = found.slice();
         cfgActions.forEach(a => { if (a && a.action && !list.some(f => f.action === a.action)) list.push({ action: a.action, label: a.label || a.action, source: 'config' }); });
-        if (!list.length) { box.innerHTML = '<div class="pl-muted">页面里没有可点击的按钮。</div>'; return; }
+        if (!list.length) { box.innerHTML = '<div class="pl-muted">' + I18n.t('页面里没有可点击的按钮。') + '</div>'; return; }
         box.innerHTML = list.map((a, i) => {
             const cfg = PluginRuntime.findAction(def, a.action);
-            const text = (cfg && /\{\{\s*text\s*\}\}/.test(JSON.stringify(cfg))) || a.source === 'script' ? '<input type="text" class="pl-in pl-act-text" data-plact-text="' + this.esc(a.action) + '" value="' + this.esc(s.actionText[a.action] != null ? s.actionText[a.action] : '你好') + '">' : '';
-            return '<div class="pl-act"><button type="button" class="mjx-b mjx-b-jump" data-plact="' + this.esc(a.action) + '" data-pllabel="' + this.esc(a.label) + '">点击「' + this.esc((cfg && cfg.label) || a.label) + '」</button>' + text +
-                '<span class="pl-muted">' + (cfg ? '已设置效果' : '没有设置效果，只会暂存一条操作') + '</span></div>';
+            const text = (cfg && /\{\{\s*text\s*\}\}/.test(JSON.stringify(cfg))) || a.source === 'script' ? '<input type="text" class="pl-in pl-act-text" data-plact-text="' + this.esc(a.action) + '" value="' + this.esc(s.actionText[a.action] != null ? s.actionText[a.action] : I18n.t('你好')) + '">' : '';
+            return '<div class="pl-act"><button type="button" class="mjx-b mjx-b-jump" data-plact="' + this.esc(a.action) + '" data-pllabel="' + this.esc(a.label) + '">' + I18n.t('点击「{label}」', { label: this.esc((cfg && cfg.label) || a.label) }) + '</button>' + text +
+                '<span class="pl-muted">' + (cfg ? I18n.t('已设置效果') : I18n.t('没有设置效果，只会暂存一条操作')) + '</span></div>';
         }).join('');
         if (window.FormControls) FormControls.enhance(box);
     },
@@ -497,15 +497,15 @@ const PluginTester = {
         if (def.type === 'randomizer') {
             const pool = (s.plugin && s.plugin.loadedFiles.pool) || def.config.pool || null;
             const list = Array.isArray(pool) ? pool : (pool && (pool.items || pool.events || pool.entries)) || [];
-            pre = '<div class="pl-muted">随机池：' + (Array.isArray(list) && list.length ? '共 ' + list.length + ' 项：' + esc(list.slice(0, 6).map(x => (x && (x.name || x.title || x.id)) || '—').join('、') + (list.length > 6 ? ' 等' : '')) : (pool ? '格式较新，运行后查看结果' : '没有读到随机池')) + '</div>';
+            pre = '<div class="pl-muted">' + (Array.isArray(list) && list.length ? I18n.t('随机池：共 {n} 项：{items}', { n: list.length, items: esc(list.slice(0, 6).map(x => (x && (x.name || x.title || x.id)) || '—').join(I18n.t('、')) + (list.length > 6 ? I18n.t(' 等') : '')) }) : I18n.t('随机池：') + (pool ? I18n.t('格式较新，运行后查看结果') : I18n.t('没有读到随机池'))) + '</div>';
         }
         if (def.type === 'variable_reader') {
-            pre = '<label class="pl-check"><input type="checkbox" id="pl-run-upstream" checked><span>先运行上游插件「' + esc(def.config.inputSource || '未选') + '」再读取</span></label>';
+            pre = '<label class="pl-check"><input type="checkbox" id="pl-run-upstream" checked><span>' + I18n.t('先运行上游插件「{name}」再读取', { name: esc(def.config.inputSource || I18n.t('未选')) }) + '</span></label>';
         }
-        const label = { randomizer: '运行一次（随机抽一项）', variable_reader: '运行（读取并写入变量）', variable_op: '运行（执行这些变量操作）', module_generator: '运行（测试生成，不影响游戏）', summary: '生成总结文字' }[def.type];
+        const label = { randomizer: I18n.t('运行一次（随机抽一项）'), variable_reader: I18n.t('运行（读取并写入变量）'), variable_op: I18n.t('运行（执行这些变量操作）'), module_generator: I18n.t('运行（测试生成，不影响游戏）'), summary: I18n.t('生成总结文字') }[def.type];
         box.innerHTML = pre + '<div class="pl-toolbar"><button type="button" class="mjx-b mjx-b-jump" data-plrun="1">' + label + '</button>' +
-            (def.type === 'randomizer' ? '<button type="button" class="mjx-b" data-plrun10="1">连抽 20 次看分布</button>' : '') +
-            (def.type === 'module_generator' ? '<button type="button" class="mjx-b mjx-b-edit" data-plrun-real="1">真的加入游戏</button>' : '') +
+            (def.type === 'randomizer' ? '<button type="button" class="mjx-b" data-plrun10="1">' + I18n.t('连抽 20 次看分布') + '</button>' : '') +
+            (def.type === 'module_generator' ? '<button type="button" class="mjx-b mjx-b-edit" data-plrun-real="1">' + I18n.t('真的加入游戏') + '</button>' : '') +
             '</div><div id="pl-run-out"></div>';
     },
 
@@ -538,44 +538,44 @@ const PluginTester = {
         const before = PluginRenderer.fullVarSnapshot(s.vs);
         const lines = [];
         const plugin = s.plugin;
-        if (!plugin) { out.innerHTML = '<div class="pl-issue pl-issue-error">这个插件没有登记成功，先处理上面的问题。</div>'; return; }
+        if (!plugin) { out.innerHTML = '<div class="pl-issue pl-issue-error">' + I18n.t('这个插件没有登记成功，先处理上面的问题。') + '</div>'; return; }
         const rc = this.runCtx(s, opts);
         const errs = [];
         if (def.type === 'variable_reader' && document.getElementById('pl-run-upstream') && document.getElementById('pl-run-upstream').checked) {
             const up = s.sys.getPlugin(def.config.inputSource, entry.modId);
-            if (up) { const ur = PluginRenderer.runPlugin(up, rc.ctx); if (!ur.ok) errs.push('上游插件「' + (up.name || up.id) + '」运行出错：' + ur.error); }
+            if (up) { const ur = PluginRenderer.runPlugin(up, rc.ctx); if (!ur.ok) errs.push(I18n.t('上游插件「{name}」运行出错：{err}', { name: up.name || up.id, err: ur.error })); }
         }
         const r = errs.length ? { ok: false, error: errs[0] } : PluginRenderer.runPlugin(plugin, rc.ctx);
         let html = '';
         if (!r.ok) {
-            html += '<div class="pl-issue pl-issue-error">运行出错：' + this.esc(r.error) + '</div>';
+            html += '<div class="pl-issue pl-issue-error">' + I18n.t('运行出错：') + this.esc(r.error) + '</div>';
         } else if (def.type === 'randomizer') {
-            html += '<div class="pl-label">抽到的结果</div><pre class="pl-pre">' + this.esc(PluginRenderer.describeRandomizerResult(r.result).join('\n')) + '</pre>';
-            if (def.config.tempStorage) html += '<div class="pl-muted">已存进变量「' + this.esc(((s.vs.getVariable(def.config.tempStorage) || {}).name) || def.config.tempStorage) + '」。</div>';
+            html += '<div class="pl-label">' + I18n.t('抽到的结果') + '</div><pre class="pl-pre">' + this.esc(PluginRenderer.describeRandomizerResult(r.result).join('\n')) + '</pre>';
+            if (def.config.tempStorage) html += '<div class="pl-muted">' + this.esc(I18n.t('已存进变量「{name}」。', { name: ((s.vs.getVariable(def.config.tempStorage) || {}).name) || def.config.tempStorage })) + '</div>';
         } else if (def.type === 'variable_reader') {
             const w = r.result || { written: [], skipped: [] };
-            html += '<div class="pl-label">读到的结果</div><pre class="pl-pre">' + this.esc(plugin.inputSource ? PluginRuntime.formatValue((s.sys.getPlugin(plugin.inputSource, entry.modId) || {}).output) : '') + '</pre>';
-            html += '<div class="pl-label">写进了</div>' + (w.written.length ? '<div>' + this.esc(w.written.map(id => ((s.vs.getVariable(id) || {}).name || id)).join('、')) + '</div>' : '<div class="pl-muted">没有写入任何变量。</div>');
-            if (w.skipped.length) html += '<div class="pl-issue pl-issue-warn">' + this.esc(w.skipped.join('；')) + '</div>';
+            html += '<div class="pl-label">' + I18n.t('读到的结果') + '</div><pre class="pl-pre">' + this.esc(plugin.inputSource ? PluginRuntime.formatValue((s.sys.getPlugin(plugin.inputSource, entry.modId) || {}).output) : '') + '</pre>';
+            html += '<div class="pl-label">' + I18n.t('写进了') + '</div>' + (w.written.length ? '<div>' + this.esc(w.written.map(id => ((s.vs.getVariable(id) || {}).name || id)).join(I18n.t('、'))) + '</div>' : '<div class="pl-muted">' + I18n.t('没有写入任何变量。') + '</div>');
+            if (w.skipped.length) html += '<div class="pl-issue pl-issue-warn">' + this.esc(w.skipped.join(I18n.t('；'))) + '</div>';
         } else if (def.type === 'variable_op') {
             const res = r.result || { changes: [], errors: [] };
-            if (res.errors.length) html += '<div class="pl-issue pl-issue-warn">' + this.esc(res.errors.join('；')) + '</div>';
-            if (!res.changes.length && !res.errors.length) html += '<div class="pl-muted">没有执行任何操作。</div>';
+            if (res.errors.length) html += '<div class="pl-issue pl-issue-warn">' + this.esc(res.errors.join(I18n.t('；'))) + '</div>';
+            if (!res.changes.length && !res.errors.length) html += '<div class="pl-muted">' + I18n.t('没有执行任何操作。') + '</div>';
         } else if (def.type === 'module_generator') {
-            html += '<div class="pl-label">生成的模块</div><pre class="pl-pre">' + this.esc(PluginRenderer.describeGeneratorResult(r.result, plugin, { flowName: this.dbg._flowName(def.config.outputFlow || ''), eventTypeCN: this.dbg._TYC, ownerModuleName: entry.modName }).join('\n')) + '</pre>';
+            html += '<div class="pl-label">' + I18n.t('生成的模块') + '</div><pre class="pl-pre">' + this.esc(PluginRenderer.describeGeneratorResult(r.result, plugin, { flowName: this.dbg._flowName(def.config.outputFlow || ''), eventTypeCN: this.dbg._TYC, ownerModuleName: entry.modName }).join('\n')) + '</pre>';
             const a = rc.added[0];
             const add = plugin.lastAdd;
-            if (a) html += '<div class="pl-muted">' + (a.real ? '已加入游戏里的「' + this.esc(this.dbg._flowName(a.flow)) + '」流程。' : '测试里已放进「' + this.esc(this.dbg._flowName(a.flow)) + '」流程，没有写进游戏。') + (a.already ? '游戏里已经有这个模块，真实运行时不会重复生成。' : '') + '</div>';
+            if (a) html += '<div class="pl-muted">' + this.esc(a.real ? I18n.t('已加入游戏里的「{flow}」流程。', { flow: this.dbg._flowName(a.flow) }) : I18n.t('测试里已放进「{flow}」流程，没有写进游戏。', { flow: this.dbg._flowName(a.flow) })) + (a.already ? I18n.t('游戏里已经有这个模块，真实运行时不会重复生成。') : '') + '</div>';
             else if (add && !add.added) html += '<div class="pl-issue pl-issue-warn">' + this.esc(add.reason) + '</div>';
         } else if (def.type === 'summary') {
             const t = r.result && r.result.text;
-            html += '<div class="pl-label">总结文字</div><pre class="pl-pre">' + this.esc(t ? t : '（没有内容）') + '</pre>';
-            if (r.result && r.result.missing && r.result.missing.length) html += '<div class="pl-issue pl-issue-warn">用到了不存在的变量：' + this.esc(r.result.missing.join('、')) + '</div>';
-            if (t) html += '<div class="pl-label">会这样放进提示词</div><pre class="pl-pre">' + this.esc(this.promptBlock(s, def)) + '</pre>';
+            html += '<div class="pl-label">' + I18n.t('总结文字') + '</div><pre class="pl-pre">' + this.esc(t ? t : I18n.t('（没有内容）')) + '</pre>';
+            if (r.result && r.result.missing && r.result.missing.length) html += '<div class="pl-issue pl-issue-warn">' + I18n.t('用到了不存在的变量：') + this.esc(r.result.missing.join(I18n.t('、'))) + '</div>';
+            if (t) html += '<div class="pl-label">' + I18n.t('会这样放进提示词') + '</div><pre class="pl-pre">' + this.esc(this.promptBlock(s, def)) + '</pre>';
         }
         if (def.type !== 'summary') {
             const diff = PluginRenderer.diffVarSnapshot(before, s.vs, v => this.fmt(v));
-            html += '<div class="pl-label">这次运行改变的变量</div>' + (diff.length ? '<table class="pl-table"><thead><tr><th>变量</th><th>运行前</th><th>运行后</th></tr></thead><tbody>' + diff.map(d => '<tr><td>' + this.esc(d.name) + '</td><td>' + this.esc(d.before) + '</td><td>' + this.esc(d.after) + '</td></tr>').join('') + '</tbody></table>' : '<div class="pl-muted">没有变量被改变。</div>');
+            html += '<div class="pl-label">' + I18n.t('这次运行改变的变量') + '</div>' + (diff.length ? '<table class="pl-table"><thead><tr><th>' + I18n.t('变量') + '</th><th>' + I18n.t('运行前') + '</th><th>' + I18n.t('运行后') + '</th></tr></thead><tbody>' + diff.map(d => '<tr><td>' + this.esc(d.name) + '</td><td>' + this.esc(d.before) + '</td><td>' + this.esc(d.after) + '</td></tr>').join('') + '</tbody></table>' : '<div class="pl-muted">' + I18n.t('没有变量被改变。') + '</div>');
         }
         out.innerHTML = html;
         this.renderVars(entry, s, def);
@@ -591,11 +591,11 @@ const PluginTester = {
         for (let i = 0; i < 20; i++) {
             const r = PluginRenderer.runPlugin(plugin, rc.ctx);
             if (!r.ok) { failed = r.error; break; }
-            const k = r.result && typeof r.result === 'object' ? (r.result.name || r.result.title || r.result.id || '（无名）') : String(r.result);
+            const k = r.result && typeof r.result === 'object' ? (r.result.name || r.result.title || r.result.id || I18n.t('（无名）')) : String(r.result);
             counts[k] = (counts[k] || 0) + 1;
         }
-        out.innerHTML = failed ? '<div class="pl-issue pl-issue-error">运行出错：' + this.esc(failed) + '</div>'
-            : '<div class="pl-label">20 次的结果</div><table class="pl-table"><tbody>' + Object.keys(counts).map(k => '<tr><td>' + this.esc(k) + '</td><td>' + counts[k] + ' 次</td></tr>').join('') + '</tbody></table>';
+        out.innerHTML = failed ? '<div class="pl-issue pl-issue-error">' + I18n.t('运行出错：') + this.esc(failed) + '</div>'
+            : '<div class="pl-label">' + I18n.t('20 次的结果') + '</div><table class="pl-table"><tbody>' + Object.keys(counts).map(k => '<tr><td>' + this.esc(k) + '</td><td>' + I18n.t('{n} 次', { n: counts[k] }) + '</td></tr>').join('') + '</tbody></table>';
         this.renderChanges(s);
     },
 
@@ -616,7 +616,7 @@ const PluginTester = {
                 if (val === null && t.getAttribute('data-vt') !== 'string') { t.classList.add('pl-bad'); return; }
                 t.classList.remove('pl-bad');
                 if (!s.vs.executeOperation(id, 'set', { value: val })) { t.classList.add('pl-bad'); return; }
-                if (t.type === 'checkbox') { const sp = t.parentNode.querySelector('span'); if (sp) sp.textContent = t.checked ? '开' : '关'; }
+                if (t.type === 'checkbox') { const sp = t.parentNode.querySelector('span'); if (sp) sp.textContent = t.checked ? I18n.t('开') : I18n.t('关'); }
                 this.afterChange(s, def, []);
                 return;
             }
@@ -659,11 +659,11 @@ const PluginTester = {
         const store = this.store(s);
         const r = PluginRuntime.applyReply(def, raw, store);
         let html = '';
-        if (r.unbound) html += '<div class="pl-issue pl-issue-warn">这个插件还没有设置回复要写进哪个变量，回复不会被保存。在模组编辑里设置「AI 回复写入哪个变量」。</div>';
-        r.changes.forEach(c => { html += '<div class="pl-res">变量「' + this.esc(c.name) + '」：' + this.esc(this.fmt(c.before)) + ' → ' + this.esc(this.fmt(c.after)) + (c.trimmed ? '（记录太长，较早的内容已清理）' : '') + '</div>'; });
-        if (r.errors.length) html += '<div class="pl-issue pl-issue-warn">' + this.esc(r.errors.join('；')) + '</div>';
-        if (r.truncated) html += '<div class="pl-issue pl-issue-warn">回复太长，只保留了前 5000 个字。</div>';
-        out.innerHTML = html || '<div class="pl-muted">没有变量被改变。</div>';
+        if (r.unbound) html += '<div class="pl-issue pl-issue-warn">' + I18n.t('这个插件还没有设置回复要写进哪个变量，回复不会被保存。在模组编辑里设置「AI 回复写入哪个变量」。') + '</div>';
+        r.changes.forEach(c => { html += '<div class="pl-res">' + I18n.t('变量「{name}」：', { name: this.esc(c.name) }) + this.esc(this.fmt(c.before)) + ' → ' + this.esc(this.fmt(c.after)) + (c.trimmed ? I18n.t('（记录太长，较早的内容已清理）') : '') + '</div>'; });
+        if (r.errors.length) html += '<div class="pl-issue pl-issue-warn">' + this.esc(r.errors.join(I18n.t('；'))) + '</div>';
+        if (r.truncated) html += '<div class="pl-issue pl-issue-warn">' + I18n.t('回复太长，只保留了前 5000 个字。') + '</div>';
+        out.innerHTML = html || '<div class="pl-muted">' + I18n.t('没有变量被改变。') + '</div>';
         this.afterChange(s, def, []);
     }
 };
