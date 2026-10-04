@@ -32,29 +32,29 @@ const DebugModuleJump = {
 
     _esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); },
 
-    _TYC: { trigger_chain: '触发器链', timeline: '时间线', free_trigger: '自由触发器', parallel: '分流程' },
+    _TYC: { trigger_chain: I18n.t('触发器链'), timeline: I18n.t('时间线'), free_trigger: I18n.t('自由触发器'), parallel: I18n.t('分流程') },
 
-    _STC: { untriggered: '未触发', entered: '已进入', completed: '已完成' },
+    _STC: { untriggered: I18n.t('未触发'), entered: I18n.t('已进入'), completed: I18n.t('已完成') },
 
     // 插件类型的中文名；界面上只显示中文
-    _PLTC: { interactive: '交互器', display: '显示器', display_interactive: '显示+交互器', module_generator: '模块生成器', randomizer: '随机器', summary: '总结器', variable_op: '变量操作器', variable_reader: '变量读取器', 'interactive-save': '交互器', 'status-display': '状态面板', 'random-pool': '随机池', 'module-generator': '模块生成器', 'status': '状态' },
+    _PLTC: { interactive: I18n.t('交互器'), display: I18n.t('显示器'), display_interactive: I18n.t('显示+交互器'), module_generator: I18n.t('模块生成器'), randomizer: I18n.t('随机器'), summary: I18n.t('总结器'), variable_op: I18n.t('变量操作器'), variable_reader: I18n.t('变量读取器'), 'interactive-save': I18n.t('交互器'), 'status-display': I18n.t('状态面板'), 'random-pool': I18n.t('随机池'), 'module-generator': I18n.t('模块生成器'), 'status': I18n.t('状态') },
 
-    _plTypeCN(t) { return this._PLTC[t] || (t ? t : '插件'); },
+    _plTypeCN(t) { return this._PLTC[t] || (t ? t : I18n.t('插件')); },
 
     _condOpText(op) {
-        const t = { '>=': '≥', '<=': '≤', '>': '>', '<': '<', '==': '＝', '=': '＝', '!=': '≠', '!==': '≠', 'in': '属于' };
+        const t = { '>=': '≥', '<=': '≤', '>': '>', '<': '<', '==': '＝', '=': '＝', '!=': '≠', '!==': '≠', 'in': I18n.t('属于') };
         return t[op] || String(op == null ? '' : op);
     },
 
     _modName(id) {
         const m = this.moduleSystem && this.moduleSystem.getModule(id);
-        return m ? (m.name || '未命名') : '未找到的模块';
+        return m ? (m.name || I18n.t('未命名')) : I18n.t('未找到的模块');
     },
 
     _varName(id) {
         const vs = this.variableSystem;
         const v = vs && vs.getVariable ? vs.getVariable(id) : null;
-        return v ? (v.name || '未命名变量') : '未找到的变量';
+        return v ? (v.name || I18n.t('未命名变量')) : I18n.t('未找到的变量');
     },
 
     _varList() {
@@ -73,22 +73,22 @@ const DebugModuleJump = {
             if (!nm && ms.modules && ms.modules.forEach) ms.modules.forEach((m) => { if (!nm) nm = pick(m); });
         }
         if (nm) return nm;
-        return k === 'main' ? '主流程' : '未命名分流程';
+        return k === 'main' ? I18n.t('主流程') : I18n.t('未命名分流程');
     },
 
     _timeText(t) {
         if (!t || typeof t !== 'object') return '';
-        return [['year', '年'], ['month', '月'], ['day', '日'], ['hour', '时'], ['minute', '分']]
-            .filter(([k]) => t[k] != null && t[k] !== '').map(([k, w]) => t[k] + w).join('');
+        return [['year', '{n}年'], ['month', '{n}月'], ['day', '{n}日'], ['hour', '{n}时'], ['minute', '{n}分']]
+            .filter(([k]) => t[k] != null && t[k] !== '').map(([k, w]) => I18n.t(w, { n: t[k] })).join(I18n.pick({ zh: '', en: ' ' }));
     },
 
     _valText(varId, v) {
         const vs = this.variableSystem;
         const def = vs && vs.getVariable ? vs.getVariable(varId) : null;
-        if (def && def.type === 'boolean') return (v === true || v === 'true' || v === 1) ? '是' : '否';
-        if (v == null || v === '') return '空';
-        if (Array.isArray(v)) return v.length ? JSON.stringify(v) : '空';
-        if (typeof v === 'object') return Object.keys(v).length ? JSON.stringify(v) : '空';
+        if (def && def.type === 'boolean') return (v === true || v === 'true' || v === 1) ? I18n.t('是') : I18n.t('否');
+        if (v == null || v === '') return I18n.t('空');
+        if (Array.isArray(v)) return v.length ? JSON.stringify(v) : I18n.t('空');
+        if (typeof v === 'object') return Object.keys(v).length ? JSON.stringify(v) : I18n.t('空');
         return String(v);
     },
 
@@ -96,56 +96,56 @@ const DebugModuleJump = {
     _condText(c) {
         if (!c) return '';
         const t = c.type || 'variable';
-        const stCN = { entered: '已进入', completed: '已完成', untriggered: '未触发' };
+        const stCN = { entered: I18n.t('已进入'), completed: I18n.t('已完成'), untriggered: I18n.t('未触发') };
         if (t === 'none') return '';
         if (t === 'variable' || t === 'variable_compare') {
-            if (!c.variableId) return '（条件未选择变量）';
+            if (!c.variableId) return I18n.t('（条件未选择变量）');
             const nm = this._varName(c.variableId);
             const op = this._condOpText(c.operator);
             if (t === 'variable_compare' || c.compareKind === 'variable') return `${nm} ${op} ${this._varName(c.compareVariableId)}`;
             const vs = this.variableSystem;
             const cur = vs && vs.getValue ? vs.getValue(c.variableId) : undefined;
-            return `${nm} ${op} ${this._valText(c.variableId, c.value)}（当前 ${this._valText(c.variableId, cur)}）`;
+            return `${nm} ${op} ${this._valText(c.variableId, c.value)}` + I18n.t('（当前 {v}）', { v: this._valText(c.variableId, cur) });
         }
-        if (t === 'module') return `${this._modName(c.moduleId)} ${stCN[c.state] || '已进入'}`;
-        if (t === 'stage_completed') return `${(Array.isArray(c.pathIds) ? c.pathIds : []).map(id => this._modName(id)).join('、')} 均已完成`;
-        if (t === 'event_completed') return `${this._modName(c.eventId)} 已触发`;
+        if (t === 'module') return `${this._modName(c.moduleId)} ${stCN[c.state] || I18n.t('已进入')}`;
+        if (t === 'stage_completed') return I18n.t('{names} 均已完成', { names: (Array.isArray(c.pathIds) ? c.pathIds : []).map(id => this._modName(id)).join(I18n.t('、')) });
+        if (t === 'event_completed') return I18n.t('{name} 已触发', { name: this._modName(c.eventId) });
         if (t === 'time') {
             const mode = c.mode || c.timeType || 'absolute';
             if (mode === 'relative') {
                 const r = c.relative || {};
-                const off = [['year', '年'], ['month', '月'], ['day', '日'], ['hour', '时'], ['minute', '分']]
-                    .filter(([k]) => r.offset && r.offset[k]).map(([k, w]) => r.offset[k] + w).join('');
-                return `${this._modName(r.moduleId)} ${r.state === 'completed' ? '完成' : '进入'}后 ${off || '0 天'}`;
+                const off = [['year', '{n}年'], ['month', '{n}月'], ['day', '{n}日'], ['hour', '{n}时'], ['minute', '{n}分']]
+                    .filter(([k]) => r.offset && r.offset[k]).map(([k, w]) => I18n.t(w, { n: r.offset[k] })).join(I18n.pick({ zh: '', en: ' ' }));
+                return I18n.t(r.state === 'completed' ? '{name} 完成后 {off}' : '{name} 进入后 {off}', { name: this._modName(r.moduleId), off: off || I18n.t('0 天') });
             }
-            if (mode === 'variable_compare') return `当前时间${c.operator === '<=' ? '不晚于' : '不早于'} ${this._varName(c.variableId)}`;
-            return `当前时间不早于 ${this._timeText(c.time)}`;
+            if (mode === 'variable_compare') return I18n.t(c.operator === '<=' ? '当前时间不晚于 {v}' : '当前时间不早于 {v}', { v: this._varName(c.variableId) });
+            return I18n.t('当前时间不早于 {v}', { v: this._timeText(c.time) });
         }
         if (t === 'time_range') {
             const rep = c.repeat && c.repeat.interval && typeof c.repeat.interval === 'object' ? Object.keys(c.repeat.interval)[0] : '';
-            const repText = ({ year: '每年', month: '每月', day: '每天' })[rep] || '';
-            return `${repText ? repText + ' ' : ''}${this._timeText(c.start)} 至 ${this._timeText(c.end)}${c.firstDayOnly ? '（仅首日）' : ''}`;
+            const repText = ({ year: I18n.t('每年'), month: I18n.t('每月'), day: I18n.t('每天') })[rep] || '';
+            return `${repText ? repText + ' ' : ''}` + I18n.t('{start} 至 {end}', { start: this._timeText(c.start), end: this._timeText(c.end) }) + (c.firstDayOnly ? I18n.t('（仅首日）') : '');
         }
-        if (t === 'tag') return `标签 ${(Array.isArray(c.tags) ? c.tags : []).join('、')} ${c.matchType === 'all' ? '全部' : '任一'}满足`;
-        return '（未识别的条件）';
+        if (t === 'tag') return I18n.t(c.matchType === 'all' ? '标签 {tags} 全部满足' : '标签 {tags} 任一满足', { tags: (Array.isArray(c.tags) ? c.tags : []).join(I18n.t('、')) });
+        return I18n.t('（未识别的条件）');
     },
 
     _describeCond(wrappers) {
         if (!wrappers) return '';
         const arr = Array.isArray(wrappers) ? wrappers : [wrappers];
-        const joinOf = (logic, dflt) => (String(logic || dflt).toUpperCase() === 'OR' ? ' 或 ' : ' 且 ');
+        const joinOf = (logic, dflt) => (String(logic || dflt).toUpperCase() === 'OR' ? I18n.t(' 或 ') : I18n.t(' 且 '));
         const walkGroup = (g, wrap) => {
             const items = (g.items || []).map(it => (it.itemType === 'group' && it.group) ? walkGroup(it.group, true) : this._condText(it.condition)).filter(Boolean);
             if (!items.length) return '';
             const s = items.join(joinOf(g.logic, 'AND'));
-            return (wrap && items.length > 1) ? '（' + s + '）' : s;
+            return (wrap && items.length > 1) ? I18n.t('（') + s + I18n.t('）') : s;
         };
         const walk = (def) => {
             if (!def || !Array.isArray(def.groups)) return '';
             const multi = def.groups.length > 1;
             return def.groups.map(g => walkGroup(g, multi)).filter(Boolean).join(joinOf(def.logic, 'OR'));
         };
-        return arr.map(w => (w && w.conditionDef) ? walk(w.conditionDef) : '').filter(Boolean).join(' 且 ');
+        return arr.map(w => (w && w.conditionDef) ? walk(w.conditionDef) : '').filter(Boolean).join(I18n.t(' 且 '));
     },
 
     _ph() {
@@ -166,16 +166,16 @@ const DebugModuleJump = {
             `</div>` +
             `<div class="mjx-toolbar">` +
                 `<div class="mjx-searchwrap">` +
-                    `<input type="text" class="mjx-fin mjx-search" id="mjx-search" placeholder="搜索模块名称" autocomplete="off" aria-label="搜索模块">` +
-                    `<button type="button" class="mjx-searchclear" id="mjx-search-clear" aria-label="清空搜索" hidden>×</button>` +
+                    `<input type="text" class="mjx-fin mjx-search" id="mjx-search" placeholder="${I18n.t('搜索模块名称')}" autocomplete="off" aria-label="${I18n.t('搜索模块')}">` +
+                    `<button type="button" class="mjx-searchclear" id="mjx-search-clear" aria-label="${I18n.t('清空搜索')}" hidden>×</button>` +
                 `</div>` +
-                `<button type="button" class="mjx-b mjx-b-search" id="mjx-search-btn">搜索</button>` +
+                `<button type="button" class="mjx-b mjx-b-search" id="mjx-search-btn">${I18n.t('搜索')}</button>` +
             `</div>` +
             `<div class="mjx-main">` +
                 `<div class="mjx-treewrap" id="mjx-treewrap"><div class="mjx-tree" id="mjx-r-tree"></div>` +
-                `<div class="mjx-nomatch" id="mjx-nomatch" hidden>没有匹配的模块。</div></div>` +
+                `<div class="mjx-nomatch" id="mjx-nomatch" hidden>${I18n.t('没有匹配的模块。')}</div></div>` +
             `</div>` +
-            `<button type="button" class="mjx-b mjx-b-top" data-act="totop" hidden>回到顶部</button>` +
+            `<button type="button" class="mjx-b mjx-b-top" data-act="totop" hidden>${I18n.t('回到顶部')}</button>` +
             `</div></div>`;
     },
 
@@ -254,7 +254,7 @@ const DebugModuleJump = {
         if (!ph) return;
         const ms = this.moduleSystem;
         if (!ms || !ms.rootModuleId) {
-            ph.innerHTML = '<div class="mjx"><div class="mjx-empty">尚未加载故事。请先在设置中加载故事。</div></div>';
+            ph.innerHTML = `<div class="mjx"><div class="mjx-empty">${I18n.t('尚未加载故事。请先在设置中加载故事。')}</div></div>`;
             return;
         }
         this._ensureShell(ph);
@@ -311,16 +311,16 @@ const DebugModuleJump = {
         const cur = ms.getCurrentModulesForDisplay ? ms.getCurrentModulesForDisplay() : [];
         const rows = cur.map((c) => {
             if (c.isFloating) {
-                return `<div class="mjx-cur-row mjx-cur-float"><span class="mjx-cur-nm">${esc(c.moduleName)}（float）</span></div>`;
+                return `<div class="mjx-cur-row mjx-cur-float"><span class="mjx-cur-nm">${esc(c.moduleName)}${I18n.t('（float）')}</span></div>`;
             }
             const path = ms.getPathToModule ? (ms.getPathToModule(c.moduleId) || []) : [];
             const crumbs = path.slice(1, path.length - 1).map(id => this._modName(id));
-            const fname = c.flowName === 'main' ? '主流程' : this._flowName(c.flowName);
+            const fname = c.flowName === 'main' ? I18n.t('主流程') : this._flowName(c.flowName);
             return `<div class="mjx-cur-row"><span class="mjx-cur-flow">${esc(fname)}</span>` +
                 `<span class="mjx-cur-nm">${esc(c.moduleName)}</span>` +
                 (crumbs.length ? `<span class="mjx-cur-path">${esc(crumbs.join(' / '))}</span>` : '') + `</div>`;
         });
-        return `<div class="mjx-cur"><div class="mjx-cur-h">当前模块</div>${rows.join('') || '<div class="mjx-qnone">未进入任何模块</div>'}</div>`;
+        return `<div class="mjx-cur"><div class="mjx-cur-h">${I18n.t('当前模块')}</div>${rows.join('') || `<div class="mjx-qnone">${I18n.t('未进入任何模块')}</div>`}</div>`;
     },
 
     /** 五类队列全部列出，不截断：当前 / 预期 / 可能 / 分流程 / 已完成 */
@@ -331,23 +331,23 @@ const DebugModuleJump = {
         const seg = (s) => !s ? [] : (Array.isArray(s) ? s : [].concat(s.ordered || [], s.unordered || []));
         const chips = (ids) => ids.length
             ? ids.map(id => `<span class="mjx-qchip">${esc(this._modName(id))}</span>`).join('')
-            : '<span class="mjx-qnone">无</span>';
+            : `<span class="mjx-qnone">${I18n.t('无')}</span>`;
         const blk = (title, ids) =>
             `<div class="mjx-qblk"><div class="mjx-qttl">${esc(title)}</div><div class="mjx-qitems">${chips(ids)}</div></div>`;
         const branches = (Array.isArray(q.branches) ? q.branches : [])
             .map(b => ({ flow: this._flowName(b.flowName || b.flow || ''), ids: seg(b) }))
             .filter(b => b.ids.length);
-        const flowsBlk = `<div class="mjx-qblk mjx-qblk-wide"><div class="mjx-qttl">分流程</div>` +
+        const flowsBlk = `<div class="mjx-qblk mjx-qblk-wide"><div class="mjx-qttl">${I18n.t('分流程')}</div>` +
             (branches.length
                 ? `<div class="mjx-qflows">` + branches.map(b => `<div class="mjx-qflow"><span class="mjx-qfname">${esc(b.flow)}</span><span class="mjx-qfitems">${chips(b.ids)}</span></div>`).join('') + `</div>`
                 : `<div class="mjx-qitems">${chips([])}</div>`) +
             `</div>`;
         const done = Array.isArray(q.completed) ? q.completed : [];
-        const doneBlk = `<div class="mjx-qblk mjx-qblk-wide"><div class="mjx-qttl">已完成</div><div class="mjx-qchain">` +
-            (done.length ? done.map(id => `<span class="mjx-qdn">${esc(this._modName(id))}</span>`).join('<span class="mjx-arr">→</span>') : '<span class="mjx-qnone">无</span>') +
+        const doneBlk = `<div class="mjx-qblk mjx-qblk-wide"><div class="mjx-qttl">${I18n.t('已完成')}</div><div class="mjx-qchain">` +
+            (done.length ? done.map(id => `<span class="mjx-qdn">${esc(this._modName(id))}</span>`).join('<span class="mjx-arr">→</span>') : `<span class="mjx-qnone">${I18n.t('无')}</span>`) +
             `</div></div>`;
         return `<div class="mjx-queue">` +
-            blk('当前队列', seg(q.current)) + blk('预期队列', seg(q.expected)) + blk('可能队列', seg(q.possible)) +
+            blk(I18n.t('当前队列'), seg(q.current)) + blk(I18n.t('预期队列'), seg(q.expected)) + blk(I18n.t('可能队列'), seg(q.possible)) +
             flowsBlk + doneBlk + `</div>`;
     },
 
@@ -401,7 +401,7 @@ const DebugModuleJump = {
         const ms = this.moduleSystem, esc = this._esc.bind(this);
         const curSet = new Set(curIds);
         const root = ms.getModule(ms.rootModuleId);
-        if (!root) return '<div class="mjx-empty">该故事暂无模块。</div>';
+        if (!root) return `<div class="mjx-empty">${I18n.t('该故事暂无模块。')}</div>`;
         const rows = [];
         // 折叠展开只切 data-collapsed 属性，所有子节点始终渲染
         const TYPE_ORDER = ['timeline', 'trigger_chain', 'free_trigger'];
@@ -413,17 +413,17 @@ const DebugModuleJump = {
             const st = this._stateOf(s);
             const key = isRoot ? 'F|ROOT|' + s.id : s.id;
             const lead = this._hasKids(s)
-                ? `<button type="button" class="mjx-cw mjx-cbtn" data-tgl="${esc(key)}" aria-label="展开或收起">${caret(key)}</button>`
+                ? `<button type="button" class="mjx-cw mjx-cbtn" data-tgl="${esc(key)}" aria-label="${I18n.t('展开或收起')}">${caret(key)}</button>`
                 : `<span class="mjx-cw"></span>`;
             return `<div class="mjx-node${isRoot ? ' mjx-node-root' : ''}${s.id === this._jumpSel ? ' is-sel' : ''}${curSet.has(s.id) ? ' is-cur' : ''}" data-nid="${esc(s.id)}" data-st="${esc(st)}">` +
                 lead +
-                `<button type="button" class="mjx-nm mjx-nmbtn" data-sel="${esc(s.id)}">${esc(s.name || '未命名')}</button>` +
+                `<button type="button" class="mjx-nm mjx-nmbtn" data-sel="${esc(s.id)}">${esc(s.name || I18n.t('未命名'))}</button>` +
                 `<span class="mjx-badge mjx-badge-${esc(st)}">${esc(this._stateText(st))}</span>` +
                 (isRoot ? '' :
                     `<span class="mjx-rowacts">` +
-                    `<button type="button" class="mjx-rb mjx-rb-jump" data-rjump="${esc(s.id)}">跳转</button>` +
-                    `<button type="button" class="mjx-rb mjx-rb-done" data-rdone="${esc(s.id)}">完成</button>` +
-                    `<button type="button" class="mjx-rb mjx-rb-untrig" data-runtrig="${esc(s.id)}">未触发</button>` +
+                    `<button type="button" class="mjx-rb mjx-rb-jump" data-rjump="${esc(s.id)}">${I18n.t('跳转')}</button>` +
+                    `<button type="button" class="mjx-rb mjx-rb-done" data-rdone="${esc(s.id)}">${I18n.t('完成')}</button>` +
+                    `<button type="button" class="mjx-rb mjx-rb-untrig" data-runtrig="${esc(s.id)}">${I18n.t('未触发')}</button>` +
                     `</span>`) +
                 `</div>`;
         };
@@ -444,7 +444,7 @@ const DebugModuleJump = {
             types.forEach(t => {
                 const tk = 'T|' + mod.id + '|' + flowName + '|' + t;
                 rows.push(`<div class="mjx-typegroup mjx-tg-${esc(t)}" style="--d:${Math.min(depth, 8)}">` +
-                    `<div class="mjx-typehead" data-col="${esc(tk)}" role="button" tabindex="0"><span class="mjx-cw mjx-cae">${caret(tk)}</span><span class="mjx-th-t">${esc(this._TYC[t] || '其他')}（${byType[t].length}）</span></div>` +
+                    `<div class="mjx-typehead" data-col="${esc(tk)}" role="button" tabindex="0"><span class="mjx-cw mjx-cae">${caret(tk)}</span><span class="mjx-th-t">${esc(this._TYC[t] || I18n.t('其他'))}${I18n.t('（{n}）', { n: byType[t].length })}</span></div>` +
                     `<div class="mjx-typebody" data-childof="${esc(tk)}" data-collapsed="${col(tk) ? '1' : '0'}">`);
                 byType[t].forEach(s => node(s, depth));
                 rows.push(`</div></div>`);
@@ -456,7 +456,7 @@ const DebugModuleJump = {
                 if (fn === 'main' && !isRoot) { renderTypeGroups(mod, fn, depth); return; }
                 const fk = 'F|' + mod.id + '|' + fn;
                 const isMain = fn === 'main';
-                const head = isMain ? this._flowName('main', mod) : '分流程：' + this._flowName(fn, mod);
+                const head = isMain ? this._flowName('main', mod) : I18n.t('分流程：{name}', { name: this._flowName(fn, mod) });
                 rows.push(`<div class="mjx-flowgroup${isMain ? '' : ' mjx-fg-br'}"><div class="mjx-flowhead${isMain ? '' : ' mjx-flowhead-br'}" data-col="${esc(fk)}" role="button" tabindex="0"><span class="mjx-cae">${caret(fk)}</span> ${esc(head)}</div>` +
                     `<div class="mjx-flowbody" data-childof="${esc(fk)}" data-collapsed="${col(fk) ? '1' : '0'}">`);
                 renderTypeGroups(mod, fn, depth);
@@ -474,7 +474,7 @@ const DebugModuleJump = {
     _detailHtml() {
         const ms = this.moduleSystem, esc = this._esc.bind(this);
         const m = ms.getModule(this._jumpSel);
-        if (!m) return '<div class="mjx-empty">选择一个模块查看详情。</div>';
+        if (!m) return `<div class="mjx-empty">${I18n.t('选择一个模块查看详情。')}</div>`;
         const path = ms.getPathToModule ? (ms.getPathToModule(m.id) || []) : [];
         const crumbs = path.slice(1, path.length - 1).map(id => this._modName(id));
         if (this._jumpInfoFor !== m.id) { this._jumpInfoFor = m.id; this._jumpInfoShown = this._JUMP_INFO_PAGE; }
@@ -485,25 +485,25 @@ const DebugModuleJump = {
         const st = this._stateOf(m);
         return `<div class="mjx-sin mjx-d2">` +
             `<div class="mjx-d2-head">` +
-                `<div class="mjx-d2-title">${esc(m.name || '未命名')}</div>` +
+                `<div class="mjx-d2-title">${esc(m.name || I18n.t('未命名'))}</div>` +
                 `<div class="mjx-d2-meta">` +
                     (m.type && this._TYC[m.type] ? `<span class="mjx-ty mjx-ty-${esc(m.type)}">${esc(this._TYC[m.type])}</span>` : '') +
                     `<span class="mjx-stt mjx-stt-${esc(st)}">${esc(this._stateText(st))}</span>` +
                     (crumbs.length ? `<span class="mjx-d2-crumbs">${esc(crumbs.join(' / '))}</span>` : '') +
                 `</div>` +
             `</div>` +
-            (info ? `<div class="mjx-d2-card"><div class="mjx-d2-label">背景${infoParts.total > 1 ? ' ' + infoParts.total : ''}</div><div class="mjx-d2-text">${esc(info)}</div>` +
-                (infoRest > 0 ? `<button type="button" class="mjx-b" data-act="moreinfo">显示更多（还有 ${infoRest} 条）</button>` : '') + `</div>` : '') +
+            (info ? `<div class="mjx-d2-card"><div class="mjx-d2-label">${I18n.t('背景')}${infoParts.total > 1 ? ' ' + infoParts.total : ''}</div><div class="mjx-d2-text">${esc(info)}</div>` +
+                (infoRest > 0 ? `<button type="button" class="mjx-b" data-act="moreinfo">${I18n.t('显示更多（还有 {n} 条）', { n: infoRest })}</button>` : '') + `</div>` : '') +
             `<div class="mjx-d2-card mjx-d2-cond">` +
-                `<div class="mjx-d2-condrow"><span class="mjx-d2-label">进入</span><span class="mjx-d2-text">${ent ? esc(ent) : '可直接进入'}</span></div>` +
-                `<div class="mjx-d2-condrow"><span class="mjx-d2-label">完成</span><span class="mjx-d2-text">${cmp ? esc(cmp) : '无特殊条件'}</span></div>` +
+                `<div class="mjx-d2-condrow"><span class="mjx-d2-label">${I18n.t('进入')}</span><span class="mjx-d2-text">${ent ? esc(ent) : I18n.t('可直接进入')}</span></div>` +
+                `<div class="mjx-d2-condrow"><span class="mjx-d2-label">${I18n.t('完成')}</span><span class="mjx-d2-text">${cmp ? esc(cmp) : I18n.t('无特殊条件')}</span></div>` +
             `</div>` +
             this._detailVarsBlock(m) + this._detailPluginsBlock(m) +
             `<div class="mjx-d2-acts">` +
-                `<button type="button" class="mjx-b mjx-b-jump" data-act="jump">跳转</button>` +
-                `<button type="button" class="mjx-b mjx-b-done" data-act="complete">完成</button>` +
-                `<button type="button" class="mjx-b mjx-b-untrig" data-act="untrig">未触发</button>` +
-                `<button type="button" class="mjx-b mjx-b-edit" data-act="edit">在模组编辑中打开</button>` +
+                `<button type="button" class="mjx-b mjx-b-jump" data-act="jump">${I18n.t('跳转')}</button>` +
+                `<button type="button" class="mjx-b mjx-b-done" data-act="complete">${I18n.t('完成')}</button>` +
+                `<button type="button" class="mjx-b mjx-b-untrig" data-act="untrig">${I18n.t('未触发')}</button>` +
+                `<button type="button" class="mjx-b mjx-b-edit" data-act="edit">${I18n.t('在模组编辑中打开')}</button>` +
             `</div></div>`;
     },
 
@@ -516,18 +516,18 @@ const DebugModuleJump = {
         const rows = list.map(v => {
             const live = (vs && vs.getVariable) ? vs.getVariable(v.id) : null;
             const val = (vs && vs.getValue && live) ? vs.getValue(v.id) : v.initialValue;
-            const tCN = (this._vtCN && this._vtCN[v.type || 'string']) || '其他类型';
+            const tCN = (this._vtCN && this._vtCN[v.type || 'string']) || I18n.t('其他类型');
             let vis = '';
             if (live && Array.isArray(live.switchConditions) && live.switchConditions.length) {
-                if (vs && vs.conditionEvaluator) vis = live.shouldSendToAI(vs.conditionEvaluator) ? '当前可见' : '当前不可见';
-                else vis = '可见性暂无法判断';
+                if (vs && vs.conditionEvaluator) vis = live.shouldSendToAI(vs.conditionEvaluator) ? I18n.t('当前可见') : I18n.t('当前不可见');
+                else vis = I18n.t('可见性暂无法判断');
             }
             return `<div class="mjx-d2-chip">` +
-                `<span class="mjx-d2-chipk">${esc(v.name || '未命名变量')}</span>` +
+                `<span class="mjx-d2-chipk">${esc(v.name || I18n.t('未命名变量'))}</span>` +
                 `<span class="mjx-d2-chipv">${esc(this._valText(v.id, val))}</span>` +
                 `<span class="mjx-d2-chipt">${esc(tCN)}${vis ? ' · ' + esc(vis) : ''}</span></div>`;
         }).join('');
-        return `<div class="mjx-d2-card"><div class="mjx-d2-label">注册变量 ${list.length}</div><div class="mjx-d2-chips">${rows}</div></div>`;
+        return `<div class="mjx-d2-card"><div class="mjx-d2-label">${I18n.t('注册变量 {n}', { n: list.length })}</div><div class="mjx-d2-chips">${rows}</div></div>`;
     },
 
     /**
@@ -543,18 +543,18 @@ const DebugModuleJump = {
             const tCN = (this._PLTC && this._PLTC[t]) || this._plTypeCN(t) || t;
             const cond = p.condition || {};
             let condTag;
-            if (!cond || !cond.type || cond.type === 'always') condTag = '始终';
-            else if (cond.type === 'precondition') condTag = '满足前置启用';
-            else if (cond.type === 'display') condTag = '满足显示启用';
+            if (!cond || !cond.type || cond.type === 'always') condTag = I18n.t('始终');
+            else if (cond.type === 'precondition') condTag = I18n.t('满足前置启用');
+            else if (cond.type === 'display') condTag = I18n.t('满足显示启用');
             else condTag = String(cond.type);
-            return `<div class="mjx-d2-chip" title="${esc(p.name || p.id)}（${esc(tCN)}，${esc(condTag)}）">` +
-                `<span class="mjx-d2-chipk">${esc(p.name || p.id || '未命名')}</span>` +
+            return `<div class="mjx-d2-chip" title="${esc(p.name || p.id)}${I18n.t('（{a}，{b}）', { a: esc(tCN), b: esc(condTag) })}">` +
+                `<span class="mjx-d2-chipk">${esc(p.name || p.id || I18n.t('未命名'))}</span>` +
                 `<span class="mjx-d2-chipt">${esc(tCN)} · ${esc(condTag)}</span></div>`;
         }).join('');
-        return `<div class="mjx-d2-card"><div class="mjx-d2-label">注册插件 ${list.length}</div><div class="mjx-d2-chips">${rows}</div></div>`;
+        return `<div class="mjx-d2-card"><div class="mjx-d2-label">${I18n.t('注册插件 {n}', { n: list.length })}</div><div class="mjx-d2-chips">${rows}</div></div>`;
     },
 
-    _vtCN: { number: '数值', string: '文字', boolean: '开关', list: '列表', object: '对象', list_of_object: '对象列表' },
+    _vtCN: { number: I18n.t('数值'), string: I18n.t('文字'), boolean: I18n.t('开关'), list: I18n.t('列表'), object: I18n.t('对象'), list_of_object: I18n.t('对象列表') },
 
     /** 模组编辑里「插件」区块的内容：全部由插件编辑器（plugin-editor.js）绘制。 */
     _pluginEditRows(m) {
@@ -721,8 +721,8 @@ const DebugModuleJump = {
     /** 核心返回的失败原因转成用户能读懂的提示 */
     _failText(action, err) {
         const e = String(err == null ? '' : err);
-        if (/not found/i.test(e)) return `未找到这个模块，${action}没有执行。`;
-        return e ? `${action}失败：${e}` : `${action}失败。`;
+        if (/not found/i.test(e)) return I18n.t('未找到这个模块，「{action}」没有执行。', { action });
+        return e ? I18n.t('{action}失败：{e}', { action, e }) : I18n.t('{action}失败。', { action });
     },
 
     /** 执行一次模块操作；抛出的错误提示给用户，同时留在控制台 */
@@ -730,7 +730,7 @@ const DebugModuleJump = {
         try { return fn(); }
         catch (e) {
             console.error(e);
-            this._toast(`${label}时出现错误：${e.message}`, 'error');
+            this._toast(I18n.t('{label}时出现错误：{msg}', { label, msg: e.message }), 'error');
             return null;
         }
     },
@@ -744,38 +744,38 @@ const DebugModuleJump = {
 
     jumpToModule(id) {
         const ms = this.moduleSystem; if (!ms) return;
-        this._perform('跳转', () => {
-            if (!ms.getModule(id)) { this._toast(this._failText('跳转', 'Module not found'), 'error'); return; }
+        this._perform(I18n.t('跳转'), () => {
+            if (!ms.getModule(id)) { this._toast(this._failText(I18n.t('跳转'), 'Module not found'), 'error'); return; }
             const r = ms.jumpToModule(id, { force: true });
-            if (!r || !r.success) { this._toast(this._failText('跳转', r && r.error), 'error'); return; }
+            if (!r || !r.success) { this._toast(this._failText(I18n.t('跳转'), r && r.error), 'error'); return; }
             this._afterChange();
-            this._toast('已跳转', 'success');
+            this._toast(I18n.t('已跳转'), 'success');
         });
     },
 
     completeModule(id) {
         const ms = this.moduleSystem; if (!ms) return;
-        this._perform('完成', () => {
+        this._perform(I18n.t('完成'), () => {
             const m = ms.getModule(id);
-            if (!m) { this._toast(this._failText('完成', 'Module not found'), 'error'); return; }
-            if (this._stateOf(m) === 'completed') { this._toast('该模块已是已完成。', 'info'); return; }
+            if (!m) { this._toast(this._failText(I18n.t('完成'), 'Module not found'), 'error'); return; }
+            if (this._stateOf(m) === 'completed') { this._toast(I18n.t('该模块已是已完成。'), 'info'); return; }
             const r = ms.completeModule(id, { force: true });
-            if (!r || !r.success) { this._toast(this._failText('完成', r && r.error), 'error'); return; }
+            if (!r || !r.success) { this._toast(this._failText(I18n.t('完成'), r && r.error), 'error'); return; }
             this._afterChange();
-            this._toast(r.autoEntered ? '已完成，并进入下一个模块' : '已完成', 'success');
+            this._toast(r.autoEntered ? I18n.t('已完成，并进入下一个模块') : I18n.t('已完成'), 'success');
         });
     },
 
     untriggerModule(id) {
         const ms = this.moduleSystem; if (!ms) return;
-        this._perform('退回未触发', () => {
+        this._perform(I18n.t('退回未触发'), () => {
             const m = ms.getModule(id);
-            if (!m) { this._toast(this._failText('退回未触发', 'Module not found'), 'error'); return; }
-            if (this._stateOf(m) === 'untriggered') { this._toast('该模块已是未触发。', 'info'); return; }
+            if (!m) { this._toast(this._failText(I18n.t('退回未触发'), 'Module not found'), 'error'); return; }
+            if (this._stateOf(m) === 'untriggered') { this._toast(I18n.t('该模块已是未触发。'), 'info'); return; }
             const r = ms.untriggerModule(id);
-            if (!r || !r.success) { this._toast(this._failText('退回未触发', r && r.error), 'error'); return; }
+            if (!r || !r.success) { this._toast(this._failText(I18n.t('退回未触发'), r && r.error), 'error'); return; }
             this._afterChange();
-            this._toast('已退回未触发', 'success');
+            this._toast(I18n.t('已退回未触发'), 'success');
         });
     },
 

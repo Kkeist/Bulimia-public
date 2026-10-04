@@ -6,6 +6,37 @@
  * - 与输出预设可同时注入，写作指导优先
  */
 
+/** 两段协议的各语言文字（用 id 取，便于比对存档里存下的旧默认文字） */
+const WG_PROTOCOL_TEXT = {
+    'wg-reply-format-blocks': {
+        zh: `# 回复格式
+- **正文**：必须用 \`<content>\` 和 \`</content>\` 完整包裹；系统仅展示此块作为主内容。正文以外内容不得放入此块。
+- **本轮摘要**（必填）：见「本轮摘要格式」；须包含 \`<turn_summary>\` 和 \`</turn_summary>\`。
+- **系统指令**：内联标签 \`<类型|参数|参数|...>\`，一条一行，写在正文之后；可用的指令以本回合「指令」段为准，名字要照抄上方段落里的。`,
+        en: `# Reply format
+- **Body**: must be fully wrapped in \`<content>\` and \`</content>\`; the system shows only this block as the main content. Nothing other than the body may go inside this block.
+- **Turn summary** (required): see "Turn summary format"; it must include \`<turn_summary>\` and \`</turn_summary>\`.
+- **System commands**: inline tags \`<type|param|param|...>\`, one per line, written after the body; the available commands are those in this turn's "commands" section, and names must be copied exactly from the sections above.
+- **Language**: write the body and the summary in English.`
+    },
+    'wg-turn-summary-format': {
+        zh: `# 本轮摘要格式（<turn_summary> 内必填）
+每轮回复须包含 \`<turn_summary>\` 和 \`</turn_summary>\`，内**只需填写以下两行**（与主线剧情强相关，非一两句话概括）：
+
+scene: 当前场景，写简要地点或情境
+plot: 总结本次正文剧情。需保留关键信息、记录名词和新出现信息，去除冗余内容，避免升华和评价，**使用流水账形式**
+
+**说明**：serial（序号）与 time（日期时间）由系统根据变量自动填入，你无需填写。以上两行与正文物理隔离，写在 \`<turn_summary>\` 与 \`</turn_summary>\` 之间。摘要用于历史上下文压缩：非最近几条消息只发摘要不发全文。`,
+        en: `# Turn summary format (required inside <turn_summary>)
+Every reply must include \`<turn_summary>\` and \`</turn_summary>\`, containing **only the following two lines** (closely tied to the main storyline, not a one- or two-sentence overview):
+
+scene: the current scene; a brief location or situation
+plot: summarize the plot of this turn's body. Keep key information, record nouns and newly introduced information, remove redundancy, avoid sublimation and commentary, and **write it as a running log**
+
+**Note**: serial (sequence number) and time (date/time) are filled in automatically by the system from variables; you do not need to write them. The two lines above are physically separated from the body and go between \`<turn_summary>\` and \`</turn_summary>\`. The summary is used to compress history context: messages other than the most recent few are sent as summaries only, not in full.`
+    }
+};
+
 const WritingGuide = {
     _defaultCache: null,
 
@@ -20,36 +51,11 @@ const WritingGuide = {
     PROTOCOL: {
         'wg-reply-format-blocks': {
             name: I18n.t('回复格式与可解析块'),
-            content: I18n.pick({
-                zh: `# 回复格式
-- **正文**：必须用 \`<content>\` 和 \`</content>\` 完整包裹；系统仅展示此块作为主内容。正文以外内容不得放入此块。
-- **本轮摘要**（必填）：见「本轮摘要格式」；须包含 \`<turn_summary>\` 和 \`</turn_summary>\`。
-- **系统指令**：内联标签 \`<类型|参数|参数|...>\`，一条一行，写在正文之后；可用的指令以本回合「指令」段为准，名字要照抄上方段落里的。`,
-                en: `# Reply format
-- **Body**: must be fully wrapped in \`<content>\` and \`</content>\`; the system shows only this block as the main content. Nothing other than the body may go inside this block.
-- **Turn summary** (required): see "Turn summary format"; it must include \`<turn_summary>\` and \`</turn_summary>\`.
-- **System commands**: inline tags \`<type|param|param|...>\`, one per line, written after the body; the available commands are those in this turn's "commands" section, and names must be copied exactly from the sections above.
-- **Language**: write the body and the summary in English.`
-            })
+            content: I18n.pick(WG_PROTOCOL_TEXT['wg-reply-format-blocks'])
         },
         'wg-turn-summary-format': {
             name: I18n.t('本轮摘要格式'),
-            content: I18n.pick({
-                zh: `# 本轮摘要格式（<turn_summary> 内必填）
-每轮回复须包含 \`<turn_summary>\` 和 \`</turn_summary>\`，内**只需填写以下两行**（与主线剧情强相关，非一两句话概括）：
-
-scene: 当前场景，写简要地点或情境
-plot: 总结本次正文剧情。需保留关键信息、记录名词和新出现信息，去除冗余内容，避免升华和评价，**使用流水账形式**
-
-**说明**：serial（序号）与 time（日期时间）由系统根据变量自动填入，你无需填写。以上两行与正文物理隔离，写在 \`<turn_summary>\` 与 \`</turn_summary>\` 之间。摘要用于历史上下文压缩：非最近几条消息只发摘要不发全文。`,
-                en: `# Turn summary format (required inside <turn_summary>)
-Every reply must include \`<turn_summary>\` and \`</turn_summary>\`, containing **only the following two lines** (closely tied to the main storyline, not a one- or two-sentence overview):
-
-scene: the current scene; a brief location or situation
-plot: summarize the plot of this turn's body. Keep key information, record nouns and newly introduced information, remove redundancy, avoid sublimation and commentary, and **write it as a running log**
-
-**Note**: serial (sequence number) and time (date/time) are filled in automatically by the system from variables; you do not need to write them. The two lines above are physically separated from the body and go between \`<turn_summary>\` and \`</turn_summary>\`. The summary is used to compress history context: messages other than the most recent few are sent as summaries only, not in full.`
-            })
+            content: I18n.pick(WG_PROTOCOL_TEXT['wg-turn-summary-format'])
         }
     },
 
@@ -70,6 +76,17 @@ plot: summarize the plot of this turn's body. Keep key information, record nouns
     },
 
     /** 取 JSON：文件不存在返回 null，其余失败（网络、内容损坏）抛出 */
+    /** 非中文界面优先读同名的 <名>.<语言>.json（如 writing-guide.en.json），没有就用默认文件 */
+    async _fetchLocalized(url) {
+        if (I18n.lang !== I18n.SOURCE) {
+            try {
+                const localized = await this._fetchOptional(url.replace(/\.json$/, '.' + I18n.lang + '.json'));
+                if (localized) return localized;
+            } catch (e) { console.warn('WritingGuide._fetchLocalized:', e); }
+        }
+        return this._fetchOptional(url);
+    },
+
     async _fetchOptional(url) {
         const res = await fetch(url);
         if (res.status === 404) return null;
@@ -121,8 +138,8 @@ plot: summarize the plot of this turn's body. Keep key information, record nouns
         let guide = null;
         let core = null;
         try {
-            guide = await this._fetchOptional('data/builtin-presets/writing-guide.json');
-            core = await this._fetchOptional('data/builtin-presets/writing-guide-core.json');
+            guide = await this._fetchLocalized('data/builtin-presets/writing-guide.json');
+            core = await this._fetchLocalized('data/builtin-presets/writing-guide-core.json');
         } catch (e) {
             this.loadError = e && e.message ? e.message : String(e);
             console.error('WritingGuide.loadDefault:', e);
@@ -190,9 +207,17 @@ plot: summarize the plot of this turn's body. Keep key information, record nouns
         }
         // 回复格式说明要和解析器一致，不随存档里旧的自定义内容走
         const protocolDefault = new Map(defaultList.filter(e => this.isProtocolEntry(e.identifier)).map(e => [e.identifier, e]));
+        // 协议段若还是中文默认文字（切换界面语言前存下的），跟随当前语言的默认
+        const staleProtocol = (e) => {
+            const d = protocolDefault.get(e.identifier);
+            const src = WG_PROTOCOL_TEXT[e.identifier];
+            if (!d || !src || I18n.lang === I18n.SOURCE) return {};
+            return String(e.content || '').trim() === src[I18n.SOURCE].trim() ? { content: d.content } : {};
+        };
         const withMeta = raw.map(e => ({
             ...e,
             ...(e.identifier === 'wg-reply-format-blocks' && protocolDefault.has(e.identifier) ? { content: protocolDefault.get(e.identifier).content } : {}),
+            ...staleProtocol(e),
             role: e.role || 'system',
             injection_depth: e.injection_depth ?? e.injectionDepth ?? this.DEFAULT_DEPTH,
             injection_order: e.injection_order ?? e.injectionOrder ?? this.DEFAULT_ORDER

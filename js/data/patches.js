@@ -102,7 +102,7 @@ const Patches = {
             if (!(p.content && String(p.content).trim())) continue;
             messages.push({
                 role: 'system',
-                content: `<补丁·模组·${p.name}>\n${p.content}\n</补丁·模组·${p.name}>`,
+                content: `<${I18n.t('补丁·模组·{name}', { name: p.name })}>\n${p.content}\n</${I18n.t('补丁·模组·{name}', { name: p.name })}>`,
                 identifier: `patch-module-${p.id}`,
                 label: p.name,
                 injection_depth: p.injection_depth ?? D,
@@ -123,10 +123,11 @@ const Patches = {
                         if (!match) continue;
                     }
                 }
-                const name = e.name || e.comment || e.id || '条目';
+                const name = e.name || e.comment || e.id || I18n.t('条目');
+                const tagName = I18n.t('补丁·{group}·{name}', { group: g.name || g.id, name });
                 messages.push({
                     role: 'system',
-                    content: `<补丁·${g.name || g.id}·${name}>\n${String(e.content).trim()}\n</补丁·${g.name || g.id}·${name}>`,
+                    content: `<${tagName}>\n${String(e.content).trim()}\n</${tagName}>`,
                     identifier: `patch-imported-${g.id}-${e.id}`,
                     label: (g.name || g.id) + '·' + name,
                     injection_depth: e.injection_depth ?? D,

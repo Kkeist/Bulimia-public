@@ -24,23 +24,23 @@ Object.assign(App, {
             const info = document.createElement('div');
             info.style.flex = '1';
             const title = document.createElement('strong');
-            title.textContent = (save.preview?.persona || save.id) + (save.id === handlers.currentId ? '（当前）' : '');
+            title.textContent = (save.preview?.persona ? (save.preview.persona === '未设置角色' ? I18n.t('未设置角色') : save.preview.persona) : save.id) + (save.id === handlers.currentId ? I18n.t('（当前）') : '');
             const when = document.createElement('div');
             when.style.cssText = 'font-size: 11px; color: var(--color-text-muted); margin-top: 2px;';
             when.textContent = `${new Date(save.timestamp).toLocaleString()} ${save.preview?.date ? '· ' + save.preview.date : ''}`;
             const last = document.createElement('div');
             last.style.cssText = 'font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; word-break: break-word; overflow-wrap: anywhere;';
-            last.textContent = save.preview?.lastContent || '';
+            last.textContent = save.preview?.lastContent === '(无内容)' ? I18n.t('(无内容)') : (save.preview?.lastContent || '');
             info.append(title, when, last);
 
             const actions = document.createElement('div');
             const loadBtn = document.createElement('button');
             loadBtn.className = 'btn-small';
-            loadBtn.textContent = '加载';
+            loadBtn.textContent = I18n.t('加载');
             loadBtn.addEventListener('click', () => handlers.onLoad(save.id));
             const delBtn = document.createElement('button');
             delBtn.className = 'btn-small danger';
-            delBtn.textContent = '删除';
+            delBtn.textContent = I18n.t('删除');
             delBtn.addEventListener('click', () => handlers.onDelete(save.id));
             actions.append(loadBtn, delBtn);
 
@@ -54,7 +54,7 @@ Object.assign(App, {
         try {
             return await Storage.listSaves();
         } catch (error) {
-            Toast.show('读取存档列表失败：' + error.message, 'error', 6000);
+            Toast.show(I18n.t('读取存档列表失败：{msg}', { msg: error.message }), 'error', 6000);
             return null;
         }
     },
@@ -63,25 +63,25 @@ Object.assign(App, {
         const saves = await this._listSavesOrReport();
         if (!saves) return;
         if (saves.length === 0) {
-            Toast.show('没有找到存档', 'info');
+            Toast.show(I18n.t('没有找到存档'), 'info');
             return;
         }
-        this._showSavesDialog('选择存档', saves);
+        this._showSavesDialog(I18n.t('选择存档'), saves);
     },
 
     async showSavesModal() {
         const saves = await this._listSavesOrReport();
         if (!saves) return;
-        this._showSavesDialog('读取存档', saves);
+        this._showSavesDialog(I18n.t('读取存档'), saves);
     },
 
     /** 弹出存档列表：加载、删除都在列表里 */
     _showSavesDialog(title, saves) {
         const listId = 'saves-dialog-list';
         Modal.show(title, saves.length === 0
-            ? '<div class="item-list-empty">暂无存档，开始新游戏后会自动保存</div>'
+            ? '<div class="item-list-empty">' + I18n.t('暂无存档，开始新游戏后会自动保存') + '</div>'
             : `<div class="item-list" id="${listId}" style="max-height: 400px;"></div>`, {
-            buttons: [{ label: '关闭', action: 'close' }],
+            buttons: [{ label: I18n.t('关闭'), action: 'close' }],
             onAction: () => Modal.close()
         });
         const box = document.getElementById(listId);
@@ -102,18 +102,18 @@ Object.assign(App, {
 
     async loadGame(saveId) {
         if (this.isGenerating) {
-            Toast.show('正在生成中，请先点击“停止”再读取存档', 'warning');
+            Toast.show(I18n.t('正在生成中，请先点击“停止”再读取存档'), 'warning');
             return;
         }
         let success = false;
         try {
             success = await Engine.loadSave(saveId);
         } catch (error) {
-            Toast.show('这个存档读取不出来，内容可能已经损坏。其他存档没有受影响。', 'error', 8000);
+            Toast.show(I18n.t('这个存档读取不出来，内容可能已经损坏。其他存档没有受影响。'), 'error', 8000);
             return;
         }
         if (!success) {
-            Toast.show('没有找到这个存档，可能已被删除。', 'error');
+            Toast.show(I18n.t('没有找到这个存档，可能已被删除。'), 'error');
             return;
         }
         State.currentSaveId = saveId;
@@ -128,7 +128,7 @@ Object.assign(App, {
         }
         ChatDisplay.loadHistory(State.chatHistory || []);
         Storage.setLocal(this.LAST_SAVE_KEY, saveId);
-        Toast.show('存档已加载', 'success');
+        Toast.show(I18n.t('存档已加载'), 'success');
     },
 
     /** 打开页面时回到上次玩的存档；没有记录或存档已删除就留在首页 */
@@ -139,7 +139,7 @@ Object.assign(App, {
         try {
             exists = !!(await Storage.loadGame(id));
         } catch (error) {
-            Toast.show('读取上次的存档失败：' + error.message, 'error', 6000);
+            Toast.show(I18n.t('读取上次的存档失败：{msg}', { msg: error.message }), 'error', 6000);
             return;
         }
         if (!exists) {
@@ -156,7 +156,7 @@ Object.assign(App, {
         if (!saves) return;
 
         if (saves.length === 0) {
-            list.innerHTML = '<div class="item-list-empty">没有存档</div>';
+            list.innerHTML = '<div class="item-list-empty">' + I18n.t('没有存档') + '</div>';
             return;
         }
 
@@ -170,17 +170,17 @@ Object.assign(App, {
     /** 删除存档（先确认）；返回是否真的删了 */
     async deleteSave(saveId) {
         if (!saveId) {
-            Toast.show('存档名称无效', 'error');
+            Toast.show(I18n.t('存档名称无效'), 'error');
             return false;
         }
 
-        const confirmed = await Modal.confirm('删除存档', `确定要删除存档“${this._escSave(saveId)}”吗？删除后不能恢复。`);
+        const confirmed = await Modal.confirm(I18n.t('删除存档'), I18n.t('确定要删除存档“{name}”吗？删除后不能恢复。', { name: this._escSave(saveId) }));
         if (!confirmed) return false;
 
         try {
             await Storage.deleteSave(saveId);
         } catch (error) {
-            Toast.show('删除失败：' + error.message, 'error', 6000);
+            Toast.show(I18n.t('删除失败：{msg}', { msg: error.message }), 'error', 6000);
             return false;
         }
         if (State.currentSaveId === saveId) {
@@ -189,20 +189,20 @@ Object.assign(App, {
             this.updateSaveInfo();
         }
         await this.loadSaveList();
-        Toast.show('存档已删除', 'success');
+        Toast.show(I18n.t('存档已删除'), 'success');
         return true;
     },
 
     /** 取当前存档的导出文字：先存一次，确保导出的是最新进度 */
     async _currentSaveText() {
         if (!State.currentSaveId) {
-            Toast.show('还没有存档可以导出，先开始游戏吧。', 'warning');
+            Toast.show(I18n.t('还没有存档可以导出，先开始游戏吧。'), 'warning');
             return null;
         }
         if (!(await this.autoSaveToCurrentSlot())) return null;
         const text = await Storage.getSaveExportText(State.currentSaveId);
         if (!text) {
-            Toast.show('没有找到当前存档。', 'error');
+            Toast.show(I18n.t('没有找到当前存档。'), 'error');
             return null;
         }
         return text;
@@ -213,9 +213,9 @@ Object.assign(App, {
             const text = await this._currentSaveText();
             if (!text) return;
             const name = FileDownload.save(text, State.currentSaveId, 'json', 'application/json');
-            Toast.show('已开始下载：' + name, 'success', 5000);
+            Toast.show(I18n.t('已开始下载：{name}', { name }), 'success', 5000);
         } catch (error) {
-            Toast.show('导出失败：' + error.message, 'error', 6000);
+            Toast.show(I18n.t('导出失败：{msg}', { msg: error.message }), 'error', 6000);
         }
     },
 
@@ -223,9 +223,9 @@ Object.assign(App, {
     async copySaveText() {
         try {
             const text = await this._currentSaveText();
-            if (text) FileDownload.showText('存档文字', text);
+            if (text) FileDownload.showText(I18n.t('存档文字'), text);
         } catch (error) {
-            Toast.show('导出失败：' + error.message, 'error', 6000);
+            Toast.show(I18n.t('导出失败：{msg}', { msg: error.message }), 'error', 6000);
         }
     },
 
@@ -233,7 +233,7 @@ Object.assign(App, {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(String(reader.result));
-            reader.onerror = () => reject(new Error('这个文件读取不出来。'));
+            reader.onerror = () => reject(new Error(I18n.t('这个文件读取不出来。')));
             reader.readAsText(file);
         });
     },
@@ -243,29 +243,29 @@ Object.assign(App, {
         try {
             await this._importSaveFromText(await this._readFileText(file));
         } catch (error) {
-            Toast.show('导入失败：' + error.message, 'error', 6000);
+            Toast.show(I18n.t('导入失败：{msg}', { msg: error.message }), 'error', 6000);
         }
     },
 
     async pasteImportSave() {
-        const text = await Modal.prompt('粘贴存档文字', { description: '把复制出来的存档文字粘贴到这里。', placeholder: '' });
+        const text = await Modal.prompt(I18n.t('粘贴存档文字'), { description: I18n.t('把复制出来的存档文字粘贴到这里。'), placeholder: '' });
         if (!text || !text.trim()) return;
         try {
             await this._importSaveFromText(text);
         } catch (error) {
-            Toast.show('导入失败：' + error.message, 'error', 6000);
+            Toast.show(I18n.t('导入失败：{msg}', { msg: error.message }), 'error', 6000);
         }
     },
 
     async _importSaveFromText(text) {
         const id = await Storage.importSaveText(text);
         await this.loadSaveList();
-        const loadNow = await Modal.confirm('导入完成', `已导入为存档“${this._escSave(id)}”，现在读取它吗？`);
+        const loadNow = await Modal.confirm(I18n.t('导入完成'), I18n.t('已导入为存档“{name}”，现在读取它吗？', { name: this._escSave(id) }));
         if (loadNow) await this.loadGame(id);
     },
 
     updateSaveInfo() {
-        const saveName = State.currentSaveId || '未开始';
+        const saveName = State.currentSaveId || I18n.t('未开始');
 
         const saveDisplay = document.getElementById('current-save-display');
         if (saveDisplay) {
@@ -295,7 +295,7 @@ Object.assign(App, {
         const cal = vars.calendar && typeof vars.calendar === 'object' ? vars.calendar : (vars.time && typeof vars.time === 'object' ? vars.time : null);
         let dateStr = '';
         if (cal && cal.year != null) {
-            dateStr = (cal.era != null ? (cal.era || '') : '') + (cal.year || 0) + '年' + (cal.month != null ? cal.month : 1) + '月' + (cal.day != null ? cal.day : 1) + '日';
+            dateStr = (cal.era != null ? (cal.era || '') : '') + I18n.t('{year}年{month}月{day}日', { year: cal.year || 0, month: cal.month != null ? cal.month : 1, day: cal.day != null ? cal.day : 1 });
         }
         el.textContent = '';
         [['名字', name], ['日期', dateStr]].forEach(([label, value]) => {
@@ -304,7 +304,7 @@ Object.assign(App, {
             item.className = 'status-item';
             const k = document.createElement('span');
             k.className = 'status-item-name';
-            k.textContent = label;
+            k.textContent = I18n.t(label);
             item.appendChild(k);
             item.appendChild(document.createTextNode(value));
             el.appendChild(item);
@@ -317,22 +317,22 @@ Object.assign(App, {
     async renameSave() {
         const newName = document.getElementById('current-save-name-input')?.value?.trim();
         if (!newName) {
-            Toast.show('请输入存档名称', 'warning');
+            Toast.show(I18n.t('请输入存档名称'), 'warning');
             return;
         }
         if (!Engine.isRunning) {
-            Toast.show('先开始游戏，才能给存档命名。', 'warning');
+            Toast.show(I18n.t('先开始游戏，才能给存档命名。'), 'warning');
             return;
         }
         if (newName === State.currentSaveId) {
-            Toast.show('存档名称未改变', 'info');
+            Toast.show(I18n.t('存档名称未改变'), 'info');
             return;
         }
 
         try {
             const existing = (await Storage.listSaves()).map(sv => sv.id);
             if (existing.includes(newName)) {
-                Toast.show('已经有同名的存档了，请换一个名字。', 'warning');
+                Toast.show(I18n.t('已经有同名的存档了，请换一个名字。'), 'warning');
                 return;
             }
             const oldId = State.currentSaveId;
@@ -344,9 +344,9 @@ Object.assign(App, {
             if (oldId) await Storage.deleteSave(oldId);
             this.updateSaveInfo();
             await this.loadSaveList();
-            Toast.show('存档已重命名', 'success');
+            Toast.show(I18n.t('存档已重命名'), 'success');
         } catch (error) {
-            Toast.show('重命名失败：' + error.message, 'error', 6000);
+            Toast.show(I18n.t('重命名失败：{msg}', { msg: error.message }), 'error', 6000);
         }
     },
 
@@ -354,7 +354,7 @@ Object.assign(App, {
         if (!Engine.isRunning) return false;
 
         if (!State.currentSaveId) {
-            State.currentSaveId = `存档_${new Date().toLocaleDateString().replace(/\//g, '-')}_${Date.now().toString().slice(-4)}`;
+            State.currentSaveId = this._newSaveId();
         }
 
         try {
@@ -370,7 +370,7 @@ Object.assign(App, {
             Events.emit(EVENT_TYPES.AUTO_SAVE, { saveId: State.currentSaveId });
             if (this._saveFailing) {
                 this._saveFailing = false;
-                Toast.show('自动存档已恢复。', 'success');
+                Toast.show(I18n.t('自动存档已恢复。'), 'success');
             }
             return true;
         } catch (error) {
@@ -385,6 +385,6 @@ Object.assign(App, {
         const now = Date.now();
         if (this._lastSaveWarnAt && now - this._lastSaveWarnAt < 60000) return;
         this._lastSaveWarnAt = now;
-        Toast.show(error && error.message ? error.message : '存档没有保存成功，请重试。', 'error', 8000);
+        Toast.show(error && error.message ? error.message : I18n.t('存档没有保存成功，请重试。'), 'error', 8000);
     }
 });

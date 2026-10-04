@@ -14,16 +14,18 @@
 })(typeof self !== 'undefined' ? self : this, function () {
     'use strict';
 
+    var I18n = (typeof self !== 'undefined' && self.I18n) || { t: function (s, p) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return p && p[k] != null ? p[k] : m; }); } };
+
     // ---------- 类型表 ----------
     var TYPE_DEFS = {
-        randomizer: { label: '随机器', oneShot: true, order: 1, frontend: false },
-        variable_reader: { label: '变量读取器', oneShot: true, order: 2, frontend: false },
-        variable_op: { label: '变量操作器', oneShot: true, order: 3, frontend: false },
-        module_generator: { label: '模块生成器', oneShot: true, order: 4, frontend: false },
-        summary: { label: '总结器', oneShot: false, order: 9, frontend: false },
-        display: { label: '显示器', oneShot: false, order: 9, frontend: true, side: 'right' },
-        interactive: { label: '交互器', oneShot: false, order: 9, frontend: true, side: 'left' },
-        display_interactive: { label: '显示+交互器', oneShot: false, order: 9, frontend: true, side: 'left' }
+        randomizer: { label: I18n.t('随机器'), oneShot: true, order: 1, frontend: false },
+        variable_reader: { label: I18n.t('变量读取器'), oneShot: true, order: 2, frontend: false },
+        variable_op: { label: I18n.t('变量操作器'), oneShot: true, order: 3, frontend: false },
+        module_generator: { label: I18n.t('模块生成器'), oneShot: true, order: 4, frontend: false },
+        summary: { label: I18n.t('总结器'), oneShot: false, order: 9, frontend: false },
+        display: { label: I18n.t('显示器'), oneShot: false, order: 9, frontend: true, side: 'right' },
+        interactive: { label: I18n.t('交互器'), oneShot: false, order: 9, frontend: true, side: 'left' },
+        display_interactive: { label: I18n.t('显示+交互器'), oneShot: false, order: 9, frontend: true, side: 'left' }
     };
 
     var TYPE_ORDER = ['randomizer', 'variable_reader', 'variable_op', 'module_generator', 'summary', 'display', 'interactive', 'display_interactive'];
@@ -51,8 +53,8 @@
     function typeLabel(t) {
         var c = canonicalType(t);
         if (c) return TYPE_DEFS[c].label;
-        var extra = { 'interactive-save': '交互器（旧）', 'status-display': '状态面板', 'random-pool': '随机池（旧）', 'module-generator': '模块生成器（旧）', 'schedule-generator': '排期生成器（旧）', 'trigger-chain-generator': '触发器链生成器（旧）', status: '状态' };
-        return extra[t] || (t ? String(t) : '插件');
+        var extra = { 'interactive-save': I18n.t('交互器（旧）'), 'status-display': I18n.t('状态面板'), 'random-pool': I18n.t('随机池（旧）'), 'module-generator': I18n.t('模块生成器（旧）'), 'schedule-generator': I18n.t('排期生成器（旧）'), 'trigger-chain-generator': I18n.t('触发器链生成器（旧）'), status: I18n.t('状态') };
+        return extra[t] || (t ? String(t) : I18n.t('插件'));
     }
 
     /** 界面显示在哪一侧：config.side 明确写了 left / right 就用它，否则按类型的默认侧 */
@@ -76,12 +78,12 @@
                 if (typeof val === 'bigint') return String(val);
                 if (typeof val !== 'object' || val === null) return val;
                 while (stack.length && stack[stack.length - 1] !== this) stack.pop();
-                if (stack.indexOf(val) >= 0) return '[循环引用]';
+                if (stack.indexOf(val) >= 0) return I18n.t('[循环引用]');
                 stack.push(val);
                 return val;
             });
         } catch (e) {
-            return '[无法显示]';
+            return I18n.t('[无法显示]');
         }
     }
 
@@ -134,16 +136,16 @@
 
     // ---------- 变量操作 ----------
     var OPS = {
-        set: { label: '设为', needsValue: true },
-        add: { label: '增加', needsValue: true, number: true },
-        subtract: { label: '减少', needsValue: true, number: true },
-        multiply: { label: '乘以', needsValue: true, number: true },
-        append_line: { label: '追加一行', needsValue: true, text: true },
-        append_text: { label: '接在后面', needsValue: true, text: true },
-        list_add: { label: '加入列表', needsValue: true },
-        list_remove: { label: '从列表移除', needsValue: true },
-        toggle: { label: '开关取反', needsValue: false },
-        clear: { label: '清空', needsValue: false }
+        set: { label: I18n.t('设为'), needsValue: true },
+        add: { label: I18n.t('增加'), needsValue: true, number: true },
+        subtract: { label: I18n.t('减少'), needsValue: true, number: true },
+        multiply: { label: I18n.t('乘以'), needsValue: true, number: true },
+        append_line: { label: I18n.t('追加一行'), needsValue: true, text: true },
+        append_text: { label: I18n.t('接在后面'), needsValue: true, text: true },
+        list_add: { label: I18n.t('加入列表'), needsValue: true },
+        list_remove: { label: I18n.t('从列表移除'), needsValue: true },
+        toggle: { label: I18n.t('开关取反'), needsValue: false },
+        clear: { label: I18n.t('清空'), needsValue: false }
     };
     var OP_ORDER = ['set', 'add', 'subtract', 'multiply', 'append_line', 'append_text', 'list_add', 'list_remove', 'toggle', 'clear'];
     var DEFAULT_TEXT_LIMIT = 100000;
@@ -176,45 +178,45 @@
     function applyOp(op, current, operand, vtype, opts) {
         opts = opts || {};
         var limit = opts.textLimit || DEFAULT_TEXT_LIMIT;
-        if (!OPS[op]) return { ok: false, error: '不认识的操作：' + op };
+        if (!OPS[op]) return { ok: false, error: I18n.t('不认识的操作：{op}', { op: op }) };
         var type = vtype || (Array.isArray(current) ? 'list' : (current !== null && typeof current === 'object' ? 'object' : typeof current));
         var n;
         switch (op) {
             case 'set':
                 if (type === 'number') {
                     n = typeof operand === 'number' ? operand : Number(String(operand).trim());
-                    if (String(operand).trim() === '' || !isFinite(n)) return { ok: false, error: '「' + formatValue(operand) + '」不是数字' };
+                    if (String(operand).trim() === '' || !isFinite(n)) return { ok: false, error: I18n.t('「{value}」不是数字', { value: formatValue(operand) }) };
                     return { ok: true, value: n };
                 }
                 if (type === 'boolean' || type === 'switch') {
                     var b = parseBool(operand);
-                    if (b === null) return { ok: false, error: '「' + formatValue(operand) + '」不是开或关' };
+                    if (b === null) return { ok: false, error: I18n.t('「{value}」不是开或关', { value: formatValue(operand) }) };
                     return { ok: true, value: b };
                 }
                 if (type === 'list' || type === 'list_of_object') {
                     var arr = parseJsonLoose(operand);
-                    if (!Array.isArray(arr)) return { ok: false, error: '列表需要写成 [ ... ] 的形式' };
+                    if (!Array.isArray(arr)) return { ok: false, error: I18n.t('列表需要写成 [ ... ] 的形式') };
                     return { ok: true, value: arr };
                 }
                 if (type === 'object') {
                     var obj = parseJsonLoose(operand);
-                    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return { ok: false, error: '对象需要写成 { ... } 的形式' };
+                    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return { ok: false, error: I18n.t('对象需要写成 { ... } 的形式') };
                     return { ok: true, value: obj };
                 }
                 return { ok: true, value: formatValue(operand) };
             case 'add':
             case 'subtract':
             case 'multiply':
-                if (type !== 'number') return { ok: false, error: '只有数值变量能做「' + OPS[op].label + '」' };
-                if (typeof current !== 'number' || !isFinite(current)) return { ok: false, error: '变量当前不是数字，无法' + OPS[op].label };
+                if (type !== 'number') return { ok: false, error: I18n.t('只有数值变量能做「{op}」', { op: OPS[op].label }) };
+                if (typeof current !== 'number' || !isFinite(current)) return { ok: false, error: I18n.t('变量当前不是数字，无法{op}', { op: OPS[op].label }) };
                 n = typeof operand === 'number' ? operand : Number(String(operand).trim());
-                if (String(operand).trim() === '' || !isFinite(n)) return { ok: false, error: '「' + formatValue(operand) + '」不是数字' };
+                if (String(operand).trim() === '' || !isFinite(n)) return { ok: false, error: I18n.t('「{value}」不是数字', { value: formatValue(operand) }) };
                 n = op === 'add' ? current + n : (op === 'subtract' ? current - n : current * n);
-                if (!isFinite(n)) return { ok: false, error: '结果超出数值范围' };
+                if (!isFinite(n)) return { ok: false, error: I18n.t('结果超出数值范围') };
                 return { ok: true, value: n };
             case 'append_line':
             case 'append_text':
-                if (type !== 'string') return { ok: false, error: '只有文字变量能做「' + OPS[op].label + '」' };
+                if (type !== 'string') return { ok: false, error: I18n.t('只有文字变量能做「{op}」', { op: OPS[op].label }) };
                 var base = current === undefined || current === null ? '' : String(current);
                 var add = formatValue(operand);
                 var joined = op === 'append_line' ? (base ? base + '\n' + add : add) : base + add;
@@ -224,12 +226,12 @@
                 var nl = joined.indexOf('\n', cut);
                 return { ok: true, value: nl >= 0 ? joined.slice(nl + 1) : joined.slice(cut), trimmed: true };
             case 'list_add':
-                if (type !== 'list' && type !== 'list_of_object') return { ok: false, error: '只有列表变量能做「' + OPS[op].label + '」' };
+                if (type !== 'list' && type !== 'list_of_object') return { ok: false, error: I18n.t('只有列表变量能做「{op}」', { op: OPS[op].label }) };
                 var list = Array.isArray(current) ? current.slice() : [];
                 list.push(parseJsonLoose(operand));
                 return { ok: true, value: list };
             case 'list_remove':
-                if (type !== 'list' && type !== 'list_of_object') return { ok: false, error: '只有列表变量能做「' + OPS[op].label + '」' };
+                if (type !== 'list' && type !== 'list_of_object') return { ok: false, error: I18n.t('只有列表变量能做「{op}」', { op: OPS[op].label }) };
                 var src = Array.isArray(current) ? current.slice() : [];
                 var target = parseJsonLoose(operand);
                 var key = safeStringify(target);
@@ -238,12 +240,12 @@
                 }
                 return { ok: true, value: src };
             case 'toggle':
-                if (type !== 'boolean' && type !== 'switch') return { ok: false, error: '只有开关变量能做「' + OPS[op].label + '」' };
+                if (type !== 'boolean' && type !== 'switch') return { ok: false, error: I18n.t('只有开关变量能做「{op}」', { op: OPS[op].label }) };
                 return { ok: true, value: !current };
             case 'clear':
                 return { ok: true, value: emptyOf(type) };
         }
-        return { ok: false, error: '不认识的操作：' + op };
+        return { ok: false, error: I18n.t('不认识的操作：{op}', { op: op }) };
     }
 
     /**
@@ -253,14 +255,14 @@
     function applyOps(ops, store, scope) {
         var changes = [], errors = [];
         (Array.isArray(ops) ? ops : []).forEach(function (o, idx) {
-            if (!o || !o.variableId) { errors.push('第 ' + (idx + 1) + ' 条变量操作没有选变量'); return; }
+            if (!o || !o.variableId) { errors.push(I18n.t('第 {n} 条变量操作没有选变量', { n: idx + 1 })); return; }
             var name = store.nameOf ? store.nameOf(o.variableId) : o.variableId;
-            if (!store.has(o.variableId)) { errors.push('变量「' + name + '」不存在'); return; }
+            if (!store.has(o.variableId)) { errors.push(I18n.t('变量「{name}」不存在', { name: name })); return; }
             var rendered = renderText(o.value, storeLookup(store, scope));
             var before = store.get(o.variableId);
             var r = applyOp(o.op || 'set', before, rendered.text, store.typeOf ? store.typeOf(o.variableId) : undefined);
-            if (!r.ok) { errors.push('变量「' + name + '」：' + r.error); return; }
-            if (store.set(o.variableId, r.value) === false) { errors.push('变量「' + name + '」不能被修改（只读，或类型不符）'); return; }
+            if (!r.ok) { errors.push(I18n.t('变量「{name}」：{error}', { name: name, error: r.error })); return; }
+            if (store.set(o.variableId, r.value) === false) { errors.push(I18n.t('变量「{name}」不能被修改（只读，或类型不符）', { name: name })); return; }
             changes.push({ variableId: o.variableId, name: name, op: o.op || 'set', before: before, after: r.value, trimmed: !!r.trimmed });
         });
         return { changes: changes, errors: errors };
@@ -301,13 +303,13 @@
         var scope = { action: action, label: label, text: text };
         var cfg = findAction(def, action);
         if (!cfg) {
-            var d = '玩家操作了「' + (label || action) + '」' + (text ? '：' + text : '');
+            var d = text ? I18n.t('玩家操作了「{label}」：{text}', { label: label || action, text: text }) : I18n.t('玩家操作了「{label}」', { label: label || action });
             return { mapped: false, changes: [], errors: [], pendingText: d };
         }
         var res = applyOps(cfg.ops, store, scope);
         var pending = '';
         var mode = cfg.sendMode || (cfg.send == null ? 'default' : (String(cfg.send).trim() === '' ? 'none' : 'custom'));
-        if (mode === 'default') pending = '玩家点击了「' + (cfg.label || label || action) + '」' + (text ? '：' + text : '');
+        if (mode === 'default') pending = text ? I18n.t('玩家点击了「{label}」：{text}', { label: cfg.label || label || action, text: text }) : I18n.t('玩家点击了「{label}」', { label: cfg.label || label || action });
         else if (mode === 'custom' && cfg.send != null && String(cfg.send).trim() !== '') pending = renderText(cfg.send, storeLookup(store, scope)).text;
         return { mapped: true, changes: res.changes, errors: res.errors, pendingText: pending };
     }
@@ -395,7 +397,7 @@
     function formatPending(list) {
         var arr = Array.isArray(list) ? list : [];
         if (!arr.length) return '';
-        return '〔本回合插件操作〕\n' + arr.map(function (a) { return '- ' + (a.pluginName || a.pluginId) + '：' + (a.actionDesc || a.type); }).join('\n');
+        return I18n.t('〔本回合插件操作〕') + '\n' + arr.map(function (a) { return '- ' + I18n.t('{name}：{desc}', { name: a.pluginName || a.pluginId, desc: a.actionDesc || a.type }); }).join('\n');
     }
 
     // ---------- 界面文件扫描 ----------
@@ -490,7 +492,7 @@
 
     // ---------- 校验 ----------
     function issue(level, code, plugin, text, hint) {
-        return { level: level, code: code, plugin: plugin && (plugin.name || plugin.id) || '未命名插件', text: text, hint: hint || '' };
+        return { level: level, code: code, plugin: plugin && (plugin.name || plugin.id) || I18n.t('未命名插件'), text: text, hint: hint || '' };
     }
 
     /**
@@ -508,96 +510,96 @@
         var varName = function (id) { return env.variableName ? env.variableName(id) : id; };
         var hasVar = function (id) { return env.hasVariable ? env.hasVariable(id) : true; };
 
-        if (!d.id) out.push(issue('error', 'ID_MISSING', d, '有一个插件没有编号，无法使用。', '重新添加这个插件。'));
+        if (!d.id) out.push(issue('error', 'ID_MISSING', d, I18n.t('有一个插件没有编号，无法使用。'), I18n.t('重新添加这个插件。')));
         if (env.moduleIds && d.id) {
             var same = env.moduleIds.filter(function (x) { return x === d.id; }).length;
-            if (same > 1) out.push(issue('error', 'ID_DUPLICATE', d, '同一个模块里有 ' + same + ' 个编号相同的插件，只有第一个生效。', '删掉多余的，或重新添加一个。'));
+            if (same > 1) out.push(issue('error', 'ID_DUPLICATE', d, I18n.t('同一个模块里有 {n} 个编号相同的插件，只有第一个生效。', { n: same }), I18n.t('删掉多余的，或重新添加一个。')));
         }
-        if (!d.name) out.push(issue('warn', 'NAME_MISSING', d, '插件还没有名字。', '给它起一个名字，方便在列表里认出来。'));
+        if (!d.name) out.push(issue('warn', 'NAME_MISSING', d, I18n.t('插件还没有名字。'), I18n.t('给它起一个名字，方便在列表里认出来。')));
         if (!d.type) {
             if (LEGACY_TYPES[d.rawType]) return out;
-            out.push(issue('error', 'TYPE_UNKNOWN', d, '插件类型「' + (d.rawType == null || d.rawType === '' ? '空' : d.rawType) + '」不认识。', '在类型里选一个：' + TYPE_ORDER.map(function (t) { return TYPE_DEFS[t].label; }).join('、') + '。'));
+            out.push(issue('error', 'TYPE_UNKNOWN', d, I18n.t('插件类型「{type}」不认识。', { type: d.rawType == null || d.rawType === '' ? I18n.t('空') : d.rawType }), I18n.t('在类型里选一个：{types}。', { types: TYPE_ORDER.map(function (t) { return TYPE_DEFS[t].label; }).join(I18n.t('、')) })));
             return out;
         }
-        if (env.ownerExists === false) out.push(issue('error', 'OWNER_MISSING', d, '挂靠的模块不存在，插件不会出现。', '在「挂在哪个模块」里重新选一个。'));
+        if (env.ownerExists === false) out.push(issue('error', 'OWNER_MISSING', d, I18n.t('挂靠的模块不存在，插件不会出现。'), I18n.t('在「挂在哪个模块」里重新选一个。')));
 
         var files = env.files || {};
         ['display', 'style', 'pool', 'logic'].forEach(function (k) {
             var f = files[k];
-            if (d.files[k] && f && f.error) out.push(issue('error', f.notFound ? 'FILE_MISSING' : 'FILE_BROKEN', d, f.error, f.notFound ? '检查文件是否在模组文件夹里，或改用直接粘贴的内容。' : '用文本编辑器打开这个文件，修好格式。'));
+            if (d.files[k] && f && f.error) out.push(issue('error', f.notFound ? 'FILE_MISSING' : 'FILE_BROKEN', d, f.error, f.notFound ? I18n.t('检查文件是否在模组文件夹里，或改用直接粘贴的内容。') : I18n.t('用文本编辑器打开这个文件，修好格式。')));
         });
 
         var html = d.inlineHtml || (files.display && files.display.text) || '';
         var css = d.inlineStyle || (files.style && files.style.text) || '';
 
         if (cfg.blockId != null && cfg.blockId !== '' && !BLOCK_ID_RE.test(String(cfg.blockId))) {
-            out.push(issue('error', 'BLOCK_ID_INVALID', d, '回复块的名字只能用字母、数字、下划线、横线。', '改一个简单的名字。'));
+            out.push(issue('error', 'BLOCK_ID_INVALID', d, I18n.t('回复块的名字只能用字母、数字、下划线、横线。'), I18n.t('改一个简单的名字。')));
         }
 
         var needsFace = d.type === 'display' || d.type === 'interactive' || d.type === 'display_interactive';
         if (needsFace) {
             if (!html && !d.files.display) {
-                if (d.type === 'display' || d.type === 'display_interactive') out.push(issue('error', 'DISPLAY_EMPTY', d, '没有设置要显示的内容。', '在编辑里粘贴页面内容，或导入一个文件。'));
-                else out.push(issue('warn', 'DISPLAY_EMPTY', d, '交互器没有页面，玩家没有地方点击或输入。', '在编辑里粘贴页面内容，或导入一个文件。'));
+                if (d.type === 'display' || d.type === 'display_interactive') out.push(issue('error', 'DISPLAY_EMPTY', d, I18n.t('没有设置要显示的内容。'), I18n.t('在编辑里粘贴页面内容，或导入一个文件。')));
+                else out.push(issue('warn', 'DISPLAY_EMPTY', d, I18n.t('交互器没有页面，玩家没有地方点击或输入。'), I18n.t('在编辑里粘贴页面内容，或导入一个文件。')));
             }
             if (html && String(html).length + String(css).length > 1500000) {
-                out.push(issue('error', 'SIZE_TOO_LARGE', d, '页面内容太大，无法显示。', '精简页面，或把大图换成小图。'));
+                out.push(issue('error', 'SIZE_TOO_LARGE', d, I18n.t('页面内容太大，无法显示。'), I18n.t('精简页面，或把大图换成小图。')));
             }
             boundVariableIds(d, html, css).forEach(function (k) {
-                if (!hasVar(k)) out.push(issue('warn', 'VAR_MISSING', d, '页面用到的变量「' + varName(k) + '」不存在。', '在变量里添加它，或重新选一个已有的变量。'));
+                if (!hasVar(k)) out.push(issue('warn', 'VAR_MISSING', d, I18n.t('页面用到的变量「{name}」不存在。', { name: varName(k) }), I18n.t('在变量里添加它，或重新选一个已有的变量。')));
             });
         } else {
             (cfg.requiredVariables || []).forEach(function (k) {
-                if (!hasVar(k)) out.push(issue('warn', 'VAR_MISSING', d, '选择的变量「' + varName(k) + '」不存在。', '重新选一个已有的变量。'));
+                if (!hasVar(k)) out.push(issue('warn', 'VAR_MISSING', d, I18n.t('选择的变量「{name}」不存在。', { name: varName(k) }), I18n.t('重新选一个已有的变量。')));
             });
         }
 
         if (d.type === 'interactive' || d.type === 'display_interactive') {
             var hasPrompt = (d.type === 'interactive' && cfg.promptTemplate) || (d.type === 'display_interactive' && cfg.updatePrompt);
-            if (!hasPrompt && !getActions(d).length) out.push(issue('warn', 'PROMPT_EMPTY', d, '没有设置发给 AI 的内容，玩家操作不会带给 AI。', '填写提示词，或给按钮设置「发给 AI 的文字」。'));
+            if (!hasPrompt && !getActions(d).length) out.push(issue('warn', 'PROMPT_EMPTY', d, I18n.t('没有设置发给 AI 的内容，玩家操作不会带给 AI。'), I18n.t('填写提示词，或给按钮设置「发给 AI 的文字」。')));
         }
         getActions(d).forEach(function (a) {
             (a && Array.isArray(a.ops) ? a.ops : []).forEach(function (o) {
-                if (!o || !o.variableId) out.push(issue('warn', 'ACTION_VAR_MISSING', d, '按钮「' + (a.label || a.action) + '」的一条变量操作没有选变量。', '选一个变量，或删掉这条操作。'));
-                else if (!hasVar(o.variableId)) out.push(issue('warn', 'ACTION_VAR_MISSING', d, '按钮「' + (a.label || a.action) + '」要改的变量「' + varName(o.variableId) + '」不存在。', '重新选一个已有的变量。'));
+                if (!o || !o.variableId) out.push(issue('warn', 'ACTION_VAR_MISSING', d, I18n.t('按钮「{label}」的一条变量操作没有选变量。', { label: a.label || a.action }), I18n.t('选一个变量，或删掉这条操作。')));
+                else if (!hasVar(o.variableId)) out.push(issue('warn', 'ACTION_VAR_MISSING', d, I18n.t('按钮「{label}」要改的变量「{name}」不存在。', { label: a.label || a.action, name: varName(o.variableId) }), I18n.t('重新选一个已有的变量。')));
             });
         });
         if (cfg.replyBinding && cfg.replyBinding.variableId && !hasVar(cfg.replyBinding.variableId)) {
-            out.push(issue('warn', 'REPLY_VAR_MISSING', d, 'AI 回复要写入的变量「' + varName(cfg.replyBinding.variableId) + '」不存在。', '重新选一个已有的变量。'));
+            out.push(issue('warn', 'REPLY_VAR_MISSING', d, I18n.t('AI 回复要写入的变量「{name}」不存在。', { name: varName(cfg.replyBinding.variableId) }), I18n.t('重新选一个已有的变量。')));
         }
 
         if (d.type === 'randomizer') {
-            if (!d.files.pool && !cfg.pool && !(Array.isArray(cfg.entries) && cfg.entries.length)) out.push(issue('error', 'POOL_MISSING', d, '没有设置随机池。', '导入随机池文件，或在编辑里粘贴池内容。'));
+            if (!d.files.pool && !cfg.pool && !(Array.isArray(cfg.entries) && cfg.entries.length)) out.push(issue('error', 'POOL_MISSING', d, I18n.t('没有设置随机池。'), I18n.t('导入随机池文件，或在编辑里粘贴池内容。')));
             if (cfg.tempStorage && !hasVar(cfg.tempStorage) && !(d.tempVariables || []).some(function (t) { return t && t.id === cfg.tempStorage; })) {
-                out.push(issue('warn', 'TEMP_VAR_MISSING', d, '抽到的结果要存进的变量「' + varName(cfg.tempStorage) + '」不存在。', '选一个已有的变量，或不存放。'));
+                out.push(issue('warn', 'TEMP_VAR_MISSING', d, I18n.t('抽到的结果要存进的变量「{name}」不存在。', { name: varName(cfg.tempStorage) }), I18n.t('选一个已有的变量，或不存放。')));
             }
         }
         if (d.type === 'variable_reader') {
-            if (!cfg.inputSource) out.push(issue('error', 'INPUT_SOURCE_MISSING', d, '没有选要读取哪个插件的结果。', '在「读取哪个插件」里选一个。'));
-            else if (env.siblingIds && env.siblingIds.indexOf(cfg.inputSource) < 0) out.push(issue('error', 'INPUT_SOURCE_MISSING', d, '要读取的插件「' + cfg.inputSource + '」不存在。', '重新选一个已有的插件。'));
-            if (!Array.isArray(cfg.targetVariables) || !cfg.targetVariables.length) out.push(issue('error', 'TARGET_MISSING', d, '没有设置读出的内容要写进哪个变量。', '添加一条「写入变量」。'));
+            if (!cfg.inputSource) out.push(issue('error', 'INPUT_SOURCE_MISSING', d, I18n.t('没有选要读取哪个插件的结果。'), I18n.t('在「读取哪个插件」里选一个。')));
+            else if (env.siblingIds && env.siblingIds.indexOf(cfg.inputSource) < 0) out.push(issue('error', 'INPUT_SOURCE_MISSING', d, I18n.t('要读取的插件「{name}」不存在。', { name: cfg.inputSource }), I18n.t('重新选一个已有的插件。')));
+            if (!Array.isArray(cfg.targetVariables) || !cfg.targetVariables.length) out.push(issue('error', 'TARGET_MISSING', d, I18n.t('没有设置读出的内容要写进哪个变量。'), I18n.t('添加一条「写入变量」。')));
             (cfg.targetVariables || []).forEach(function (t) {
                 var id = t && t.variableId;
-                if (!id) out.push(issue('error', 'TARGET_MISSING', d, '有一条写入没有选变量。', '选一个变量，或删掉这条。'));
-                else if (!hasVar(id)) out.push(issue('error', 'TARGET_VAR_MISSING', d, '要写入的变量「' + varName(id) + '」不存在。', '重新选一个已有的变量。'));
+                if (!id) out.push(issue('error', 'TARGET_MISSING', d, I18n.t('有一条写入没有选变量。'), I18n.t('选一个变量，或删掉这条。')));
+                else if (!hasVar(id)) out.push(issue('error', 'TARGET_VAR_MISSING', d, I18n.t('要写入的变量「{name}」不存在。', { name: varName(id) }), I18n.t('重新选一个已有的变量。')));
             });
         }
         if (d.type === 'variable_op') {
-            if (!Array.isArray(cfg.operations) || !cfg.operations.length) out.push(issue('warn', 'OPS_EMPTY', d, '还没有设置任何变量操作。', '添加一条操作。'));
+            if (!Array.isArray(cfg.operations) || !cfg.operations.length) out.push(issue('warn', 'OPS_EMPTY', d, I18n.t('还没有设置任何变量操作。'), I18n.t('添加一条操作。')));
             (cfg.operations || []).forEach(function (o) {
-                if (!o || !o.variableId) out.push(issue('error', 'ACTION_VAR_MISSING', d, '有一条变量操作没有选变量。', '选一个变量，或删掉这条。'));
-                else if (!hasVar(o.variableId)) out.push(issue('error', 'ACTION_VAR_MISSING', d, '要操作的变量「' + varName(o.variableId) + '」不存在。', '重新选一个已有的变量。'));
+                if (!o || !o.variableId) out.push(issue('error', 'ACTION_VAR_MISSING', d, I18n.t('有一条变量操作没有选变量。'), I18n.t('选一个变量，或删掉这条。')));
+                else if (!hasVar(o.variableId)) out.push(issue('error', 'ACTION_VAR_MISSING', d, I18n.t('要操作的变量「{name}」不存在。', { name: varName(o.variableId) }), I18n.t('重新选一个已有的变量。')));
             });
         }
         if (d.type === 'module_generator') {
             var tpl = cfg.moduleTemplate;
-            if (!tpl || typeof tpl !== 'object' || !tpl.id) out.push(issue('error', 'TEMPLATE_MISSING', d, '没有设置要生成的模块。', '在编辑里填写模块名称和类型。'));
-            if (!cfg.outputFlow) out.push(issue('error', 'FLOW_MISSING', d, '没有选生成的模块放到哪条流程。', '在「放到哪条流程」里选一个。'));
-            else if (env.flowNames && env.flowNames.indexOf(cfg.outputFlow) < 0) out.push(issue('error', 'FLOW_MISSING', d, '选择的流程「' + cfg.outputFlow + '」不存在。', '重新选一条已有的流程。'));
-            if (cfg.inputSource && cfg.inputSource !== 'builtin' && env.siblingIds && env.siblingIds.indexOf(cfg.inputSource) < 0) out.push(issue('error', 'INPUT_SOURCE_MISSING', d, '要读取的插件「' + cfg.inputSource + '」不存在。', '重新选一个已有的插件。'));
+            if (!tpl || typeof tpl !== 'object' || !tpl.id) out.push(issue('error', 'TEMPLATE_MISSING', d, I18n.t('没有设置要生成的模块。'), I18n.t('在编辑里填写模块名称和类型。')));
+            if (!cfg.outputFlow) out.push(issue('error', 'FLOW_MISSING', d, I18n.t('没有选生成的模块放到哪条流程。'), I18n.t('在「放到哪条流程」里选一个。')));
+            else if (env.flowNames && env.flowNames.indexOf(cfg.outputFlow) < 0) out.push(issue('error', 'FLOW_MISSING', d, I18n.t('选择的流程「{name}」不存在。', { name: cfg.outputFlow }), I18n.t('重新选一条已有的流程。')));
+            if (cfg.inputSource && cfg.inputSource !== 'builtin' && env.siblingIds && env.siblingIds.indexOf(cfg.inputSource) < 0) out.push(issue('error', 'INPUT_SOURCE_MISSING', d, I18n.t('要读取的插件「{name}」不存在。', { name: cfg.inputSource }), I18n.t('重新选一个已有的插件。')));
         }
         if (d.type === 'summary') {
-            if (!cfg.summaryTemplate) out.push(issue('warn', 'SUMMARY_EMPTY', d, '没有设置总结的内容。', '填写总结内容，可以插入变量。'));
+            if (!cfg.summaryTemplate) out.push(issue('warn', 'SUMMARY_EMPTY', d, I18n.t('没有设置总结的内容。'), I18n.t('填写总结内容，可以插入变量。')));
         }
         return out;
     }

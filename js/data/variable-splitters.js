@@ -6,6 +6,8 @@
  */
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
+/** 显示用的星期全称（按界面语言翻译） */
+const WEEKDAY_LABELS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
 
 const VariableSplitters = {
     /** 日期/时间：优先用模组绑定的时间变量（timeVariableId），否则 calendar，再否则 time（默认） */
@@ -46,9 +48,9 @@ const VariableSplitters = {
                 const h = src.hour != null ? Number(src.hour) : 8;
                 const min = src.minute != null ? Number(src.minute) : 0;
                 const timePart = (src.hour != null || src.minute != null) ? ` ${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}` : '';
-                const weekPart = dw != null ? ` 星期${WEEKDAY_NAMES[dw % 7]}` : '';
-                if (!era) return `${y}年${m}月${d}日${weekPart}${timePart}`.trim();
-                return `${era}${y}年${m}月${d}日${weekPart}${timePart}`.trim();
+                const weekPart = dw != null ? ' ' + I18n.t(WEEKDAY_LABELS[dw % 7]) : '';
+                if (!era) return `${I18n.t('{y}年{m}月{d}日', { y, m, d })}${weekPart}${timePart}`.trim();
+                return `${I18n.t('{era}{y}年{m}月{d}日', { era, y, m, d })}${weekPart}${timePart}`.trim();
             }
             return '';
         }

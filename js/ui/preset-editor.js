@@ -75,7 +75,7 @@ const PresetEditor = {
         if (!select) return;
 
         const presets = PresetManager.getAll();
-        select.innerHTML = '<option value="">不使用预设</option>' +
+        select.innerHTML = '<option value="">' + I18n.t('不使用预设') + '</option>' +
             presets.map(p => `<option value="${this._esc(p.id)}">${this._esc(p.name)}</option>`).join('');
 
         // 关键：保持下拉框选中不“跳回无预设”
@@ -165,7 +165,7 @@ const PresetEditor = {
      * 新建预设
      */
     async newPreset() {
-        const name = await Modal.prompt('新建预设', '预设名称');
+        const name = await Modal.prompt(I18n.t('新建预设'), I18n.t('预设名称'));
         if (!name || !name.trim()) return;
 
         const preset = PresetManager.create(name.trim());
@@ -177,7 +177,7 @@ const PresetEditor = {
 
         this.loadPresetList();
         document.getElementById('prompt-preset-select').value = preset.id;
-        Toast.show('已创建预设。', 'success');
+        Toast.show(I18n.t('已创建预设。'), 'success');
     },
 
     /**
@@ -187,7 +187,7 @@ const PresetEditor = {
         const defaults = [
             {
                 identifier: 'main',
-                name: '主提示词',
+                name: I18n.t('主提示词'),
                 role: 'system',
                 content: 'Write {{char}}\'s next reply in a fictional chat between {{char}} and {{user}}.',
                 injectionPosition: 0,
@@ -196,7 +196,7 @@ const PresetEditor = {
             },
             {
                 identifier: 'nsfw',
-                name: 'NSFW提示词',
+                name: I18n.t('NSFW提示词'),
                 role: 'system',
                 content: '',
                 injectionPosition: 0,
@@ -205,7 +205,7 @@ const PresetEditor = {
             },
             {
                 identifier: 'jailbreak',
-                name: '越狱提示词',
+                name: I18n.t('越狱提示词'),
                 role: 'system',
                 content: '',
                 injectionPosition: 0,
@@ -226,7 +226,7 @@ const PresetEditor = {
      */
     async savePreset() {
         if (!this.currentPreset) {
-            Toast.show('请先选择或新建预设。', 'warning');
+            Toast.show(I18n.t('请先选择或新建预设。'), 'warning');
             return;
         }
 
@@ -250,7 +250,7 @@ const PresetEditor = {
 
         PresetManager.update(this.currentPreset.id, this.currentPreset);
         this.loadPresetList(); // 刷新列表
-        Toast.show('已保存。', 'success');
+        Toast.show(I18n.t('已保存。'), 'success');
     },
 
     /**
@@ -259,28 +259,28 @@ const PresetEditor = {
     async renamePreset(presetId = null) {
         const targetPresetId = presetId || (this.currentPreset?.id);
         if (!targetPresetId) {
-            Toast.show('请先选择预设。', 'warning');
+            Toast.show(I18n.t('请先选择预设。'), 'warning');
             return;
         }
 
         const preset = PresetManager.getAll().find(p => p.id === targetPresetId);
         if (!preset) {
-            Toast.show('找不到这个预设。', 'error');
+            Toast.show(I18n.t('找不到这个预设。'), 'error');
             return;
         }
 
-        const newName = await Modal.prompt('重命名预设', '预设名称', preset.name);
+        const newName = await Modal.prompt(I18n.t('重命名预设'), I18n.t('预设名称'), preset.name);
         if (!newName || !newName.trim()) return;
 
         if (newName.trim() === preset.name) {
-            Toast.show('名称没有变化。', 'info');
+            Toast.show(I18n.t('名称没有变化。'), 'info');
             return;
         }
 
         // 检查名称是否已存在
         const existing = PresetManager.getAll().find(p => p.id !== targetPresetId && p.name === newName.trim());
         if (existing) {
-            Toast.show('已有同名预设。', 'error');
+            Toast.show(I18n.t('已有同名预设。'), 'error');
             return;
         }
 
@@ -296,7 +296,7 @@ const PresetEditor = {
             document.getElementById('prompt-preset-select').value = targetPresetId;
         }
         this.renderPresetList();
-        Toast.show('已重命名。', 'success');
+        Toast.show(I18n.t('已重命名。'), 'success');
     },
 
     /**
@@ -305,17 +305,17 @@ const PresetEditor = {
     async deletePreset(presetId = null) {
         const targetPresetId = presetId || (this.currentPreset?.id);
         if (!targetPresetId) {
-            Toast.show('请先选择预设。', 'warning');
+            Toast.show(I18n.t('请先选择预设。'), 'warning');
             return;
         }
 
         const preset = PresetManager.getAll().find(p => p.id === targetPresetId);
         if (!preset) {
-            Toast.show('找不到这个预设。', 'error');
+            Toast.show(I18n.t('找不到这个预设。'), 'error');
             return;
         }
 
-        const confirmed = await Modal.confirm('删除预设', `确定要删除预设“${this._esc(preset.name)}”吗？`, { danger: true, confirmLabel: '删除' });
+        const confirmed = await Modal.confirm(I18n.t('删除预设'), I18n.t('确定要删除预设“{name}”吗？', { name: this._esc(preset.name) }), { danger: true, confirmLabel: I18n.t('删除') });
         if (!confirmed) return;
 
         const snapshot = JSON.parse(JSON.stringify(preset));
@@ -337,9 +337,9 @@ const PresetEditor = {
 
         this.loadPresetList();
         this.renderPresetList();
-        Toast.undo('已删除预设。', () => {
+        Toast.undo(I18n.t('已删除预设。'), () => {
             if (!PresetManager.restore(snapshot)) {
-                Toast.show('撤销失败，这个预设已经有同名记录。', 'error');
+                Toast.show(I18n.t('撤销失败，这个预设已经有同名记录。'), 'error');
                 return;
             }
             this.loadPresetList();
@@ -355,7 +355,7 @@ const PresetEditor = {
         const select = document.getElementById('prompt-preset-select');
         const presetId = select?.value;
         if (!presetId) {
-            Toast.show('请先选择预设。', 'warning');
+            Toast.show(I18n.t('请先选择预设。'), 'warning');
             return;
         }
         const preset = PresetManager.presets?.find(p => p.id === presetId);
@@ -376,7 +376,7 @@ const PresetEditor = {
         }
         PresetManager._save();
         this.currentPreset = preset;
-        Toast.show(checked ? '已启用预设。' : '已关闭预设。', 'success');
+        Toast.show(checked ? I18n.t('已启用预设。') : I18n.t('已关闭预设。'), 'success');
     },
 
     /** 同步「启用预设」勾选与当前预设状态（加载预设/切换预设时调用） */
@@ -418,15 +418,15 @@ const PresetEditor = {
 
     async addPromptVisual() {
         if (!this.currentPreset) {
-            Toast.show('请先选择预设。', 'warning');
+            Toast.show(I18n.t('请先选择预设。'), 'warning');
             return;
         }
-        const name = await Modal.prompt('新增条目', '条目名称');
+        const name = await Modal.prompt(I18n.t('新增条目'), I18n.t('条目名称'));
         if (name == null) return;
         const id = `p_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
         const prompt = {
             identifier: id,
-            name: String(name).trim() || '新条目',
+            name: String(name).trim() || I18n.t('新条目'),
             role: 'system',
             content: '',
             injectionPosition: 0,
@@ -466,45 +466,45 @@ const PresetEditor = {
         const order = Number(prompt.injection_order ?? prompt.injectionOrder ?? 100) || 0;
         const html = `
             <div class="form-group">
-                <label for="pm-name">名称</label>
+                <label for="pm-name">${I18n.t('名称')}</label>
                 <input type="text" id="pm-name" autocomplete="off">
             </div>
             <div class="form-group">
-                <label>角色</label>
+                <label>${I18n.t('角色')}</label>
                 <select id="pm-role">
-                    <option value="system">系统</option>
-                    <option value="user">玩家</option>
+                    <option value="system">${I18n.t('系统')}</option>
+                    <option value="user">${I18n.t('玩家')}</option>
                     <option value="assistant">AI</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>位置</label>
+                <label>${I18n.t('位置')}</label>
                 <select id="pm-pos">
-                    <option value="0">按顺序排列</option>
-                    <option value="1">插入对话中</option>
+                    <option value="0">${I18n.t('按顺序排列')}</option>
+                    <option value="1">${I18n.t('插入对话中')}</option>
                 </select>
             </div>
             <div class="field-row">
-                <div class="form-group"><label>插入深度</label><input type="number" id="pm-depth" min="0" max="100" step="1"></div>
-                <div class="form-group"><label>顺序</label><input type="number" id="pm-order" min="0" max="100000" step="1"></div>
+                <div class="form-group"><label>${I18n.t('插入深度')}</label><input type="number" id="pm-depth" min="0" max="100" step="1"></div>
+                <div class="form-group"><label>${I18n.t('顺序')}</label><input type="number" id="pm-order" min="0" max="100000" step="1"></div>
             </div>
-            <label class="setting-check"><input type="checkbox" id="pm-enabled">启用</label>
+            <label class="setting-check"><input type="checkbox" id="pm-enabled">${I18n.t('启用')}</label>
             <div class="form-group">
-                <label for="pm-content">内容</label>
+                <label for="pm-content">${I18n.t('内容')}</label>
                 <textarea id="pm-content" rows="10"></textarea>
             </div>
         `;
 
-        Modal.show('编辑条目', html, {
+        Modal.show(I18n.t('编辑条目'), html, {
             wide: true,
             buttons: [
-                { label: '取消', action: 'cancel' },
-                { label: '保存', action: 'save', class: 'btn-primary' }
+                { label: I18n.t('取消'), action: 'cancel' },
+                { label: I18n.t('保存'), action: 'save', class: 'btn-primary' }
             ],
             onAction: (action) => {
                 if (action !== 'save') { Modal.close(); return; }
                 const read = (id) => document.getElementById(id);
-                prompt.name = read('pm-name').value.trim() || prompt.name || '新条目';
+                prompt.name = read('pm-name').value.trim() || prompt.name || I18n.t('新条目');
                 prompt.role = read('pm-role').value;
                 prompt.enabled = read('pm-enabled').checked;
                 prompt.injectionPosition = prompt.injection_position = Number(read('pm-pos').value) === 1 ? 1 : 0;
@@ -516,7 +516,7 @@ const PresetEditor = {
                 PresetManager.update(this.currentPreset.id, { prompts: this.prompts, promptOrder: this.currentPreset.promptOrder });
                 this.renderPromptsVisual();
                 Modal.close();
-                Toast.show('已保存。', 'success');
+                Toast.show(I18n.t('已保存。'), 'success');
             }
         });
 
@@ -544,7 +544,7 @@ const PresetEditor = {
         this._ensurePromptOrderCoversAll();
         PresetManager.update(this.currentPreset.id, { prompts: this.prompts, promptOrder: this.currentPreset.promptOrder });
         this.renderPromptsVisual();
-        Toast.undo('已删除条目。', () => {
+        Toast.undo(I18n.t('已删除条目。'), () => {
             if (!this.currentPreset) return;
             this.prompts.splice(Math.min(index, this.prompts.length), 0, removed);
             this.currentPreset.prompts = this.prompts;
@@ -560,17 +560,17 @@ const PresetEditor = {
      */
     sortPrompts() {
         if (!this.currentPreset) {
-            Toast.show('请先选择预设。', 'warning');
+            Toast.show(I18n.t('请先选择预设。'), 'warning');
             return;
         }
         const html = `
             <div class="choice-row sort-method-buttons">
-                <button type="button" data-sort="json">原始顺序</button>
-                <button type="button" data-sort="alphabetical">按名称排序</button>
+                <button type="button" data-sort="json">${I18n.t('原始顺序')}</button>
+                <button type="button" data-sort="alphabetical">${I18n.t('按名称排序')}</button>
             </div>
         `;
-        Modal.show('排序方式', html, {
-            buttons: [{ label: '关闭', action: 'close' }],
+        Modal.show(I18n.t('排序方式'), html, {
+            buttons: [{ label: I18n.t('关闭'), action: 'close' }],
             onAction: () => Modal.close()
         });
         document.getElementById('modal-container')?.querySelector('.sort-method-buttons')?.addEventListener('click', (e) => {
@@ -599,7 +599,7 @@ const PresetEditor = {
             this._lastJsonOrder = [...this.currentPreset.promptOrder];
             PresetManager.update(this.currentPreset.id, { prompts: this.prompts, promptOrder: this.currentPreset.promptOrder });
             this.renderPromptsVisual();
-                Toast.show('已恢复原始顺序。', 'success');
+                Toast.show(I18n.t('已恢复原始顺序。'), 'success');
         } else if (method === 'alphabetical') {
             this.prompts.sort((a, b) => {
                 return String(a.name || a.identifier || '').localeCompare(String(b.name || b.identifier || ''), 'zh');
@@ -607,7 +607,7 @@ const PresetEditor = {
             this.currentPreset.promptOrder = this.prompts.map(p => p.identifier);
             PresetManager.update(this.currentPreset.id, { prompts: this.prompts, promptOrder: this.currentPreset.promptOrder });
             this.renderPromptsVisual();
-                Toast.show('已按名称排序。', 'success');
+                Toast.show(I18n.t('已按名称排序。'), 'success');
         }
     },
 
@@ -618,7 +618,7 @@ const PresetEditor = {
         ScrollMemory.preserve(panel, () => {
             container.textContent = '';
             if (!this.currentPreset) {
-                container.innerHTML = '<div class="item-list-empty">请先选择预设。</div>';
+                container.innerHTML = '<div class="item-list-empty">' + I18n.t('请先选择预设。') + '</div>';
                 return;
             }
             const order = this.currentPreset.promptOrder || [];
@@ -630,10 +630,10 @@ const PresetEditor = {
             }
             for (const p of this.prompts) if (!seen.has(p.identifier)) ordered.push(p);
             if (ordered.length === 0) {
-                container.innerHTML = '<div class="item-list-empty">还没有条目。</div>';
+                container.innerHTML = '<div class="item-list-empty">' + I18n.t('还没有条目。') + '</div>';
                 return;
             }
-            const roleName = { system: '系统', user: '玩家', assistant: 'AI' };
+            const roleName = { system: I18n.t('系统'), user: I18n.t('玩家'), assistant: 'AI' };
             ordered.forEach((p, i) => {
                 const card = document.createElement('div');
                 card.className = 'card' + (p.enabled ? '' : ' is-off');
@@ -659,10 +659,10 @@ const PresetEditor = {
                 const actions = document.createElement('div');
                 actions.className = 'card-head-actions';
                 actions.innerHTML =
-                    '<button type="button" class="btn-small" data-act="up"' + (i === 0 ? ' disabled' : '') + '>上移</button>' +
-                    '<button type="button" class="btn-small" data-act="down"' + (i === ordered.length - 1 ? ' disabled' : '') + '>下移</button>' +
-                    '<button type="button" class="btn-small" data-act="edit">编辑</button>' +
-                    '<button type="button" class="btn-small danger" data-act="delete">删除</button>';
+                    '<button type="button" class="btn-small" data-act="up"' + (i === 0 ? ' disabled' : '') + '>' + I18n.t('上移') + '</button>' +
+                    '<button type="button" class="btn-small" data-act="down"' + (i === ordered.length - 1 ? ' disabled' : '') + '>' + I18n.t('下移') + '</button>' +
+                    '<button type="button" class="btn-small" data-act="edit">' + I18n.t('编辑') + '</button>' +
+                    '<button type="button" class="btn-small danger" data-act="delete">' + I18n.t('删除') + '</button>';
                 head.appendChild(actions);
                 card.appendChild(head);
                 if (p.content) {
@@ -754,19 +754,19 @@ const PresetEditor = {
      */
     bindModule() {
         if (!this.currentPreset) {
-            Toast.show('请先选择预设。', 'warning');
+            Toast.show(I18n.t('请先选择预设。'), 'warning');
             return;
         }
 
         const moduleId = document.getElementById('preset-module-select')?.value;
         if (!moduleId) {
-            Toast.show('请先选择模组。', 'warning');
+            Toast.show(I18n.t('请先选择模组。'), 'warning');
             return;
         }
 
         this.currentPreset.moduleId = moduleId;
         PresetManager.update(this.currentPreset.id, this.currentPreset);
-        Toast.show('已绑定。', 'success');
+        Toast.show(I18n.t('已绑定。'), 'success');
     },
 
     /**
@@ -774,13 +774,13 @@ const PresetEditor = {
      */
     unbindModule() {
         if (!this.currentPreset) {
-            Toast.show('请先选择预设。', 'warning');
+            Toast.show(I18n.t('请先选择预设。'), 'warning');
             return;
         }
 
         delete this.currentPreset.moduleId;
         PresetManager.update(this.currentPreset.id, this.currentPreset);
-        Toast.show('已解绑。', 'success');
+        Toast.show(I18n.t('已解绑。'), 'success');
     },
 
     /**
@@ -791,7 +791,7 @@ const PresetEditor = {
         if (!select) return;
 
         const modules = ModuleManager.getAll();
-        select.innerHTML = '<option value="">不绑定</option>' +
+        select.innerHTML = '<option value="">' + I18n.t('不绑定') + '</option>' +
             modules.map(m => `<option value="${this._esc(m.id)}">${this._esc(m.name)}</option>`).join('');
 
         // 如果当前预设绑定了模块，选中它
@@ -813,10 +813,10 @@ const PresetEditor = {
             const preset = await PresetManager.importFromFile(file);
             this.loadPresetList();
             this.loadPreset(preset.id);
-            Toast.show(`已导入预设“${preset.name}”。`, 'success');
+            Toast.show(I18n.t('已导入预设“{name}”。', { name: preset.name }), 'success');
         } catch (error) {
             console.error('Import preset error:', error);
-            Toast.show('导入失败：' + error.message, 'error');
+            Toast.show(I18n.t('导入失败：{msg}', { msg: error.message }), 'error');
         }
     },
 
@@ -826,20 +826,20 @@ const PresetEditor = {
     exportPreset(presetId = null) {
         const targetPresetId = presetId || (this.currentPreset?.id);
         if (!targetPresetId) {
-            Toast.show('请先选择预设。', 'warning');
+            Toast.show(I18n.t('请先选择预设。'), 'warning');
             return;
         }
 
         const preset = PresetManager.getAll().find(p => p.id === targetPresetId);
         if (!preset) {
-            Toast.show('找不到这个预设。', 'error');
+            Toast.show(I18n.t('找不到这个预设。'), 'error');
             return;
         }
 
         if (PresetManager.export(targetPresetId)) {
-            Toast.show('已导出。', 'success');
+            Toast.show(I18n.t('已导出。'), 'success');
         } else {
-            Toast.show('导出失败。', 'error');
+            Toast.show(I18n.t('导出失败。'), 'error');
         }
     },
 
@@ -854,7 +854,7 @@ const PresetEditor = {
             list.textContent = '';
             const presets = PresetManager.getAll();
             if (presets.length === 0) {
-                list.innerHTML = '<div class="item-list-empty">还没有预设。</div>';
+                list.innerHTML = '<div class="item-list-empty">' + I18n.t('还没有预设。') + '</div>';
                 return;
             }
             const defaultId = (Storage.getSettings() || {}).defaultPromptPresetId || '';
@@ -867,20 +867,20 @@ const PresetEditor = {
                 const main = document.createElement('div');
                 main.className = 'item-main';
                 const title = document.createElement('strong');
-                title.textContent = p.name + (isDefault ? '（默认）' : '');
+                title.textContent = p.name + (isDefault ? I18n.t('（默认）') : '');
                 const meta = document.createElement('div');
                 meta.className = 'item-meta';
-                meta.textContent = `${(p.prompts || []).length} 个条目`;
+                meta.textContent = I18n.t('{n} 个条目', { n: (p.prompts || []).length });
                 main.append(title, meta);
                 const actions = document.createElement('div');
                 actions.className = 'item-actions';
                 actions.innerHTML =
-                    '<button type="button" class="btn-small" data-act="load">使用</button>' +
-                    (isDefault ? '<button type="button" class="btn-small" data-act="clear-default">取消默认</button>'
-                        : '<button type="button" class="btn-small" data-act="default">设为默认</button>') +
-                    '<button type="button" class="btn-small" data-act="rename">重命名</button>' +
-                    '<button type="button" class="btn-small" data-act="export">导出</button>' +
-                    '<button type="button" class="btn-small danger" data-act="delete">删除</button>';
+                    '<button type="button" class="btn-small" data-act="load">' + I18n.t('使用') + '</button>' +
+                    (isDefault ? '<button type="button" class="btn-small" data-act="clear-default">' + I18n.t('取消默认') + '</button>'
+                        : '<button type="button" class="btn-small" data-act="default">' + I18n.t('设为默认') + '</button>') +
+                    '<button type="button" class="btn-small" data-act="rename">' + I18n.t('重命名') + '</button>' +
+                    '<button type="button" class="btn-small" data-act="export">' + I18n.t('导出') + '</button>' +
+                    '<button type="button" class="btn-small danger" data-act="delete">' + I18n.t('删除') + '</button>';
                 row.append(main, actions);
                 list.appendChild(row);
             });
@@ -894,7 +894,7 @@ const PresetEditor = {
         const settings = Storage.getSettings() || {};
         settings.defaultPromptPresetId = presetId || this.currentPreset?.id;
         Storage.saveSettings(settings);
-        Toast.show('已设为默认预设。', 'success');
+        Toast.show(I18n.t('已设为默认预设。'), 'success');
     },
 
     /**
@@ -903,7 +903,7 @@ const PresetEditor = {
     clearDefaultPreset() {
         // saveSettings 走 spread merge 不能删 key，走专用 deleteSettingsKey
         Storage.deleteSettingsKey('defaultPromptPresetId');
-        Toast.show('已取消默认预设。', 'success');
+        Toast.show(I18n.t('已取消默认预设。'), 'success');
     }
 };
 

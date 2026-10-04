@@ -221,7 +221,7 @@ class DebugSupport {
      */
     _getVariableValue(variableId) {
         // 实际应该从游戏引擎的变量系统获取
-        return '(需要集成游戏引擎)';
+        return I18n.t('(需要集成游戏引擎)');
     }
 
     /**
@@ -360,7 +360,7 @@ class DebugSupport {
         // 这里返回模拟结果
         return {
             result: true,
-            details: '(需要集成条件系统)',
+            details: I18n.t('(需要集成条件系统)'),
             conditionDef: conditionDef
         };
     }

@@ -110,10 +110,10 @@ class PromptGenerator {
         const ms = this.moduleSystem;
         let prompt = '```background\n';
         if (this.timeSystem) {
-            prompt += `当前时间：${this.formatTimeLine()}\n`;
+            prompt += I18n.t('当前时间：{time}', { time: this.formatTimeLine() }) + '\n';
             if (typeof this.timeSystem.getLastTimeChange === 'function') {
                 const change = this.timeSystem.getLastTimeChange();
-                if (change) prompt += `（时间已推进：${change}）\n`;
+                if (change) prompt += I18n.t('（时间已推进：{change}）', { change }) + '\n';
             }
         }
 
@@ -122,10 +122,10 @@ class PromptGenerator {
             if (leafIds.length === 0) {
                 const root = currentModuleId ? ms.getModule(currentModuleId) : null;
                 const name = root ? (root.name || root.id) : (ms.rootModule ? ms.rootModule.name : '');
-                if (name) prompt += `当前事件：${name}（暂未进入具体事件）\n`;
+                if (name) prompt += I18n.t('当前事件：{name}（暂未进入具体事件）', { name }) + '\n';
             }
             leafIds.forEach((id, i) => {
-                prompt += `${i === 0 ? '当前事件' : '同时进行的事件'}：${this._name(id)}\n`;
+                prompt += (i === 0 ? I18n.t('当前事件：{name}', { name: this._name(id) }) : I18n.t('同时进行的事件：{name}', { name: this._name(id) })) + '\n';
             });
             const infoBlocks = [];
             const evaluate = (item) => {
@@ -210,11 +210,11 @@ class PromptGenerator {
         this.lastInteractorCount = entries.length;
         if (!entries.length && !summaries.length) return null;
         const lines = [];
-        summaries.forEach(s => { lines.push(`【${s.name}】`); lines.push(s.text); lines.push(''); });
+        summaries.forEach(s => { lines.push(I18n.t('【{name}】', { name: s.name })); lines.push(s.text); lines.push(''); });
         entries.forEach(e => {
-            lines.push(`【${e.name}】`);
+            lines.push(I18n.t('【{name}】', { name: e.name }));
             if (e.text) lines.push(e.text);
-            if (e.outputFormat) lines.push(`回复格式：${e.outputFormat}`);
+            if (e.outputFormat) lines.push(I18n.t('回复格式：{format}', { format: e.outputFormat }));
             lines.push('');
         });
         return '```interactors\n' + lines.join('\n').trim() + '\n```';
@@ -234,9 +234,9 @@ class PromptGenerator {
         if (rule.operation) {
             const v = rule.value;
             const vs = (v && typeof v === 'object') ? Object.entries(v).map(([k, x]) => k + '=' + x).join(',') : (v == null ? '' : String(v));
-            return `${rule.name}（${rule.operation}${vs ? ' ' + vs : ''}）`;
+            return I18n.t('{name}（{detail}）', { name: rule.name, detail: rule.operation + (vs ? ' ' + vs : '') });
         }
-        return rule.value != null && rule.value !== '' ? `${rule.name}（${rule.value}）` : String(rule.name);
+        return rule.value != null && rule.value !== '' ? I18n.t('{name}（{detail}）', { name: rule.name, detail: rule.value }) : String(rule.name);
     }
 
     generateVariables(currentModuleId) {
@@ -260,11 +260,11 @@ class PromptGenerator {
         variables.forEach(variable => {
             visible.add(variable.id);
             const val = this.formatValue(variable.value, variable);
-            const shown = (val === '' || val === '[]' || val === '{}') ? '（空）' : val.replace(/\n/g, '\n    ');
+            const shown = (val === '' || val === '[]' || val === '{}') ? I18n.pick({ zh: '（空）', en: '(empty)' }) : val.replace(/\n/g, '\n    ');
             lines.push(`${variable.name} (${this.typeName(variable)}): ${shown}`);
-            if (variable.generalRules) lines.push(`  说明：${String(variable.generalRules).trim()}`);
+            if (variable.generalRules) lines.push(I18n.t('  说明：{text}', { text: String(variable.generalRules).trim() }));
             const rules = (variable.changeRules || []).filter(r => r && r.name);
-            if (rules.length) lines.push(`  可用规则：${rules.map(r => this._ruleLabel(r)).join('、')}`);
+            if (rules.length) lines.push(I18n.t('  可用规则：{rules}', { rules: rules.map(r => this._ruleLabel(r)).join(I18n.pick({ zh: '、', en: ', ' })) }));
         });
         this.lastVisibleVariableIds = visible;
         return '```variables\n' + lines.join('\n') + '\n```';
@@ -302,19 +302,19 @@ class PromptGenerator {
                     const v = this.variableSystem.getVariable(c.variableId);
                     const vName = (v && v.name) ? v.name : c.variableId;
                     const cur = this.variableSystem.getValue(c.variableId);
-                    const curStr = (cur === undefined || cur === null || cur === '') ? '（空）' : this.formatValue(cur);
-                    return `${vName} ${this._opSymbol(c.operator)} ${c.value}（当前 ${curStr}）`;
+                    const curStr = (cur === undefined || cur === null || cur === '') ? I18n.pick({ zh: '（空）', en: '(empty)' }) : this.formatValue(cur);
+                    return I18n.t('{name} {op} {value}（当前 {cur}）', { name: vName, op: this._opSymbol(c.operator), value: String(c.value), cur: curStr });
                 }).filter(Boolean);
-                const join = (g.logic === 'OR') ? ' 或 ' : ' 且 ';
+                const join = (g.logic === 'OR') ? I18n.pick({ zh: ' 或 ', en: ' or ' }) : I18n.pick({ zh: ' 且 ', en: ' and ' });
                 return items.length > 1 ? `(${items.join(join)})` : items.join(join);
             }).filter(Boolean);
-            return groupStrs.join((def.logic === 'OR') ? ' 或 ' : ' 且 ');
+            return groupStrs.join((def.logic === 'OR') ? I18n.pick({ zh: ' 或 ', en: ' or ' }) : I18n.pick({ zh: ' 且 ', en: ' and ' }));
         };
         for (const w of wrappers) {
             const s = w && w.conditionDef ? walkDef(w.conditionDef) : '';
             if (s) parts.push(s);
         }
-        return parts.join(' 且 ');
+        return parts.join(I18n.pick({ zh: ' 且 ', en: ' and ' }));
     }
 
     _flowDisplayName(flowName) {
@@ -350,37 +350,37 @@ class PromptGenerator {
         leafIds.forEach(id => {
             const m = ms.getModule(id);
             this.lastCompletableModuleIds.add(id);
-            if (ms.canCompleteModule(id)) { canDo.push(`- ${m.name || id}`); return; }
+            if (ms.canCompleteModule(id)) { canDo.push(I18n.t('- {name}', { name: m.name || id })); return; }
             const why = [];
             const pending = ms.getPendingDeliveryInfoForModule(m).map(d => d.title);
-            if (pending.length) why.push('先确认投递：' + pending.join('、'));
+            if (pending.length) why.push(I18n.t('先确认投递：{titles}', { titles: pending.join(I18n.pick({ zh: '、', en: ', ' })) }));
             const gate = this._describeGate(m.completionConditions);
-            if (gate) why.push('还需要 ' + gate);
-            cannot.push(`- ${m.name || id}${why.length ? '（' + why.join('；') + '）' : ''}`);
+            if (gate) why.push(I18n.t('还需要 {gate}', { gate }));
+            cannot.push(why.length ? I18n.t('- {name}（{why}）', { name: m.name || id, why: why.join(I18n.pick({ zh: '；', en: '; ' })) }) : I18n.t('- {name}', { name: m.name || id }));
         });
-        if (canDo.length) { lines.push('可完成：'); lines.push(...canDo); }
-        if (cannot.length) { lines.push('暂不能完成：'); lines.push(...cannot); }
+        if (canDo.length) { lines.push(I18n.t('可完成：')); lines.push(...canDo); }
+        if (cannot.length) { lines.push(I18n.t('暂不能完成：')); lines.push(...cannot); }
 
         // 主流程：当前事件完成后可进入的事件
         const mainNames = [];
         this._queueSegmentIds(queues.current).forEach(id => {
             shown.add(id);
             enterable.add(id);
-            mainNames.push(`- ${this._name(id)}`);
+            mainNames.push(I18n.t('- {name}', { name: this._name(id) }));
         });
-        if (mainNames.length) { lines.push('可进入：'); lines.push(...mainNames); }
+        if (mainNames.length) { lines.push(I18n.t('可进入：')); lines.push(...mainNames); }
 
         // 分流程：可并行进入
         (queues.branches || []).forEach(branch => {
             const ids = this._queueSegmentIds(branch);
             if (!ids.length) return;
-            lines.push(`分流程「${this._flowDisplayName(branch.flowName)}」（可并行）：`);
-            ids.forEach(id => { shown.add(id); enterable.add(id); lines.push(`- ${this._name(id)}`); });
+            lines.push(I18n.t('分流程「{flow}」（可并行）：', { flow: this._flowDisplayName(branch.flowName) }));
+            ids.forEach(id => { shown.add(id); enterable.add(id); lines.push(I18n.t('- {name}', { name: this._name(id) })); });
         });
 
         if (queues.floating && lines.length === 0) {
             const parent = ms.getModule(queues.floating.parentModuleId);
-            lines.push(`暂未进入具体事件，正处于「${parent ? (parent.name || '当前阶段') : '当前阶段'}」。`);
+            lines.push(I18n.t('暂未进入具体事件，正处于「{stage}」。', { stage: parent ? (parent.name || I18n.t('当前阶段')) : I18n.t('当前阶段') }));
         }
 
         // 之后会走到的事件，只给名字，数量由模组的 queueDisplay.after 控制（默认 3）
@@ -395,19 +395,19 @@ class PromptGenerator {
                 upNames.push(this._name(id));
                 if (upNames.length >= after) break;
             }
-            if (upNames.length) lines.push(`之后的路线（尚不能进入）：${upNames.join(' → ')}`);
+            if (upNames.length) lines.push(I18n.t('之后的路线（尚不能进入）：{names}', { names: upNames.join(' → ') }));
         }
         if (before > 0 && Array.isArray(queues.completed) && queues.completed.length) {
             const tail = queues.completed.slice(-before).map(id => this._name(id));
-            if (tail.length) lines.push(`已完成：${tail.join(' → ')}`);
+            if (tail.length) lines.push(I18n.t('已完成：{names}', { names: tail.join(' → ') }));
         }
 
         // 上一轮没生效的指令
         const failed = Array.isArray(this.failedOps) ? this.failedOps.slice(-5) : [];
         if (failed.length) {
             lines.push('');
-            lines.push('上一轮没有生效的指令（需要的话按上文的名字重写）：');
-            failed.forEach(f => lines.push(`- ${f.name}：${f.reason}`));
+            lines.push(I18n.t('上一轮没有生效的指令（需要的话按上文的名字重写）：'));
+            failed.forEach(f => lines.push(I18n.t('- {name}：{reason}', { name: f.name, reason: String(f.reason) })));
         }
 
         this.lastVisibleModuleIds = enterable;
@@ -438,15 +438,15 @@ class PromptGenerator {
         if (this.summarySystem && typeof this.summarySystem.getConditionalDeliveriesForPrompt === 'function') {
             const conditional = this.summarySystem.getConditionalDeliveriesForPrompt(this.turn);
             for (const c of conditional) {
-                items.push({ title: c.title, content: c.content, tag: '（伏笔）' });
+                items.push({ title: c.title, content: c.content, tag: I18n.t('（伏笔）') });
                 this.lastShownConditionalTitles.push(c.title);
             }
         }
         if (!items.length) return null;
-        let prompt = '```delivery\n【待确认的投递信息】\n';
+        let prompt = '```delivery\n' + I18n.t('【待确认的投递信息】') + '\n';
         items.forEach((info, index) => {
             prompt += `${index + 1}. ${info.title}${info.tag}\n`;
-            if (info.content) prompt += `   内容：${info.content}\n`;
+            if (info.content) prompt += I18n.t('   内容：{content}', { content: info.content }) + '\n';
         });
         prompt += '```';
         return prompt;
@@ -469,28 +469,28 @@ class PromptGenerator {
         const hasDelivery = this.lastShownConditionalTitles.length > 0 || this._hasPendingDelivery();
         const hasPlugins = this.lastInteractorCount > 0;
 
-        const out = ['```progress', '指令每条一行，名字照抄上文，写错不生效。'];
+        const out = ['```progress', I18n.t('指令每条一行，名字照抄上文，写错不生效。')];
         if (hasEvents) {
-            out.push('【事件】');
-            out.push('<module|enter|事件名> 进入「可进入」里的事件，当前事件算已完成');
-            out.push('<module|complete|事件名> 完成「可完成」里的事件，时机由你按剧情定');
+            out.push(I18n.t('【事件】'));
+            out.push(I18n.t('<module|enter|事件名> 进入「可进入」里的事件，当前事件算已完成'));
+            out.push(I18n.t('<module|complete|事件名> 完成「可完成」里的事件，时机由你按剧情定'));
         }
         if (hasVariables) {
-            out.push('【变量】');
-            out.push('<var|变量名|操作|值> number：add/subtract/set；string、bool：set；list：append/remove；object：set');
-            if (hasRules) out.push('<rule|变量名|规则名> 用「可用规则」，有规则时优先');
+            out.push(I18n.t('【变量】'));
+            out.push(I18n.t('<var|变量名|操作|值> number：add/subtract/set；string、bool：set；list：append/remove；object：set'));
+            if (hasRules) out.push(I18n.t('<rule|变量名|规则名> 用「可用规则」，有规则时优先'));
         }
-        out.push('【时间】');
-        out.push('<time|参数|add或set|数值> 参数 year/month/day/hour/minute，add 只能往前');
+        out.push(I18n.t('【时间】'));
+        out.push(I18n.t('<time|参数|add或set|数值> 参数 year/month/day/hour/minute，add 只能往前'));
         if (hasDelivery) {
-            out.push('【投递】');
-            out.push('<delivery|标题|done> 已融入剧情，不再发；<delivery|标题|uncompleted> 未做，下一轮再提醒');
+            out.push(I18n.t('【投递】'));
+            out.push(I18n.t('<delivery|标题|done> 已融入剧情，不再发；<delivery|标题|uncompleted> 未做，下一轮再提醒'));
         }
-        out.push('【伏笔】');
-        out.push('<foreshadow|标题|描述|触发条件> 记下以后要提醒自己的事；条件写 variable:变量名>=数值、time:day>=30、module:事件名:completed，留空则下一轮提醒');
+        out.push(I18n.t('【伏笔】'));
+        out.push(I18n.t('<foreshadow|标题|描述|触发条件> 记下以后要提醒自己的事；条件写 variable:变量名>=数值、time:day>=30、module:事件名:completed，留空则下一轮提醒'));
         if (hasPlugins) {
-            out.push('【插件】');
-            out.push('<plugin|插件名|内容> 调用「交互器」里的插件，内容按其回复格式');
+            out.push(I18n.t('【插件】'));
+            out.push(I18n.t('<plugin|插件名|内容> 调用「交互器」里的插件，内容按其回复格式'));
         }
         out.push('```');
         return out.join('\n');
@@ -540,10 +540,10 @@ class PromptGenerator {
         if (!currentModule) return '';
 
         const moduleLabel = currentModule.name || currentModule.id;
-        let prompt = '```background\n当前模块：' + moduleLabel + '\n\n【仅模块信息】\n\n';
+        let prompt = '```background\n' + I18n.t('当前模块：{name}', { name: moduleLabel }) + '\n\n' + I18n.t('【仅模块信息】') + '\n\n';
         const collectInfo = (module, label) => {
             if (!module || !module.info || module.info.length === 0) return;
-            prompt += `【${label}】\n`;
+            prompt += I18n.t('【{label}】', { label }) + '\n';
             module.info.forEach(infoItem => { prompt += `${infoItem.content}\n\n`; });
         };
         collectInfo(currentModule, currentModule.name || currentModule.id);
@@ -551,7 +551,7 @@ class PromptGenerator {
         let depth = 0;
         while (ancestorId && depth < 3) {
             const ancestorModule = this.moduleSystem.getModule(ancestorId);
-            if (ancestorModule) collectInfo(ancestorModule, (ancestorModule.name || ancestorModule.id) + '（父级）');
+            if (ancestorModule) collectInfo(ancestorModule, I18n.t('{name}（父级）', { name: ancestorModule.name || ancestorModule.id }));
             ancestorId = ancestorModule ? ancestorModule.parentModuleId : null;
             depth++;
         }
@@ -569,7 +569,7 @@ class PromptGenerator {
         if (queue) parts.push(queue);
         const delivery = this.generateDeliveryInfo(currentModuleId);
         if (delivery) parts.push(delivery);
-        return parts.length === 0 ? '(当前无模块相关信息)' : parts.join('\n\n');
+        return parts.length === 0 ? I18n.t('(当前无模块相关信息)') : parts.join('\n\n');
     }
 
     // ==========================================
@@ -598,7 +598,7 @@ class PromptGenerator {
     }
 
     formatMissingConditions(conditions) {
-        if (!conditions || conditions.length === 0) return '无';
+        if (!conditions || conditions.length === 0) return I18n.pick({ zh: '无', en: 'None' });
         const vName = (id) => {
             const v = this.variableSystem && this.variableSystem.getVariable ? this.variableSystem.getVariable(id) : null;
             return (v && v.name) ? v.name : id;
@@ -608,10 +608,10 @@ class PromptGenerator {
             return (m && m.name) ? m.name : id;
         };
         return conditions.map(c => {
-            if (c.type === 'time') return `时间未到 ${c.required}`;
-            if (c.type === 'variable') return `${vName(c.variableId)} ${this._opSymbol(c.operator)} ${c.value} (当前: ${c.current})`;
+            if (c.type === 'time') return I18n.t('时间未到 {required}', { required: String(c.required) });
+            if (c.type === 'variable') return I18n.t('{name} {op} {value} (当前: {cur})', { name: vName(c.variableId), op: this._opSymbol(c.operator), value: String(c.value), cur: String(c.current) });
             if (c.type === 'module') return `${mName(c.moduleId)} ${c.state}`;
-            return '未知条件';
+            return I18n.t('未知条件');
         }).join(', ');
     }
 }

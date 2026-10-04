@@ -26,50 +26,50 @@
         var a = testCase.assertions || {};
 
         if (a.returnValueIdOneOf && Array.isArray(a.returnValueIdOneOf)) {
-            if (out == null) return { pass: false, message: '返回为 null' };
+            if (out == null) return { pass: false, message: I18n.t('返回为 null')};
             if (a.returnValueIdOneOf.indexOf(out.id) === -1)
-                return { pass: false, message: '返回 id 不在池中: ' + out.id };
+                return { pass: false, message: I18n.t('返回 id 不在池中: {id}', { id: out.id })};
         }
 
         if (a.returnValueId !== undefined) {
             if (out == null || out.id !== a.returnValueId)
-                return { pass: false, message: '返回 id 应为 ' + a.returnValueId + '，实际 ' + (out && out.id) };
+                return { pass: false, message: I18n.t('返回 id 应为 {returnValueI}，实际 {id}', { returnValueI: a.returnValueId, id: (out && out.id) })};
         }
 
         if (a.returnValueFields && Array.isArray(a.returnValueFields)) {
-            if (out == null || typeof out !== 'object') return { pass: false, message: '返回非对象' };
+            if (out == null || typeof out !== 'object') return { pass: false, message: I18n.t('返回非对象')};
             for (var i = 0; i < a.returnValueFields.length; i++) {
                 if (out[a.returnValueFields[i]] === undefined)
-                    return { pass: false, message: '返回缺少字段: ' + a.returnValueFields[i] };
+                    return { pass: false, message: I18n.t('返回缺少字段: {returnValueF}', { returnValueF: a.returnValueFields[i] })};
             }
         }
 
         if (a.tempStorageEqualsReturn && context && context.variableSystem) {
             var stored = context.variableSystem.getValue(a.tempStorageEqualsReturn);
             if (stored === undefined)
-                return { pass: false, message: '暂存未写入: ' + a.tempStorageEqualsReturn };
+                return { pass: false, message: I18n.t('暂存未写入: {tempStorageE}', { tempStorageE: a.tempStorageEqualsReturn })};
             if (out && typeof out === 'object' && stored && typeof stored === 'object') {
                 if (stored.id !== out.id || stored.name !== out.name)
-                    return { pass: false, message: '暂存与返回值不一致' };
+                    return { pass: false, message: I18n.t('暂存与返回值不一致')};
             }
         }
 
         if (a.sourcePluginId && a.sourceOutputIdOneOf && Array.isArray(a.sourceOutputIdOneOf) && context && context.pluginSystem) {
             var sourcePlugin = context.pluginSystem.getPlugin(a.sourcePluginId);
             if (!sourcePlugin || !sourcePlugin.output)
-                return { pass: false, message: '变量读取器上游插件无输出: ' + a.sourcePluginId };
+                return { pass: false, message: I18n.t('变量读取器上游插件无输出: {sourcePlugin}', { sourcePlugin: a.sourcePluginId })};
             var sid = sourcePlugin.output.id != null ? sourcePlugin.output.id : sourcePlugin.output;
             if (a.sourceOutputIdOneOf.indexOf(sid) === -1)
-                return { pass: false, message: '调用得到的原始信息与上游理应得到的不一致，上游 output.id=' + sid };
+                return { pass: false, message: I18n.t('调用得到的原始信息与上游理应得到的不一致，上游 output.id={sid}', { sid: sid })};
         }
 
         if (a.sourceOutputHasFields && Array.isArray(a.sourceOutputHasFields) && context && context.pluginSystem && a.sourcePluginId) {
             var src = context.pluginSystem.getPlugin(a.sourcePluginId);
-            if (!src || !src.output) return { pass: false, message: '上游无输出' };
+            if (!src || !src.output) return { pass: false, message: I18n.t('上游无输出')};
             var raw = src.output;
             for (var fi = 0; fi < a.sourceOutputHasFields.length; fi++) {
                 if (raw[a.sourceOutputHasFields[fi]] === undefined)
-                    return { pass: false, message: '上游输出缺少字段: ' + a.sourceOutputHasFields[fi] };
+                    return { pass: false, message: I18n.t('上游输出缺少字段: {sourceOutput}', { sourceOutput: a.sourceOutputHasFields[fi] })};
             }
         }
 
@@ -77,13 +77,13 @@
             var sm = a.storedVariableEqualsSourceMapping;
             var sPlugin = context.pluginSystem.getPlugin(sm.sourcePluginId);
             if (!sPlugin || !sPlugin.output)
-                return { pass: false, message: '上游插件无输出，无法校验映射' };
+                return { pass: false, message: I18n.t('上游插件无输出，无法校验映射')};
             var expectedVal = extractByMapping(sPlugin.output, sm.mapping);
             var actualVal = context.variableSystem.getValue(sm.variableId);
             if (actualVal === undefined)
-                return { pass: false, message: '变量未写入: ' + sm.variableId };
+                return { pass: false, message: I18n.t('变量未写入: {variableId}', { variableId: sm.variableId })};
             if (JSON.stringify(actualVal) !== JSON.stringify(expectedVal))
-                return { pass: false, message: '读取的东西映射不对，变量 ' + sm.variableId + ' 应为 ' + String(expectedVal) + '，实际 ' + String(actualVal) };
+                return { pass: false, message: I18n.t('读取的东西映射不对，变量 {variableId} 应为 {Stringexpect}，实际 {Stringactual}', { variableId: sm.variableId, Stringexpect: String(expectedVal), Stringactual: String(actualVal) })};
         }
 
         if (a.promptContains && (Array.isArray(a.promptContains) || typeof a.promptContains === 'string')) {
@@ -92,97 +92,97 @@
             for (var pi = 0; pi < arr.length; pi++) {
                 var need = arr[pi];
                 if (p.indexOf(need) === -1)
-                    return { pass: false, message: '用户发的内容没进 prompt，应包含: "' + need + '"' };
+                    return { pass: false, message: I18n.t('用户发的内容没进 prompt，应包含: "{need}"', { need: need })};
             }
         }
         if (a.prompt !== undefined) {
             if (!out || typeof out.prompt !== 'string')
-                return { pass: false, message: '无 prompt' };
+                return { pass: false, message: I18n.t('无 prompt')};
             if (out.prompt.trim() !== a.prompt)
-                return { pass: false, message: '发给 AI 的 prompt 不对，期望: ' + a.prompt.slice(0, 40) + '...' };
+                return { pass: false, message: I18n.t('发给 AI 的 prompt 不对，期望: {slice040}...', { slice040: a.prompt.slice(0, 40) })};
         }
         if (a.promptEquals !== undefined) {
             var expPrompt = a.promptEquals;
             var actualPrompt = (out && out.prompt !== undefined) ? String(out.prompt).trim() : '';
             if (expPrompt === '') {
                 if (actualPrompt !== '')
-                    return { pass: false, message: '期望无 prompt，实际: ' + actualPrompt.slice(0, 60) };
+                    return { pass: false, message: I18n.t('期望无 prompt，实际: {slice060}', { slice060: actualPrompt.slice(0, 60) })};
             } else {
                 if (actualPrompt !== expPrompt)
-                    return { pass: false, message: 'prompt 应为 "' + expPrompt + '"，实际 "' + actualPrompt + '"' };
+                    return { pass: false, message: I18n.t('prompt 应为 "{expPrompt}"，实际 "{actualPrompt}"', { expPrompt: expPrompt, actualPrompt: actualPrompt })};
             }
         }
 
         if (a.blockId !== undefined) {
             if (!out || out.blockId !== a.blockId)
-                return { pass: false, message: 'blockId 应为 ' + a.blockId + '，实际 ' + (out && out.blockId) };
+                return { pass: false, message: I18n.t('blockId 应为 {blockId}，实际 {blockId2}', { blockId: a.blockId, blockId2: (out && out.blockId) })};
         }
 
         if (a.outputFormat !== undefined) {
             if (!out || typeof out.outputFormat !== 'string')
-                return { pass: false, message: '无 outputFormat' };
+                return { pass: false, message: I18n.t('无 outputFormat')};
             if (out.outputFormat.trim() !== a.outputFormat)
-                return { pass: false, message: 'outputFormat 不符' };
+                return { pass: false, message: I18n.t('outputFormat 不符')};
         }
 
         if (a.returnValueType !== undefined) {
             if (!out || out.type !== a.returnValueType)
-                return { pass: false, message: '返回 type 应为 ' + a.returnValueType };
+                return { pass: false, message: I18n.t('返回 type 应为 {returnValueT}', { returnValueT: a.returnValueType })};
         }
 
         if (a.returnValueHasFields && Array.isArray(a.returnValueHasFields)) {
-            if (out == null || typeof out !== 'object') return { pass: false, message: '返回非对象' };
+            if (out == null || typeof out !== 'object') return { pass: false, message: I18n.t('返回非对象')};
             for (var j = 0; j < a.returnValueHasFields.length; j++) {
                 if (out[a.returnValueHasFields[j]] === undefined)
-                    return { pass: false, message: '返回缺少: ' + a.returnValueHasFields[j] };
+                    return { pass: false, message: I18n.t('返回缺少: {returnValueH}', { returnValueH: a.returnValueHasFields[j] })};
             }
         }
 
         if (a.flowsMainEntryEvent !== undefined) {
             if (!out || !out.flows || !out.flows.main)
-                return { pass: false, message: '缺少 flows.main' };
+                return { pass: false, message: I18n.t('缺少 flows.main')};
             if (out.flows.main.entryEvent !== a.flowsMainEntryEvent)
-                return { pass: false, message: 'flows.main.entryEvent 应为 ' + a.flowsMainEntryEvent };
+                return { pass: false, message: I18n.t('flows.main.entryEvent 应为 {flowsMainEnt}', { flowsMainEnt: a.flowsMainEntryEvent })};
         }
 
         if (a.flowsMainSubModulesIsArray) {
             if (!out || !out.flows || !out.flows.main)
-                return { pass: false, message: '缺少 flows.main' };
+                return { pass: false, message: I18n.t('缺少 flows.main')};
             if (!Array.isArray(out.flows.main.subModules))
-                return { pass: false, message: 'flows.main.subModules 应为数组' };
+                return { pass: false, message: I18n.t('flows.main.subModules 应为数组')};
         }
 
         if (a.registeredInModuleSystem && moduleSystem && out && out.id) {
             if (!moduleSystem.getModule(out.id))
-                return { pass: false, message: '系统没有真的把模块加进去: ' + out.id };
+                return { pass: false, message: I18n.t('系统没有真的把模块加进去: {id}', { id: out.id })};
         }
 
         if (a.generatedModuleFlowName && moduleSystem && out && out.id) {
             var mod = moduleSystem.getModule(out.id);
-            if (!mod) return { pass: false, message: '生成模块不在系统中' };
+            if (!mod) return { pass: false, message: I18n.t('生成模块不在系统中')};
             if (mod.flowName !== a.generatedModuleFlowName)
-                return { pass: false, message: '生成模块 flowName 应为 ' + a.generatedModuleFlowName + '，实际 ' + mod.flowName };
+                return { pass: false, message: I18n.t('生成模块 flowName 应为 {generatedMod}，实际 {flowName}', { generatedMod: a.generatedModuleFlowName, flowName: mod.flowName })};
         }
 
         if (a.generatedModuleParentId && moduleSystem && out && out.id) {
             var m = moduleSystem.getModule(out.id);
-            if (!m) return { pass: false, message: '生成模块不在系统中' };
+            if (!m) return { pass: false, message: I18n.t('生成模块不在系统中')};
             if (m.parentModuleId !== a.generatedModuleParentId)
-                return { pass: false, message: '生成模块 parentModuleId 应为 ' + a.generatedModuleParentId + '，实际 ' + m.parentModuleId };
+                return { pass: false, message: I18n.t('生成模块 parentModuleId 应为 {generatedMod}，实际 {parentModule}', { generatedMod: a.generatedModuleParentId, parentModule: m.parentModuleId })};
         }
 
         if (a.hasHtml) {
             if (!out || typeof out.html !== 'string' || !out.html.trim())
-                return { pass: false, message: '无 html，展示器无法给用户看' };
+                return { pass: false, message: I18n.t('无 html，展示器无法给用户看')};
         }
 
         if (a.variablesKeys && Array.isArray(a.variablesKeys)) {
             if (!out || typeof out.variables !== 'object')
-                return { pass: false, message: '无 variables' };
+                return { pass: false, message: I18n.t('无 variables')};
             var keys = Object.keys(out.variables).sort();
             var expected = a.variablesKeys.slice().sort();
             if (keys.length !== expected.length || keys.some(function(k, i) { return k !== expected[i]; }))
-                return { pass: false, message: 'variables 键应为 ' + expected.join(', ') + '，实际 ' + keys.join(', ') };
+                return { pass: false, message: I18n.t('variables 键应为 {join}，实际 {join2}', { join: expected.join(', '), join2: keys.join(', ') })};
         }
 
         if (a.displayVariableValuesMatchContext && out && out.variables && context && context.variableSystem) {
@@ -191,7 +191,7 @@
                 var ctxVal = context.variableSystem.getValue(vk);
                 var outVal = out.variables[vk];
                 if (JSON.stringify(ctxVal) !== JSON.stringify(outVal))
-                    return { pass: false, message: '展示器变量 ' + vk + ' 与上下文不一致，展示给用户看会错' };
+                    return { pass: false, message: I18n.t('展示器变量 {vk} 与上下文不一致，展示给用户看会错', { vk: vk })};
             }
         }
 
@@ -200,10 +200,10 @@
             var expUpdate = a.updatePromptEquals;
             if (expUpdate === '') {
                 if (actual !== '' && actual !== undefined)
-                    return { pass: false, message: 'updatePrompt 应为空，实际 "' + actual + '"' };
+                    return { pass: false, message: I18n.t('updatePrompt 应为空，实际 "{actual}"', { actual: actual })};
             } else {
                 if (actual !== expUpdate)
-                    return { pass: false, message: 'updatePrompt 应为 "' + expUpdate + '"，实际 "' + actual + '"' };
+                    return { pass: false, message: I18n.t('updatePrompt 应为 "{expUpdate}"，实际 "{actual}"', { expUpdate: expUpdate, actual: actual })};
             }
         }
 
@@ -212,7 +212,7 @@
                 var varId = a.storedVariableIds[vi];
                 var val = context.variableSystem.getValue(varId);
                 if (val === undefined)
-                    return { pass: false, message: '系统没有真的把变量存进去: ' + varId };
+                    return { pass: false, message: I18n.t('系统没有真的把变量存进去: {varId}', { varId: varId })};
             }
         }
 
@@ -223,9 +223,9 @@
                 if (!Array.isArray(allowed)) continue;
                 var vVal = context.variableSystem.getValue(vk);
                 if (vVal === undefined)
-                    return { pass: false, message: '变量未写入: ' + vk };
+                    return { pass: false, message: I18n.t('变量未写入: {vk}', { vk: vk })};
                 if (allowed.indexOf(vVal) === -1)
-                    return { pass: false, message: '变量 ' + vk + ' 的值 "' + vVal + '" 不是理应存的东西（不在允许列表）' };
+                    return { pass: false, message: I18n.t('变量 {vk} 的值 "{vVal}" 不是理应存的东西（不在允许列表）', { vk: vk, vVal: vVal })};
             }
         }
 
@@ -235,9 +235,9 @@
                 var expectedSub = a.afterReplyVariableContains[vid];
                 var actualVal = context.variableSystem.getValue(vid);
                 if (actualVal === undefined || actualVal === null)
-                    return { pass: false, message: 'AI 返回整理后未写入展示变量: ' + vid };
+                    return { pass: false, message: I18n.t('AI 返回整理后未写入展示变量: {vid}', { vid: vid })};
                 if (String(actualVal).indexOf(expectedSub) === -1)
-                    return { pass: false, message: 'AI 返回给用户的内容不对，变量 ' + vid + ' 应包含 "' + expectedSub + '"' };
+                    return { pass: false, message: I18n.t('AI 返回给用户的内容不对，变量 {vid} 应包含 "{expectedSub}"', { vid: vid, expectedSub: expectedSub })};
             }
         }
 
@@ -248,11 +248,11 @@
                 if (!Array.isArray(subs)) continue;
                 var vVal = context.variableSystem.getValue(vcid);
                 if (vVal === undefined || vVal === null)
-                    return { pass: false, message: '变量未写入: ' + vcid };
+                    return { pass: false, message: I18n.t('变量未写入: {vcid}', { vcid: vcid })};
                 var vStr = String(vVal);
                 for (var si = 0; si < subs.length; si++) {
                     if (vStr.indexOf(subs[si]) === -1)
-                        return { pass: false, message: '变量 ' + vcid + ' 应同时包含用户操作与 AI 回复，缺少: "' + subs[si] + '"' };
+                        return { pass: false, message: I18n.t('变量 {vcid} 应同时包含用户操作与 AI 回复，缺少: "{subssi}"', { vcid: vcid, subssi: subs[si] })};
                 }
             }
         }
@@ -263,7 +263,7 @@
                 var expectedVal = a.variableValueEquals[vid];
                 var actualVal = context.variableSystem.getValue(vid);
                 if (JSON.stringify(actualVal) !== JSON.stringify(expectedVal))
-                    return { pass: false, message: '变量 ' + vid + ' 应为 ' + JSON.stringify(expectedVal) + '，实际 ' + JSON.stringify(actualVal) };
+                    return { pass: false, message: I18n.t('变量 {vid} 应为 {stringifyexp}，实际 {stringifyact}', { vid: vid, stringifyexp: JSON.stringify(expectedVal), stringifyact: JSON.stringify(actualVal) })};
             }
         }
 
@@ -276,9 +276,9 @@
                 var expectedNum = from + by;
                 var numVal = context.variableSystem.getValue(vidi);
                 if (typeof numVal !== 'number')
-                    return { pass: false, message: '变量 ' + vidi + ' 非数字，实际 ' + typeof numVal };
+                    return { pass: false, message: I18n.t('变量 {vidi} 非数字，实际 {typeofnumVal}', { vidi: vidi, typeofnumVal: typeof numVal })};
                 if (numVal !== expectedNum)
-                    return { pass: false, message: '变量 ' + vidi + ' 期望 ' + expectedNum + '（from ' + from + ' + by ' + by + '），实际 ' + numVal };
+                    return { pass: false, message: I18n.t('变量 {vidi} 期望 {expectedNum}（from {from} + by {by}），实际 {numVal}', { vidi: vidi, expectedNum: expectedNum, from: from, by: by, numVal: numVal })};
             }
         }
 
@@ -289,17 +289,17 @@
             var minCount = fc.min != null ? fc.min : 1;
             var parent = moduleSystem.getModule(parentId);
             if (!parent || !parent.subModules || !parent.subModules.get(flowName))
-                return { pass: false, message: 'flow ' + flowName + ' 不存在或为空' };
+                return { pass: false, message: I18n.t('flow {flowName} 不存在或为空', { flowName: flowName })};
             var flowMap = parent.subModules.get(flowName);
             var count = flowMap ? flowMap.size : 0;
             if (count < minCount)
-                return { pass: false, message: 'flow ' + flowName + ' 下模块数应至少 ' + minCount + '，实际 ' + count };
+                return { pass: false, message: I18n.t('flow {flowName} 下模块数应至少 {minCount}，实际 {count}', { flowName: flowName, minCount: minCount, count: count })};
         }
 
         if (a.promptEmpty) {
             var p = (out && out.prompt != null) ? String(out.prompt).trim() : '';
             if (p !== '')
-                return { pass: false, message: '暂存为空时期望不发内容给 AI（prompt 为空），实际: ' + p.slice(0, 60) };
+                return { pass: false, message: I18n.t('暂存为空时期望不发内容给 AI（prompt 为空），实际: {slice060}', { slice060: p.slice(0, 60) })};
         }
 
         return { pass: true, message: testCase.name };
@@ -341,11 +341,11 @@
 
     function runOneTest(testCase, pluginSystem, getContext, moduleSystem) {
         var pluginId = testCase.pluginId;
-        if (!pluginId) return { pass: false, message: '用例缺少 pluginId' };
+        if (!pluginId) return { pass: false, message: I18n.t('用例缺少 pluginId')};
         var plugin = pluginSystem.getPlugin(pluginId);
-        if (!plugin) return { pass: false, message: '未找到插件: ' + pluginId };
+        if (!plugin) return { pass: false, message: I18n.t('未找到插件: {pluginId}', { pluginId: pluginId })};
         var ctx = getContext();
-        if (!ctx) return { pass: false, message: '无 context' };
+        if (!ctx) return { pass: false, message: I18n.t('无 context')};
         var setup = testCase.setup || {};
 
         if (ctx.variableSystem && setup.initialVariables) {
@@ -361,7 +361,7 @@
         if (setup.jumpToModule && ctx.moduleSystem) {
             var jumpRes = ctx.moduleSystem.jumpToModule(setup.jumpToModule, { force: true });
             if (!jumpRes || !jumpRes.success)
-                return { pass: false, message: 'setup.jumpToModule 失败: ' + setup.jumpToModule + (jumpRes && jumpRes.error ? ' - ' + jumpRes.error : ''), actual: {} };
+                return { pass: false, message: I18n.t('setup.jumpToModule 失败: {jumpToModule}{error}', { jumpToModule: setup.jumpToModule, error: (jumpRes && jumpRes.error ? ' - ' + jumpRes.error : '') }), actual: {} };
             if (ctx.pluginSystem && typeof ctx.pluginSystem.runOneShotPluginsForModule === 'function') {
                 oneShotResults = ctx.pluginSystem.runOneShotPluginsForModule(setup.jumpToModule, ctx);
             }
@@ -371,7 +371,7 @@
             try {
                 ctx.timeSystem.advanceTime(setup.setTime);
             } catch (e) {
-                return { pass: false, message: 'setup.setTime 失败: ' + (e.message || e), actual: {} };
+                return { pass: false, message: I18n.t('setup.setTime 失败: {messagee}', { messagee: (e.message || e) }), actual: {} };
             }
         }
 
@@ -380,7 +380,7 @@
                 try {
                     ctx.pluginSystem.executePlugin(setup.runPluginIds[i], ctx);
                 } catch (e) {
-                    return { pass: false, message: 'setup.runPluginIds 执行失败: ' + setup.runPluginIds[i] + ' - ' + (e.message || e), actual: {} };
+                    return { pass: false, message: I18n.t('setup.runPluginIds 执行失败: {runPluginIds} - {messagee}', { runPluginIds: setup.runPluginIds[i], messagee: (e.message || e) }), actual: {} };
                 }
             }
         }
@@ -392,11 +392,11 @@
             try {
                 out = ctx.pluginSystem.executePlugin(pluginId, ctx);
             } catch (e) {
-                if (setup.expectExecutionError) return { pass: true, message: testCase.name + '（期望执行失败）', actual: { error: (e.message || e) + '' } };
+                if (setup.expectExecutionError) return { pass: true, message: I18n.t('{name}（期望执行失败）', { name: testCase.name }), actual: { error: (e.message || e) + '' } };
                 return { pass: false, message: (e.message || e) + '', actual: {} };
             }
         }
-        if (setup.expectExecutionError) return { pass: false, message: '期望插件执行失败，但执行成功', actual: collectActual(testCase, out, ctx, moduleSystem, plugin) };
+        if (setup.expectExecutionError) return { pass: false, message: I18n.t('期望插件执行失败，但执行成功'), actual: collectActual(testCase, out, ctx, moduleSystem, plugin) };
 
         if (setup.mockAiBlockContent != null && setup.replyVariableId && ctx.variableSystem && out && out.blockId) {
             var blockContent = typeof setup.mockAiBlockContent === 'string'
@@ -415,7 +415,7 @@
                 var parent = moduleSystem.getModule(plugin.ownerModuleId);
                 var flowMap = parent && parent.subModules && parent.subModules.get(flowName);
                 if (!flowMap || !flowMap.has(out.id))
-                    return { pass: false, message: '生成模块未加入父模块的「' + flowName + '」分流程，整个 flow 里没有真的加进去', actual: collectActual(testCase, out, ctx, moduleSystem, plugin) };
+                    return { pass: false, message: I18n.t('生成模块未加入父模块的「{flowName}」分流程，整个 flow 里没有真的加进去', { flowName: flowName }), actual: collectActual(testCase, out, ctx, moduleSystem, plugin) };
             }
         }
 
@@ -433,7 +433,7 @@
         var resetState = options && typeof options.resetState === 'function' ? options.resetState : null;
         return tests.map(function(t) {
             if (resetBetweenTests && resetState) {
-                try { resetState(); } catch (e) { return { name: t.name || t.pluginId, pluginId: t.pluginId, pass: false, message: 'resetState 失败: ' + (e.message || e), actual: {} }; }
+                try { resetState(); } catch (e) { return { name: t.name || t.pluginId, pluginId: t.pluginId, pass: false, message: I18n.t('resetState 失败: {messagee}', { messagee: (e.message || e) }), actual: {} }; }
             }
             var r = runOneTest(t, pluginSystem, getContext, moduleSystemRef);
             return {
@@ -452,7 +452,7 @@
         for (var i = 0; i < tests.length; i++) {
             if (tests[i].pluginId === plugin.id) { tc = tests[i]; break; }
         }
-        if (!tc) return { pass: true, message: '无对应用例，跳过' };
+        if (!tc) return { pass: true, message: I18n.t('无对应用例，跳过')};
         var getContext = function() { return context; };
         return runOneTest(tc, context.pluginSystem, getContext, moduleSystem);
     }

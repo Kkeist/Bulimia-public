@@ -1,0 +1,224 @@
+{
+  "id": "<module_id>",
+  "name": "<Module display name>",
+  "version": "1.0.0",
+  "description": "<Module description>",
+
+  "timeSystem": {
+    "parameters": [
+      {
+        "id": "<param_id>",
+        "type": "base",
+        "systemBinding": "year | month | day | hour | minute | prefix"
+      },
+      {
+        "id": "<computed_param_id>",
+        "type": "computed",
+        "formula": "<systemParam>/<divisor>",
+        "labels": ["<label1>", "<label2>"],
+        "calculationOnly": false
+      }
+    ],
+    "initialValues": {
+      "<param_id>": 1,
+      "<computed_param_id>": 0
+    },
+    "displayFormat": "{{<param_id>}}..."
+  },
+
+  "variables": [
+    {
+      "id": "<variable_id>",
+      "name": "<Variable display name>",
+      "type": "number | string | boolean | list | object | list_of_object",
+      "category": "module | switch | builtin",
+      "initialValue": 0,
+      "generalRules": "<Rules text for AI>",
+      "changeRules": [
+        {
+          "name": "<Rule name>",
+          "operation": "add | subtract | set | append | ...",
+          "value": "<value>"
+        }
+      ],
+      "supportedOperations": [
+        {
+          "operation": "add | subtract | set | ...",
+          "description": "<Operation description>",
+          "params": {}
+        }
+      ]
+    }
+  ],
+
+  "flows": {
+    "main": {
+      "entryEvent": null,
+      "subModules": [
+        {
+          "id": "<timeline_node_id>",
+          "name": "<Timeline module name>",
+          "type": "timeline",
+          "note": "<Debug note, optional>",
+          "tags": [],
+          "entryConditions": {
+            "type": "precondition",
+            "conditionDef": {
+              "logic": "AND",
+              "groups": [
+                {
+                  "logic": "AND",
+                  "items": [
+                    {
+                      "itemType": "condition",
+                      "condition": {
+                        "type": "time | time_range",
+                        "timeType": "absolute | relative",
+                        "time": { "year": 1, "month": 1, "day": 1 },
+                        "moduleId": "<module_id>",
+                        "state": "entered | completed",
+                        "offset": { "day": 0 }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "completionConditions": null,
+          "info": [
+            {
+              "content": "<Info text for AI>",
+              "condition": null
+            }
+          ],
+          "deliveryInfo": [
+            {
+              "title": "<Delivery title>",
+              "content": "<Delivery content>",
+              "condition": null,
+              "completed": false
+            }
+          ],
+          "queueDisplay": { "before": 0, "after": 0 },
+          "variables": [],
+          "plugins": [],
+          "flows": { "main": { "entryEvent": null, "subModules": [] } },
+          "summary": {
+            "enabled": false,
+            "autoSummarize": true,
+            "promptList": [
+              { "condition": [], "content": "<Summary prompt>" }
+            ]
+          }
+        },
+        {
+          "id": "<chain_head_id>",
+          "name": "<Trigger chain parent name>",
+          "type": "trigger_chain",
+          "note": "",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [{ "content": "<Info>", "condition": null }],
+          "deliveryInfo": [],
+          "linkedList": { "prev": null, "next": "<chain_tail_id>" },
+          "variables": [],
+          "plugins": [],
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "<chain_tail_id>",
+                  "name": "<Leaf event name>",
+                  "type": "trigger_chain",
+                  "note": "",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [{ "content": "<Info>", "condition": null }],
+                  "deliveryInfo": [],
+                  "linkedList": { "prev": "<chain_head_id>", "next": null },
+                  "queueDisplay": { "before": 0, "after": 0 },
+                  "variables": [],
+                  "plugins": [],
+                  "flows": { "main": { "entryEvent": null, "subModules": [] } }
+                }
+              ]
+            }
+          },
+          "summary": null
+        },
+        {
+          "id": "<free_trigger_id>",
+          "name": "<Free trigger name>",
+          "type": "free_trigger",
+          "note": "",
+          "tags": ["<tag_id>"],
+          "entryConditions": {
+            "type": "precondition",
+            "conditionDef": {
+              "logic": "AND",
+              "groups": [
+                {
+                  "logic": "AND",
+                  "items": [
+                    {
+                      "itemType": "condition",
+                      "condition": {
+                        "type": "module | variable | time | tag",
+                        "moduleId": "<module_id>",
+                        "state": "entered | completed",
+                        "variableId": "<variable_id>",
+                        "operator": ">= | <= | = | ...",
+                        "value": 0,
+                        "tags": ["<tag_id>"]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "completionConditions": null,
+          "info": [{ "content": "<Info>", "condition": null }],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "flows": { "main": { "entryEvent": null, "subModules": [] } }
+        }
+      ]
+    },
+    "<flow_id>": {
+      "entryEvent": "<prereq_module_id>",
+      "subModules": [
+        {
+          "id": "<sub_flow_module_id>",
+          "name": "<Sub-flow module name>",
+          "type": "trigger_chain | free_trigger | timeline",
+          "note": "",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [{ "content": "<Info>", "condition": null }],
+          "deliveryInfo": [],
+          "linkedList": { "prev": null, "next": null },
+          "variables": [],
+          "plugins": [],
+          "flows": { "main": { "entryEvent": null, "subModules": [] } },
+          "summary": {
+            "enabled": false,
+            "autoSummarize": true,
+            "promptList": [{ "condition": [], "content": "<Summary prompt>" }]
+          }
+        }
+      ],
+      "summary": {
+        "enabled": false,
+        "autoSummarize": true,
+        "promptList": [{ "condition": [], "content": "<Flow summary prompt>" }]
+      }
+    }
+  }
+}

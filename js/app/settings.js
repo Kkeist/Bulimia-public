@@ -120,7 +120,7 @@ Object.assign(App, {
     async loadPatchesSettings() {
         const module = typeof ModuleManager !== 'undefined' ? ModuleManager.getCurrent() : null;
         const nameEl = document.getElementById('patches-current-module-name');
-        if (nameEl) nameEl.textContent = module ? module.name || module.id : '未选择模组';
+        if (nameEl) nameEl.textContent = module ? module.name || module.id : I18n.t('未选择模组');
         if (typeof Patches !== 'undefined' && module && Patches.getModulePatches && Patches.setCurrentModulePatches) {
             const list = await Patches.getModulePatches(module);
             Patches.setCurrentModulePatches(list);
@@ -138,7 +138,7 @@ Object.assign(App, {
         const enabled = settings.patchModuleEnabled || {};
         container.textContent = '';
         if (list.length === 0) {
-            container.innerHTML = '<div class="item-list-empty">当前模组没有补丁。</div>';
+            container.innerHTML = '<div class="item-list-empty">' + I18n.t('当前模组没有补丁。') + '</div>';
             return;
         }
         list.forEach(p => {
@@ -189,7 +189,7 @@ Object.assign(App, {
         const groups = this._patchGroups();
         container.textContent = '';
         if (groups.length === 0) {
-            container.innerHTML = '<div class="item-list-empty">还没有补丁分组。</div>';
+            container.innerHTML = '<div class="item-list-empty">' + I18n.t('还没有补丁分组。') + '</div>';
             return;
         }
         groups.forEach(g => container.appendChild(this._buildPatchGroup(g)));
@@ -216,12 +216,12 @@ Object.assign(App, {
 
         const head = document.createElement('div');
         head.className = 'card-head';
-        head.appendChild(this._chevButton(g.collapsed === true, '展开或收起分组'));
+        head.appendChild(this._chevButton(g.collapsed === true, I18n.t('展开或收起分组')));
         const name = document.createElement('input');
         name.type = 'text';
         name.className = 'patch-group-name';
         name.value = g.name || '';
-        name.setAttribute('aria-label', '分组名称');
+        name.setAttribute('aria-label', I18n.t('分组名称'));
         head.appendChild(name);
         const enable = document.createElement('label');
         enable.className = 'setting-check';
@@ -230,12 +230,12 @@ Object.assign(App, {
         enableBox.className = 'patch-group-enabled';
         enableBox.checked = groupEnabled;
         enable.appendChild(enableBox);
-        enable.appendChild(document.createTextNode('启用'));
+        enable.appendChild(document.createTextNode(I18n.t('启用')));
         head.appendChild(enable);
         const actions = document.createElement('div');
         actions.className = 'card-head-actions';
-        actions.innerHTML = '<button type="button" class="btn-small" data-act="add-entry">添加条目</button>' +
-            '<button type="button" class="btn-small danger" data-act="delete-group">删除分组</button>';
+        actions.innerHTML = '<button type="button" class="btn-small" data-act="add-entry">' + I18n.t('添加条目') + '</button>' +
+            '<button type="button" class="btn-small danger" data-act="delete-group">' + I18n.t('删除分组') + '</button>';
         head.appendChild(actions);
         card.appendChild(head);
 
@@ -243,7 +243,7 @@ Object.assign(App, {
         body.className = 'card-body';
         const entries = Array.isArray(g.entries) ? g.entries : [];
         if (entries.length === 0) {
-            body.innerHTML = '<div class="item-list-empty">这个分组还没有条目。</div>';
+            body.innerHTML = '<div class="item-list-empty">' + I18n.t('这个分组还没有条目。') + '</div>';
         } else {
             const list = document.createElement('div');
             list.className = 'cards';
@@ -263,12 +263,12 @@ Object.assign(App, {
 
         const head = document.createElement('div');
         head.className = 'card-head';
-        head.appendChild(this._chevButton(e.collapsed === true, '展开或收起条目'));
+        head.appendChild(this._chevButton(e.collapsed === true, I18n.t('展开或收起条目')));
         const name = document.createElement('input');
         name.type = 'text';
         name.className = 'patch-entry-name';
-        name.value = e.name || e.comment || e.id || `条目${i + 1}`;
-        name.setAttribute('aria-label', '条目名称');
+        name.value = e.name || e.comment || e.id || I18n.t('条目{n}', { n: i + 1 });
+        name.setAttribute('aria-label', I18n.t('条目名称'));
         head.appendChild(name);
         const enable = document.createElement('label');
         enable.className = 'setting-check';
@@ -277,13 +277,13 @@ Object.assign(App, {
         enableBox.className = 'patch-entry-enabled';
         enableBox.checked = e.enabled !== false;
         enable.appendChild(enableBox);
-        enable.appendChild(document.createTextNode('启用'));
+        enable.appendChild(document.createTextNode(I18n.t('启用')));
         head.appendChild(enable);
         const del = document.createElement('button');
         del.type = 'button';
         del.className = 'btn-small danger';
         del.dataset.act = 'delete-entry';
-        del.textContent = '删除';
+        del.textContent = I18n.t('删除');
         head.appendChild(del);
         card.appendChild(head);
 
@@ -293,13 +293,13 @@ Object.assign(App, {
         const depth = e.injection_depth != null ? Number(e.injection_depth) : 4;
         const order = e.injection_order != null ? Number(e.injection_order) : 100;
         body.innerHTML =
-            '<div class="field"><label>注入方式</label>' +
-            '<select class="patch-entry-constant"><option value="constant">常驻</option><option value="normal">出现关键词时</option></select></div>' +
-            '<div class="field"><label>关键词</label><div class="patch-entry-keywords"></div></div>' +
+            '<div class="field"><label>' + I18n.t('注入方式') + '</label>' +
+            '<select class="patch-entry-constant"><option value="constant">' + I18n.t('常驻') + '</option><option value="normal">' + I18n.t('出现关键词时') + '</option></select></div>' +
+            '<div class="field"><label>' + I18n.t('关键词') + '</label><div class="patch-entry-keywords"></div></div>' +
             '<div class="field-row" style="margin-bottom: 12px;">' +
-            '<div class="field"><label>深度</label><input type="number" class="patch-entry-depth" min="0" max="10" step="1"></div>' +
-            '<div class="field"><label>顺序</label><input type="number" class="patch-entry-order" min="0" max="100000" step="1"></div></div>' +
-            '<div class="field"><label>内容</label><textarea class="patch-entry-content" rows="4"></textarea></div>';
+            '<div class="field"><label>' + I18n.t('深度') + '</label><input type="number" class="patch-entry-depth" min="0" max="10" step="1"></div>' +
+            '<div class="field"><label>' + I18n.t('顺序') + '</label><input type="number" class="patch-entry-order" min="0" max="100000" step="1"></div></div>' +
+            '<div class="field"><label>' + I18n.t('内容') + '</label><textarea class="patch-entry-content" rows="4"></textarea></div>';
         body.querySelector('.patch-entry-constant').value = constant ? 'constant' : 'normal';
         body.querySelector('.patch-entry-depth').value = isNaN(depth) ? 4 : depth;
         body.querySelector('.patch-entry-order').value = isNaN(order) ? 100 : order;
@@ -307,7 +307,7 @@ Object.assign(App, {
         const kwHost = body.querySelector('.patch-entry-keywords');
         const tags = TagList.create({
             values: String(e.keywords != null ? e.keywords : '').split(/[,，]/).map(s => s.trim()).filter(Boolean),
-            placeholder: '输入关键词后按回车添加',
+            placeholder: I18n.t('输入关键词后按回车添加'),
             onChange: (values) => {
                 const groups = this._patchGroups();
                 const found = this._patchEntry(groups, g.id, e.id);
@@ -357,7 +357,7 @@ Object.assign(App, {
                 groups.splice(index, 1);
                 this._savePatchGroups(groups);
                 this.renderPatchesAllGroups();
-                Toast.undo('已删除分组。', () => {
+                Toast.undo(I18n.t('已删除分组。'), () => {
                     const cur = this._patchGroups();
                     cur.splice(Math.min(index, cur.length), 0, g);
                     this._savePatchGroups(cur);
@@ -368,7 +368,7 @@ Object.assign(App, {
                 g.entries.splice(index, 1);
                 this._savePatchGroups(groups);
                 this.renderPatchesAllGroups();
-                Toast.undo('已删除条目。', () => {
+                Toast.undo(I18n.t('已删除条目。'), () => {
                     const cur = this._patchGroups();
                     const tg = cur.find(x => x.id === gid);
                     if (!tg) return;
@@ -431,13 +431,13 @@ Object.assign(App, {
     },
 
     async patchesNewGroup() {
-        const name = await Modal.prompt('新建分组', '分组名称');
+        const name = await Modal.prompt(I18n.t('新建分组'), I18n.t('分组名称'));
         if (name == null || !String(name).trim()) return;
         const groups = this._patchGroups();
         groups.push({ id: `pg_${Date.now()}`, name: String(name).trim(), source: 'manual', groupEnabled: true, entries: [] });
         this._savePatchGroups(groups);
         this.renderPatchesAllGroups();
-        Toast.show('已新建分组。', 'success');
+        Toast.show(I18n.t('已新建分组。'), 'success');
     },
 
     /** 在指定分组内添加一条空条目（含常驻/关键词/深度/顺序） */
@@ -448,7 +448,7 @@ Object.assign(App, {
         if (!g.entries) g.entries = [];
         g.entries.push({
             id: `e_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-            name: '新条目',
+            name: I18n.t('新条目'),
             content: '',
             enabled: true,
             constant: false,
@@ -460,18 +460,18 @@ Object.assign(App, {
         g.collapsed = false;
         this._savePatchGroups(groups);
         this.renderPatchesAllGroups();
-        Toast.show('已添加条目。', 'success');
+        Toast.show(I18n.t('已添加条目。'), 'success');
     },
 
     patchesImportWorldbook(file) {
         const reader = new FileReader();
-        reader.onerror = () => Toast.show('这个文件读取不出来。', 'error');
+        reader.onerror = () => Toast.show(I18n.t('这个文件读取不出来。'), 'error');
         reader.onload = (e) => {
             let data;
             try {
                 data = JSON.parse(e.target.result);
             } catch (err) {
-                Toast.show('世界书文件格式错误，无法导入。', 'error');
+                Toast.show(I18n.t('世界书文件格式错误，无法导入。'), 'error');
                 return;
             }
             const rawEntries = data.entries != null ? (Array.isArray(data.entries) ? data.entries : Object.values(data.entries)) : [];
@@ -486,7 +486,7 @@ Object.assign(App, {
                 const keywords = Array.isArray(keys) ? keys.join(', ') : (typeof keys === 'string' ? keys : '');
                 return {
                     id: entry.uid != null ? String(entry.uid) : `e_${Date.now()}_${i}`,
-                    name: entry.comment || entry.name || `条目${i + 1}`,
+                    name: entry.comment || entry.name || I18n.t('条目{n}', { n: i + 1 }),
                     content,
                     enabled,
                     constant,
@@ -497,11 +497,11 @@ Object.assign(App, {
                 };
             }).filter(Boolean);
             const groups = this._patchGroups();
-            const name = file.name ? file.name.replace(/\.json$/i, '') : '世界书';
+            const name = file.name ? file.name.replace(/\.json$/i, '') : I18n.t('世界书');
             groups.push({ id: `pg_${Date.now()}`, name, source: 'worldbook', groupEnabled: true, collapsed: true, entries: list });
             this._savePatchGroups(groups);
             this.renderPatchesAllGroups();
-            Toast.show(`已导入“${name}”，共 ${list.length} 条。`, 'success');
+            Toast.show(I18n.t('已导入“{name}”，共 {n} 条。', { name, n: list.length }), 'success');
         };
         reader.readAsText(file, 'UTF-8');
     },
@@ -515,7 +515,7 @@ Object.assign(App, {
         select.textContent = '';
         const none = document.createElement('option');
         none.value = '';
-        none.textContent = '不使用设定';
+        none.textContent = I18n.t('不使用设定');
         select.appendChild(none);
         personas.forEach(p => {
             const option = document.createElement('option');
@@ -557,7 +557,7 @@ Object.assign(App, {
     savePersona() {
         const name = document.getElementById('input-persona-name').value.trim();
         const content = document.getElementById('input-persona-content').value;
-        if (!name) { Toast.show('请输入设定名称。', 'warning'); return; }
+        if (!name) { Toast.show(I18n.t('请输入设定名称。'), 'warning'); return; }
 
         if (PersonaManager.current) {
             PersonaManager.update(PersonaManager.current.id, { name, content });
@@ -567,16 +567,16 @@ Object.assign(App, {
         }
         this.loadPersonas();
         if (typeof DebugViewer !== 'undefined' && DebugViewer.refreshPrompt) DebugViewer.refreshPrompt();
-        Toast.show('已保存。', 'success');
+        Toast.show(I18n.t('已保存。'), 'success');
     },
 
     async deletePersona() {
         if (!PersonaManager.current) {
-            Toast.show('没有选中的设定。', 'warning');
+            Toast.show(I18n.t('没有选中的设定。'), 'warning');
             return;
         }
 
-        const confirmed = await Modal.confirm('删除设定', `确定要删除设定“${App._escSave(PersonaManager.current.name)}”吗？`, { danger: true, confirmLabel: '删除' });
+        const confirmed = await Modal.confirm(I18n.t('删除设定'), I18n.t('确定要删除设定“{name}”吗？', { name: App._escSave(PersonaManager.current.name) }), { danger: true, confirmLabel: I18n.t('删除') });
         if (!confirmed) return;
 
         const removed = Object.assign({}, PersonaManager.current);
@@ -584,9 +584,9 @@ Object.assign(App, {
         this.loadPersonas();
         this.newPersona();
         if (typeof DebugViewer !== 'undefined' && DebugViewer.refreshPrompt) DebugViewer.refreshPrompt();
-        Toast.undo('已删除设定。', () => {
+        Toast.undo(I18n.t('已删除设定。'), () => {
             if (!PersonaManager.restore(removed)) {
-                Toast.show('撤销失败，这个设定已经存在。', 'error');
+                Toast.show(I18n.t('撤销失败，这个设定已经存在。'), 'error');
                 return;
             }
             PersonaManager.setCurrent(removed.id);
@@ -658,27 +658,27 @@ Object.assign(App, {
         const cliOption = document.querySelector('#api-provider-select option[value="claude_cli"]');
         if (cliOption) {
             cliOption.disabled = !caps.localCli;
-            cliOption.textContent = caps.localCli ? '本机 Claude 命令行'
-                : (caps.service ? '本机 Claude 命令行（本机没有找到）' : '本机 Claude 命令行（仅本机运行时可用）');
+            cliOption.textContent = caps.localCli ? I18n.t('本机 Claude 命令行')
+                : (caps.service ? I18n.t('本机 Claude 命令行（本机没有找到）') : I18n.t('本机 Claude 命令行（仅本机运行时可用）'));
         }
         const relayOption = document.querySelector('#api-relay-select option[value="relay"]');
         if (relayOption) {
             relayOption.disabled = !caps.relay;
-            relayOption.textContent = caps.relay ? '经本机转发' : '经本机转发（仅本机运行时可用）';
+            relayOption.textContent = caps.relay ? I18n.t('经本机转发') : I18n.t('经本机转发（仅本机运行时可用）');
         }
         const relayHint = document.getElementById('api-relay-hint');
         if (relayHint) {
             relayHint.textContent = caps.relay
-                ? '浏览器连不上服务商时，选「经本机转发」。'
-                : '这里是在线版本，只能直连；连不上时请使用允许网页访问的服务或反向代理地址。';
+                ? I18n.t('浏览器连不上服务商时，选「经本机转发」。')
+                : I18n.t('这里是在线版本，只能直连；连不上时请使用允许网页访问的服务或反向代理地址。');
         }
         const note = document.querySelector('#api-field-localcli-note .setting-hint');
         if (note) {
             note.textContent = caps.localCli
-                ? '用本机已登录的 Claude 命令行生成，不需要填地址和密钥。'
+                ? I18n.t('用本机已登录的 Claude 命令行生成，不需要填地址和密钥。')
                 : (caps.service
-                    ? '本机没有找到 Claude 命令行，请先安装并登录，或换一个服务商。'
-                    : '本机 Claude 命令行只能在本机运行游戏时使用，请换一个服务商。');
+                    ? I18n.t('本机没有找到 Claude 命令行，请先安装并登录，或换一个服务商。')
+                    : I18n.t('本机 Claude 命令行只能在本机运行游戏时使用，请换一个服务商。'));
         }
     },
 
@@ -690,7 +690,7 @@ Object.assign(App, {
         modelSelect.innerHTML = '';
         const placeholder = document.createElement('option');
         placeholder.value = '';
-        placeholder.textContent = '-- 选择模型 --';
+        placeholder.textContent = I18n.t('-- 选择模型 --');
         modelSelect.appendChild(placeholder);
 
         const names = (provider.defaultModels || []).slice();
@@ -747,7 +747,7 @@ Object.assign(App, {
         const provider = APIConnection.providers[providerId];
         const hint = document.getElementById('default-models-hint');
         if (hint && provider && provider.defaultModels && provider.defaultModels.length > 0) {
-            hint.textContent = `常用模型: ${provider.defaultModels.join(', ')}`;
+            hint.textContent = I18n.t('常用模型: {models}', { models: provider.defaultModels.join(', ') });
         } else if (hint) {
             hint.textContent = '';
         }
@@ -760,7 +760,7 @@ Object.assign(App, {
         select.innerHTML = '';
         const blank = document.createElement('option');
         blank.value = '';
-        blank.textContent = '-- 新建配置 --';
+        blank.textContent = I18n.t('-- 新建配置 --');
         select.appendChild(blank);
         for (const p of presets) {
             const option = document.createElement('option');
@@ -781,7 +781,7 @@ Object.assign(App, {
     },
 
     async saveAPIPreset() {
-        const name = await Modal.prompt('保存API预设', '请输入预设名称：');
+        const name = await Modal.prompt(I18n.t('保存API预设'), I18n.t('请输入预设名称：'));
         if (!name || name.trim() === '') {
             return;
         }
@@ -792,7 +792,7 @@ Object.assign(App, {
         // 检查是否已存在同名预设
         const existingIndex = presets.findIndex(p => p.name === name.trim());
         if (existingIndex >= 0) {
-            const confirmed = await Modal.confirm('覆盖预设', `预设“${this._escSave(name.trim())}”已存在，是否覆盖？`);
+            const confirmed = await Modal.confirm(I18n.t('覆盖预设'), I18n.t('预设“{name}”已存在，是否覆盖？', { name: this._escSave(name.trim()) }));
             if (!confirmed) return;
             presets[existingIndex].config = config;
         } else {
@@ -804,11 +804,11 @@ Object.assign(App, {
         }
 
         if (!Storage.saveAPIPresets(presets)) {
-            Toast.show('预设没有保存成功，请清理浏览器存储空间后重试。', 'error', 6000);
+            Toast.show(I18n.t('预设没有保存成功，请清理浏览器存储空间后重试。'), 'error', 6000);
             return;
         }
         this.loadAPIPresetList();
-        Toast.show('API预设已保存', 'success');
+        Toast.show(I18n.t('API预设已保存'), 'success');
     },
 
     async deleteAPIPreset() {
@@ -817,20 +817,20 @@ Object.assign(App, {
         let presets = Storage.getAPIPresets() || [];
         const target = presets.find(p => p.id === presetId);
         if (!target) return;
-        const confirmed = await Modal.confirm('删除配置', `确定删除配置“${this._escSave(target.name)}”吗？`, { danger: true, confirmLabel: '删除' });
+        const confirmed = await Modal.confirm(I18n.t('删除配置'), I18n.t('确定删除配置“{name}”吗？', { name: this._escSave(target.name) }), { danger: true, confirmLabel: I18n.t('删除') });
         if (!confirmed) return;
         const index = presets.indexOf(target);
         presets = presets.filter(p => p.id !== presetId);
         if (!Storage.saveAPIPresets(presets)) {
-            Toast.show('预设没有删除成功，请清理浏览器存储空间后重试。', 'error', 6000);
+            Toast.show(I18n.t('预设没有删除成功，请清理浏览器存储空间后重试。'), 'error', 6000);
             return;
         }
         this.loadAPIPresetList();
-        Toast.undo('已删除配置。', () => {
+        Toast.undo(I18n.t('已删除配置。'), () => {
             const cur = Storage.getAPIPresets() || [];
             cur.splice(Math.min(index, cur.length), 0, target);
             if (!Storage.saveAPIPresets(cur)) {
-                Toast.show('撤销失败，请清理浏览器存储空间后重试。', 'error', 6000);
+                Toast.show(I18n.t('撤销失败，请清理浏览器存储空间后重试。'), 'error', 6000);
                 return;
             }
             this.loadAPIPresetList();
@@ -845,7 +845,7 @@ Object.assign(App, {
             return;
         }
 
-        Toast.show('正在读取模型列表...', 'info');
+        Toast.show(I18n.t('正在读取模型列表...'), 'info');
         this._commitAPIForm();
         try {
             const models = await APIConnection.fetchModels();
@@ -854,7 +854,7 @@ Object.assign(App, {
                 select.innerHTML = '';
                 const placeholder = document.createElement('option');
                 placeholder.value = '';
-                placeholder.textContent = '-- 选择模型 --';
+                placeholder.textContent = I18n.t('-- 选择模型 --');
                 select.appendChild(placeholder);
                 for (const m of models) {
                     const option = document.createElement('option');
@@ -864,10 +864,10 @@ Object.assign(App, {
                     select.appendChild(option);
                 }
             }
-            Toast.show(`找到 ${models.length} 个模型，请选择一个。`, 'success');
+            Toast.show(I18n.t('找到 {n} 个模型，请选择一个。', { n: models.length }), 'success');
         } catch (error) {
             // 读取失败：保留当前选项和常用模型，玩家仍然可以手动选或手动填写
-            Toast.show('读取模型失败：' + error.message, 'error', 8000);
+            Toast.show(I18n.t('读取模型失败：{msg}', { msg: error.message }), 'error', 8000);
         }
     },
 
@@ -886,32 +886,32 @@ Object.assign(App, {
             return;
         }
 
-        setStatus('测试中...', 'var(--color-text-secondary)');
+        setStatus(I18n.t('测试中...'), 'var(--color-text-secondary)');
         this._commitAPIForm();
 
         const result = await APIConnection.testConnection();
         if (result.success) {
-            setStatus('连接成功', 'var(--color-success)');
+            setStatus(I18n.t('连接成功'), 'var(--color-success)');
         } else {
-            setStatus('连接失败：' + result.error, 'var(--color-danger)');
+            setStatus(I18n.t('连接失败：{msg}', { msg: result.error }), 'var(--color-danger)');
         }
     },
 
     /** 用户看到的：空消息时展示为「场外」自动推进 */
     get AUTO_ADVANCE_TEXT() {
-        return '要求自动推进';
+        return I18n.t('要求自动推进');
     },
     /** 发给 API 的：剧情+场外都空时不再塞指令文案，用中性占位避免 prompt 里一直出现「要求自动推进」 */
     get PROMPT_EMPTY_USER_PLACEHOLDER() {
-        return '(继续)';
+        return I18n.t('(继续)');
     },
 
     /** 场外指导要求：包在 &lt;user_meta&gt; 里，可后续改为设置项 */
     get META_INSTRUCTION() {
-        return '请将以下场外要求自然融入回应，不要生硬复读。';
+        return I18n.t('请将以下场外要求自然融入回应，不要生硬复读。');
     },
     /** prompt 制造机：在每条 &lt;user_meta&gt; 块前插入，说明 user 消息与指令 block 的关系 */
     get META_BLOCK_GUIDANCE() {
-        return '以下若出现 <user_meta> 块，则为该条用户场外指令；紧接的 user 消息为剧情扮演。请按场外要求自然融入回应。';
+        return I18n.t('以下若出现 <user_meta> 块，则为该条用户场外指令；紧接的 user 消息为剧情扮演。请按场外要求自然融入回应。');
     }
 });

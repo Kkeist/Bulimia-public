@@ -55,7 +55,7 @@ const DebugCtl = (() => {
         if (!spec.neg) c = c.replace(/-/g, '');
         if (spec.int) c = c.replace(/\./g, '');
         else { const d = c.indexOf('.'); if (d >= 0) c = c.slice(0, d + 1) + c.slice(d + 1).replace(/\./g, ''); }
-        if (c !== normalize(v)) notify('这个框只能输入数字。');
+        if (c !== normalize(v)) notify(I18n.t('这个框只能输入数字。'));
         if (c !== v) el.value = c;
     };
 
@@ -75,21 +75,21 @@ const DebugCtl = (() => {
 
     const rangeText = (spec) => {
         if (spec.min != null && spec.max != null) return `${spec.min}～${spec.max}`;
-        if (spec.min != null) return `最小 ${spec.min}`;
-        if (spec.max != null) return `最大 ${spec.max}`;
+        if (spec.min != null) return I18n.t('最小 {n}', { n: spec.min });
+        if (spec.max != null) return I18n.t('最大 {n}', { n: spec.max });
         return '';
     };
 
     /** 数字框的失败提示语：原因 + 结果 */
     const numMessage = (label, r, spec, prevText, finalN) => {
-        const pre = label ? label + '：' : '';
-        const back = prevText === '' || prevText == null ? '已恢复原值。' : `已恢复为 ${prevText}。`;
+        const pre = label ? label + I18n.t('：') : '';
+        const back = prevText === '' || prevText == null ? I18n.t('已恢复原值。') : I18n.t('已恢复为 {v}。', { v: prevText });
         if (!r.ok) {
-            if (r.reason === 'empty') return `${pre}数值不能为空，${back}`;
-            if (r.reason === 'huge') return `${pre}数值过大，${back}`;
-            return `${pre}不是有效数字，${back}`;
+            if (r.reason === 'empty') return pre + I18n.t('数值不能为空，{back}', { back });
+            if (r.reason === 'huge') return pre + I18n.t('数值过大，{back}', { back });
+            return pre + I18n.t('不是有效数字，{back}', { back });
         }
-        if (r.clamped) return `${pre}超出范围，已改为 ${finalN}（${rangeText(spec)}）。`;
+        if (r.clamped) return pre + I18n.t('超出范围，已改为 {n}（{range}）。', { n: finalN, range: rangeText(spec) });
         return '';
     };
 
@@ -108,7 +108,7 @@ const DebugCtl = (() => {
             const spec = numSpec(el);
             if (!/^[\d.\-]$/.test(ch) || !partialOk(normalize(resultOf(el, ch)), spec)) {
                 e.preventDefault();
-                notify('这个框只能输入数字。');
+                notify(I18n.t('这个框只能输入数字。'));
             }
         });
         root.addEventListener('beforeinput', (e) => {
@@ -120,7 +120,7 @@ const DebugCtl = (() => {
             if (data == null) return;
             if (!partialOk(normalize(resultOf(el, data)), numSpec(el))) {
                 e.preventDefault();
-                notify('这个框只能输入数字。');
+                notify(I18n.t('这个框只能输入数字。'));
             }
         });
         root.addEventListener('paste', (e) => {
@@ -129,7 +129,7 @@ const DebugCtl = (() => {
             const txt = cd ? cd.getData('text') : '';
             if (txt && !partialOk(normalize(resultOf(el, txt)), numSpec(el))) {
                 e.preventDefault();
-                notify('粘贴的内容不是数字。');
+                notify(I18n.t('粘贴的内容不是数字。'));
             }
         });
         root.addEventListener('drop', (e) => {
@@ -137,7 +137,7 @@ const DebugCtl = (() => {
             const txt = e.dataTransfer ? e.dataTransfer.getData('text') : '';
             if (txt && !partialOk(normalize(resultOf(el, txt)), numSpec(el))) {
                 e.preventDefault();
-                notify('拖入的内容不是数字。');
+                notify(I18n.t('拖入的内容不是数字。'));
             }
         });
         root.addEventListener('input', (e) => {
@@ -168,13 +168,13 @@ const DebugCtl = (() => {
         // opts: { key, value, options:[{value,label}], placeholder, emptyLabel }
         const list = opts.options || [];
         const cur = list.filter((o) => String(o.value) === String(opts.value))[0];
-        const label = cur ? cur.label : (opts.emptyLabel || '请选择');
+        const label = cur ? cur.label : (opts.emptyLabel || I18n.t('请选择'));
         return `<div class="cx-pick" data-pick="${esc(opts.key || '')}" data-value="${esc(opts.value == null ? '' : opts.value)}">` +
             `<button type="button" class="cx-pick-btn${cur ? '' : ' cx-pick-none'}" aria-haspopup="listbox" aria-expanded="false"><span class="cx-pick-label">${esc(label)}</span><span class="cx-caret" aria-hidden="true"></span></button>` +
-            `<div class="cx-pick-pop" hidden><input type="text" class="cx-in cx-pick-q" placeholder="搜索" aria-label="搜索选项">` +
+            `<div class="cx-pick-pop" hidden><input type="text" class="cx-in cx-pick-q" placeholder="${I18n.t('搜索')}" aria-label="${I18n.t('搜索选项')}">` +
             `<div class="cx-pick-list" role="listbox">` +
-            (list.length ? list.map((o) => `<button type="button" role="option" class="cx-pick-opt${String(o.value) === String(opts.value) ? ' on' : ''}" data-v="${esc(o.value)}">${esc(o.label)}</button>`).join('') : '<div class="cx-pick-empty">没有可选项。</div>') +
-            `<div class="cx-pick-empty cx-pick-nomatch" hidden>没有匹配的选项。</div></div></div></div>`;
+            (list.length ? list.map((o) => `<button type="button" role="option" class="cx-pick-opt${String(o.value) === String(opts.value) ? ' on' : ''}" data-v="${esc(o.value)}">${esc(o.label)}</button>`).join('') : `<div class="cx-pick-empty">${I18n.t('没有可选项。')}</div>`) +
+            `<div class="cx-pick-empty cx-pick-nomatch" hidden>${I18n.t('没有匹配的选项。')}</div></div></div></div>`;
     };
 
     const closePicks = (except) => {
@@ -250,7 +250,7 @@ const DebugCtl = (() => {
             undoEl.id = 'cx-undo';
             undoEl.className = 'cx-undo';
             undoEl.setAttribute('role', 'status');
-            undoEl.innerHTML = '<div class="cx-undo-in"><span class="cx-undo-msg"></span><button type="button" class="cx-undo-btn">撤销</button></div>';
+            undoEl.innerHTML = `<div class="cx-undo-in"><span class="cx-undo-msg"></span><button type="button" class="cx-undo-btn">${I18n.t('撤销')}</button></div>`;
             document.body.appendChild(undoEl);
             undoEl.querySelector('.cx-undo-btn').addEventListener('click', () => { const f = undoFn; undoHide(); if (f) f(); });
         }
@@ -295,9 +295,9 @@ window.DebugCtl = DebugCtl;
 
 // ================= 作弊器标签 =================
 Object.assign(DebugModuleJump, {
-    _CHT_TYPE_CN: { number: '数值', string: '文字', boolean: '开关', list: '列表', object: '对象', list_of_object: '对象列表' },
+    _CHT_TYPE_CN: { number: I18n.t('数值'), string: I18n.t('文字'), boolean: I18n.t('开关'), list: I18n.t('列表'), object: I18n.t('对象'), list_of_object: I18n.t('对象列表') },
 
-    _CHT_CHIPS: [['string', '文字'], ['number', '数值'], ['boolean', '是否'], ['list', '列表'], ['object', '对象']],
+    _CHT_CHIPS: [['string', I18n.t('文字')], ['number', I18n.t('数值')], ['boolean', I18n.t('是否')], ['list', I18n.t('列表')], ['object', I18n.t('对象')]],
 
     _cht() {
         if (!this._chtState) this._chtState = { collapsed: {}, q: '', promptOpen: false, cache: {}, bound: null, listOpen: {} };
@@ -313,7 +313,7 @@ Object.assign(DebugModuleJump, {
         DebugCtl.closePicks(null);
         const ms = this.moduleSystem;
         if (!ms || !ms.rootModuleId) {
-            box.innerHTML = '<div class="cx"><div class="cx-empty">尚未加载故事。</div></div>';
+            box.innerHTML = `<div class="cx"><div class="cx-empty">${I18n.t('尚未加载故事。')}</div></div>`;
             return;
         }
         const st = this._cht();
@@ -350,10 +350,10 @@ Object.assign(DebugModuleJump, {
     _chtToolbarHtml() {
         const st = this._cht();
         return `<div class="cx-sec cx-tools">` +
-            `<div class="cx-searchwrap"><input type="text" class="cx-in cx-search" placeholder="搜索变量" aria-label="搜索变量" value="${DebugCtl.esc(st.q)}">` +
-            `<button type="button" class="cx-clear" data-act="searchclear" aria-label="清空搜索" hidden>×</button></div>` +
-            `<div class="cx-toolbtns"><button type="button" class="cx-btn is-ghost" data-act="expandall">全部展开</button>` +
-            `<button type="button" class="cx-btn is-ghost" data-act="collapseall">全部折叠</button></div>` +
+            `<div class="cx-searchwrap"><input type="text" class="cx-in cx-search" placeholder="${I18n.t('搜索变量')}" aria-label="${I18n.t('搜索变量')}" value="${DebugCtl.esc(st.q)}">` +
+            `<button type="button" class="cx-clear" data-act="searchclear" aria-label="${I18n.t('清空搜索')}" hidden>×</button></div>` +
+            `<div class="cx-toolbtns"><button type="button" class="cx-btn is-ghost" data-act="expandall">${I18n.t('全部展开')}</button>` +
+            `<button type="button" class="cx-btn is-ghost" data-act="collapseall">${I18n.t('全部折叠')}</button></div>` +
             `<div class="cx-status" aria-live="polite"></div></div>`;
     },
 
@@ -376,11 +376,11 @@ Object.assign(DebugModuleJump, {
         });
         const clear = root.querySelector('.cx-clear'); if (clear) clear.hidden = !kw;
         const status = root.querySelector('.cx-status');
-        if (status) status.textContent = kw ? (shown ? `匹配 ${shown} / ${total} 项` : '没有匹配的变量。') : '';
+        if (status) status.textContent = kw ? (shown ? I18n.t('匹配 {shown} / {total} 项', { shown, total }) : I18n.t('没有匹配的变量。')) : '';
     },
 
     // ---------- 时间 ----------
-    _CHT_TIME: [['year', '年'], ['month', '月'], ['day', '日'], ['hour', '时'], ['minute', '分']],
+    _CHT_TIME: [['year', I18n.t('年')], ['month', I18n.t('月')], ['day', I18n.t('日')], ['hour', I18n.t('时')], ['minute', I18n.t('分')]],
 
     /** 时间系统里能改的字段：键 → 参数 id */
     _chtTimeParams() {
@@ -410,8 +410,8 @@ Object.assign(DebugModuleJump, {
             return `<label class="cx-tu"><span class="cx-tl">${lab}</span>` +
                 `<input type="text" inputmode="numeric" class="cx-in cx-num cx-time" data-time="${k}" data-int="1" data-min="${b.min}" data-max="${b.max}" data-prev="${t[k]}" data-label="${lab}" value="${t[k]}"></label>`;
         }).join('');
-        return `<div class="cx-sec cx-timesec"><div class="cx-sttl">当前时间</div>` +
-            (boxes ? `<div class="cx-time">${boxes}</div>` : '<div class="cx-muted">当前故事的时间不可修改。</div>') + `</div>`;
+        return `<div class="cx-sec cx-timesec"><div class="cx-sttl">${I18n.t('当前时间')}</div>` +
+            (boxes ? `<div class="cx-time">${boxes}</div>` : `<div class="cx-muted">${I18n.t('当前故事的时间不可修改。')}</div>`) + `</div>`;
     },
 
     /** 把一组时间值写进时间系统；校验范围、重算队列、同步 State */
@@ -449,10 +449,10 @@ Object.assign(DebugModuleJump, {
             try {
                 ts.advanceTime(changes);
                 this._chtAfterWrite();
-                DebugCtl.notify('已更新当前时间。', 'success');
+                DebugCtl.notify(I18n.t('已更新当前时间。'), 'success');
             } catch (err) {
                 console.error(err);
-                DebugCtl.notify('时间没有写入：' + err.message, 'error');
+                DebugCtl.notify(I18n.t('时间没有写入：') + err.message, 'error');
             }
         }
         // 把框刷成最终值，并更新各框范围
@@ -512,7 +512,7 @@ Object.assign(DebugModuleJump, {
         const cat = v.category || '';
         const computed = cat === 'builtin' || v.computed === true || (Array.isArray(v.computeConditions) && v.computeConditions.length > 0);
         return {
-            id, name: v.name || '未命名变量', type: v.type || raw.type || 'string', category: cat,
+            id, name: v.name || I18n.t('未命名变量'), type: v.type || raw.type || 'string', category: cat,
             readonly: v.readonly === true || raw.readonly === true || computed,
             min: n(raw.min != null ? raw.min : v.min), max: n(raw.max != null ? raw.max : v.max),
             integer: raw.integer === true, maxLength: n(raw.maxLength), unit: raw.unit || '',
@@ -572,7 +572,7 @@ Object.assign(DebugModuleJump, {
             const collapsed = !!st.collapsed[key];
             return `<section class="cx-group" data-g="${e(key)}" data-collapsed="${collapsed ? '1' : '0'}">` +
                 `<button type="button" class="cx-gh" data-act="gtoggle" aria-expanded="${collapsed ? 'false' : 'true'}"><span class="cx-caret" aria-hidden="true"></span>` +
-                `<span class="cx-gname">${e(mod ? (mod.name || '未命名模块') : '未命名模块')}</span><span class="cx-count">${total}</span></button>` +
+                `<span class="cx-gname">${e(mod ? (mod.name || I18n.t('未命名模块')) : I18n.t('未命名模块'))}</span><span class="cx-count">${total}</span></button>` +
                 `<div class="cx-gbody">${own.map(({ id, v }) => rowHtml(id, v)).join('')}${kids}</div></section>`;
         };
         let html = walk(ms.rootModuleId, 0);
@@ -583,17 +583,17 @@ Object.assign(DebugModuleJump, {
             const key = 'g|__rest';
             const collapsed = !!st.collapsed[key];
             html += `<section class="cx-group" data-g="${key}" data-collapsed="${collapsed ? '1' : '0'}">` +
-                `<button type="button" class="cx-gh" data-act="gtoggle" aria-expanded="${collapsed ? 'false' : 'true'}"><span class="cx-caret" aria-hidden="true"></span><span class="cx-gname">其他变量</span><span class="cx-count">${rest.length}</span></button>` +
+                `<button type="button" class="cx-gh" data-act="gtoggle" aria-expanded="${collapsed ? 'false' : 'true'}"><span class="cx-caret" aria-hidden="true"></span><span class="cx-gname">${I18n.t('其他变量')}</span><span class="cx-count">${rest.length}</span></button>` +
                 `<div class="cx-gbody">${rest.map(({ id, v }) => rowHtml(id, v)).join('')}</div></section>`;
         }
-        return `<div class="cx-sec cx-varsec"><div class="cx-sttl">当前变量</div>` +
-            `<div class="cx-vars">${html || '<div class="cx-muted">当前没有变量。</div>'}</div></div>`;
+        return `<div class="cx-sec cx-varsec"><div class="cx-sttl">${I18n.t('当前变量')}</div>` +
+            `<div class="cx-vars">${html || `<div class="cx-muted">${I18n.t('当前没有变量。')}</div>`}</div></div>`;
     },
 
     _chtFmtRO(val) {
         if (val === undefined || val === null || val === '') return '—';
         if (typeof val === 'object') return JSON.stringify(val);
-        if (typeof val === 'boolean') return val ? '是' : '否';
+        if (typeof val === 'boolean') return val ? I18n.t('是') : I18n.t('否');
         return String(val);
     },
 
@@ -606,16 +606,16 @@ Object.assign(DebugModuleJump, {
         const ownerMod = this.moduleSystem.getModule(v.ownerModuleId);
         const typeCN = this._CHT_TYPE_CN[def.type] || def.type;
         const keys = [def.name, typeCN, ownerMod ? ownerMod.name : ''].join(' ').toLowerCase();
-        const head = `<div class="cx-rhead"><span class="cx-vn">${e(def.name)}</span><span class="cx-vt">${e(typeCN)}</span>${def.readonly ? '<span class="cx-ro">只读</span>' : ''}</div>`;
+        const head = `<div class="cx-rhead"><span class="cx-vn">${e(def.name)}</span><span class="cx-vt">${e(typeCN)}</span>${def.readonly ? `<span class="cx-ro">${I18n.t('只读')}</span>` : ''}</div>`;
         const body = def.readonly ? `<div class="cx-rovalue">${e(this._chtFmtRO(val))}</div>` : this._chtEditor(def, val, [id], def.name);
         const parts = [];
-        if (!def.readonly && v.changeRules && v.changeRules.length) parts.push('可用规则：' + v.changeRules.map((r) => r.name).filter(Boolean).join('、'));
+        if (!def.readonly && v.changeRules && v.changeRules.length) parts.push(I18n.t('可用规则：') + v.changeRules.map((r) => r.name).filter(Boolean).join(I18n.t('、')));
         if (v.computeConditions && v.computeConditions.length) {
-            const d = v.computeConditions.map((c) => { const t = c.conditionDef ? this._describeDef(c.conditionDef) : ''; return t ? `${t} → ${c.formula || ''}` : (c.formula || ''); }).filter(Boolean).join('；');
-            if (d && !def.readonly) parts.push('自动计算：' + d);
+            const d = v.computeConditions.map((c) => { const t = c.conditionDef ? this._describeDef(c.conditionDef) : ''; return t ? `${t} → ${c.formula || ''}` : (c.formula || ''); }).filter(Boolean).join(I18n.t('；'));
+            if (d && !def.readonly) parts.push(I18n.t('自动计算：') + d);
         }
-        if (v.switchConditions && v.switchConditions.length) parts.push('可见性条件：' + this._describeSwitchConds(v.switchConditions));
-        const meta = parts.length ? `<div class="cx-meta">${e(parts.join('｜'))}</div>` : '';
+        if (v.switchConditions && v.switchConditions.length) parts.push(I18n.t('可见性条件：') + this._describeSwitchConds(v.switchConditions));
+        const meta = parts.length ? `<div class="cx-meta">${e(parts.join(I18n.t('｜')))}</div>` : '';
         return `<div class="cx-row" data-vid="${e(id)}" data-k="${e(keys)}">${head}<div class="cx-rbody">${body}</div>${meta}</div>`;
     },
 
@@ -638,8 +638,8 @@ Object.assign(DebugModuleJump, {
         if (t === 'boolean') {
             const on = val === true || val === 'true' || val === 1;
             return `<div class="cx-seg" role="radiogroup" aria-label="${lab}">` +
-                `<button type="button" role="radio" aria-checked="${on}" class="cx-segb${on ? ' on' : ''}" data-act="boolset" data-p="${p}" data-bool="1">是</button>` +
-                `<button type="button" role="radio" aria-checked="${!on}" class="cx-segb${on ? '' : ' on'}" data-act="boolset" data-p="${p}" data-bool="0">否</button></div>`;
+                `<button type="button" role="radio" aria-checked="${on}" class="cx-segb${on ? ' on' : ''}" data-act="boolset" data-p="${p}" data-bool="1">${I18n.t('是')}</button>` +
+                `<button type="button" role="radio" aria-checked="${!on}" class="cx-segb${on ? '' : ' on'}" data-act="boolset" data-p="${p}" data-bool="0">${I18n.t('否')}</button></div>`;
         }
         if (t === 'list' || t === 'list_of_object') return this._chtListEditor(spec, val, path, label);
         if (t === 'object') return this._chtObjectEditor(spec, val, path, label);
@@ -662,15 +662,15 @@ Object.assign(DebugModuleJump, {
             const ispec = { type: itype, fields: spec.fields, min: spec.min, max: spec.max, integer: spec.integer, elementType: null };
             const ipath = path.concat([i]);
             return `<div class="cx-li"><span class="cx-idx">${i + 1}</span><div class="cx-lival">${this._chtEditor(ispec, item, ipath, `${label || ''} ${i + 1}`)}</div>` +
-                `<button type="button" class="cx-btn cx-del" data-act="ldel" data-p="${e(JSON.stringify(ipath))}">删除</button></div>`;
+                `<button type="button" class="cx-btn cx-del" data-act="ldel" data-p="${e(JSON.stringify(ipath))}">${I18n.t('删除')}</button></div>`;
         }).join('');
-        const more = open ? '' : `<button type="button" class="cx-btn is-ghost cx-more" data-act="lmore" data-p="${p}">显示其余 ${list.length - this._CHT_LIST_SHOW} 项</button>`;
+        const more = open ? '' : `<button type="button" class="cx-btn is-ghost cx-more" data-act="lmore" data-p="${p}">${I18n.t('显示其余 {n} 项', { n: list.length - this._CHT_LIST_SHOW })}</button>`;
         let add;
-        if (known) add = `<button type="button" class="cx-btn cx-add" data-act="ladd" data-p="${p}" data-et="${e(et)}">添加一项</button>`;
-        else add = `<div class="cx-addrow" data-p="${p}"><div class="cx-chips" role="radiogroup" aria-label="新增项类型">` +
+        if (known) add = `<button type="button" class="cx-btn cx-add" data-act="ladd" data-p="${p}" data-et="${e(et)}">${I18n.t('添加一项')}</button>`;
+        else add = `<div class="cx-addrow" data-p="${p}"><div class="cx-chips" role="radiogroup" aria-label="${I18n.t('新增项类型')}">` +
             this._CHT_CHIPS.filter((c) => c[0] !== 'list').map((c, i) => `<button type="button" role="radio" aria-checked="${i === 0}" class="cx-chip${i === 0 ? ' on' : ''}" data-act="chip" data-t="${c[0]}">${c[1]}</button>`).join('') +
-            `</div><button type="button" class="cx-btn cx-add" data-act="ladd" data-p="${p}">添加一项</button></div>`;
-        return `<div class="cx-list">${items || '<div class="cx-muted cx-emptyline">空</div>'}${more}${add}</div>`;
+            `</div><button type="button" class="cx-btn cx-add" data-act="ladd" data-p="${p}">${I18n.t('添加一项')}</button></div>`;
+        return `<div class="cx-list">${items || `<div class="cx-muted cx-emptyline">${I18n.t('空')}</div>`}${more}${add}</div>`;
     },
 
     _chtObjectEditor(spec, val, path, label) {
@@ -690,14 +690,14 @@ Object.assign(DebugModuleJump, {
             if (known.has(k)) return;
             const itype = this._chtInfer(obj[k]);
             rows += `<div class="cx-kv"><span class="cx-k">${e(k)}</span><div class="cx-kvv">${this._chtEditor({ type: itype }, obj[k], path.concat([k]), k)}</div>` +
-                `<button type="button" class="cx-btn cx-del" data-act="odel" data-p="${e(JSON.stringify(path.concat([k])))}">删除</button></div>`;
+                `<button type="button" class="cx-btn cx-del" data-act="odel" data-p="${e(JSON.stringify(path.concat([k])))}">${I18n.t('删除')}</button></div>`;
         });
         const add = fields ? '' : `<div class="cx-addrow cx-addfield" data-p="${p}">` +
-            `<input type="text" class="cx-in cx-newkey" placeholder="字段名" aria-label="新字段名">` +
-            `<div class="cx-chips" role="radiogroup" aria-label="新字段类型">` +
+            `<input type="text" class="cx-in cx-newkey" placeholder="${I18n.t('字段名')}" aria-label="${I18n.t('新字段名')}">` +
+            `<div class="cx-chips" role="radiogroup" aria-label="${I18n.t('新字段类型')}">` +
             this._CHT_CHIPS.map((c, i) => `<button type="button" role="radio" aria-checked="${i === 0}" class="cx-chip${i === 0 ? ' on' : ''}" data-act="chip" data-t="${c[0]}">${c[1]}</button>`).join('') +
-            `</div><button type="button" class="cx-btn cx-add" data-act="oadd" data-p="${p}">添加字段</button></div>`;
-        return `<div class="cx-obj">${rows || (fields ? '' : '<div class="cx-muted cx-emptyline">空</div>')}${add}</div>`;
+            `</div><button type="button" class="cx-btn cx-add" data-act="oadd" data-p="${p}">${I18n.t('添加字段')}</button></div>`;
+        return `<div class="cx-obj">${rows || (fields ? '' : `<div class="cx-muted cx-emptyline">${I18n.t('空')}</div>`)}${add}</div>`;
     },
 
     // ---------- 事件 ----------
@@ -782,7 +782,7 @@ Object.assign(DebugModuleJump, {
     _chtWritePath(path, value, opts) {
         const vs = this.variableSystem; const id = path[0];
         const v = vs.getVariable(id);
-        if (!v) { DebugCtl.notify('这个变量已不存在。', 'error'); return false; }
+        if (!v) { DebugCtl.notify(I18n.t('这个变量已不存在。'), 'error'); return false; }
         let next;
         if (path.length === 1) next = value;
         else {
@@ -804,26 +804,26 @@ Object.assign(DebugModuleJump, {
 
     _chtCommit(id, next) {
         const vs = this.variableSystem; const v = vs.getVariable(id);
-        const name = v.name || '变量';
-        if (v.readonly || v.category === 'builtin') { DebugCtl.notify(`「${name}」是只读变量，没有写入。`, 'error'); this._chtInvalidateRow(id); return false; }
+        const name = v.name || I18n.t('变量');
+        if (v.readonly || v.category === 'builtin') { DebugCtl.notify(I18n.t('「{name}」是只读变量，没有写入。', { name }), 'error'); this._chtInvalidateRow(id); return false; }
         if (typeof v.validateValue === 'function' && !v.validateValue(next)) {
-            DebugCtl.notify(`「${name}」是${this._CHT_TYPE_CN[v.type] || v.type}类型，这个值的类型不符，没有写入。`, 'error');
+            DebugCtl.notify(I18n.t('「{name}」是{type}类型，这个值的类型不符，没有写入。', { name, type: this._CHT_TYPE_CN[v.type] || v.type }), 'error');
             this._chtInvalidateRow(id);
             return false;
         }
         let ok;
         vs.lastError = null; vs.lastAdjust = null;
         try { ok = vs.executeOperation(id, 'set', { value: next }); }
-        catch (err) { console.error(err); DebugCtl.notify(`「${name}」写入出错：${err.message}`, 'error'); this._chtInvalidateRow(id); return false; }
+        catch (err) { console.error(err); DebugCtl.notify(I18n.t('「{name}」写入出错：{msg}', { name, msg: err.message }), 'error'); this._chtInvalidateRow(id); return false; }
         if (ok === false) {
-            DebugCtl.notify(vs.lastError ? `「${name}」没有写入：${vs.lastError}` : `「${name}」没有写入，已保留原值。`, 'error');
+            DebugCtl.notify(vs.lastError ? I18n.t('「{name}」没有写入：{msg}', { name, msg: vs.lastError }) : I18n.t('「{name}」没有写入，已保留原值。', { name }), 'error');
             this._chtInvalidateRow(id);
             return false;
         }
         if (vs.lastAdjust) DebugCtl.notify(String(vs.lastAdjust), 'error');
         try { this._chtAfterWrite(); }
-        catch (err) { console.error(err); DebugCtl.notify('写入后刷新出错：' + err.message, 'error'); return false; }
-        DebugCtl.notify(`已更新「${name}」。`, 'success');
+        catch (err) { console.error(err); DebugCtl.notify(I18n.t('写入后刷新出错：') + err.message, 'error'); return false; }
+        DebugCtl.notify(I18n.t('已更新「{name}」。', { name }), 'success');
         return true;
     },
 
@@ -884,7 +884,7 @@ Object.assign(DebugModuleJump, {
         const base = DebugCtl.clone(cur == null ? this._chtDefault('list') : cur);
         let node = base;
         for (let i = 1; i < path.length; i++) node = node[path[i]];
-        if (!Array.isArray(node)) { DebugCtl.notify('这个位置不是列表，没有添加。', 'error'); return; }
+        if (!Array.isArray(node)) { DebugCtl.notify(I18n.t('这个位置不是列表，没有添加。'), 'error'); return; }
         node.push(item);
         this._cht().listOpen[JSON.stringify(path)] = true;
         this._chtCommit(path[0], base);
@@ -907,7 +907,7 @@ Object.assign(DebugModuleJump, {
         const path = JSON.parse(btn.getAttribute('data-p'));
         const keyEl = row.querySelector('.cx-newkey');
         const key = keyEl ? keyEl.value.trim() : '';
-        if (!key) { DebugCtl.notify('请先填写字段名。', 'error'); if (keyEl) keyEl.focus(); return; }
+        if (!key) { DebugCtl.notify(I18n.t('请先填写字段名。'), 'error'); if (keyEl) keyEl.focus(); return; }
         const chip = row.querySelector('.cx-chip.on');
         const type = chip ? chip.getAttribute('data-t') : 'string';
         const vs = this.variableSystem;
@@ -915,8 +915,8 @@ Object.assign(DebugModuleJump, {
         const base = DebugCtl.clone(cur == null ? this._chtDefault('object') : cur);
         let node = base;
         for (let i = 1; i < path.length; i++) node = node[path[i]];
-        if (!node || typeof node !== 'object' || Array.isArray(node)) { DebugCtl.notify('这个位置不是对象，没有添加。', 'error'); return; }
-        if (Object.prototype.hasOwnProperty.call(node, key)) { DebugCtl.notify(`已有名为「${key}」的字段。`, 'error'); return; }
+        if (!node || typeof node !== 'object' || Array.isArray(node)) { DebugCtl.notify(I18n.t('这个位置不是对象，没有添加。'), 'error'); return; }
+        if (Object.prototype.hasOwnProperty.call(node, key)) { DebugCtl.notify(I18n.t('已有名为「{key}」的字段。', { key }), 'error'); return; }
         node[key] = this._chtDefault(type);
         this._chtCommit(path[0], base);
     },
@@ -928,29 +928,29 @@ Object.assign(DebugModuleJump, {
         const before = DebugCtl.clone(vs.getValue(id));
         const ok = this._chtWritePath(path, null, kind === 'list' ? { splice: true } : { remove: true });
         if (!ok) return;
-        DebugCtl.undo.show(`已删除${kind === 'list' ? '一项' : '一个字段'}。`, () => { this._chtCommit(id, before); });
+        DebugCtl.undo.show((kind === 'list' ? I18n.t('已删除一项。') : I18n.t('已删除一个字段。')), () => { this._chtCommit(id, before); });
     },
 
     // ---------- 提示词 ----------
     _chtPromptText() {
         // 与真实发送同一份组装（读取游戏状态，调试页的改动已写回状态）
         try { return DebugViewer.buildFullPrompt(App.wireWithSources(App.buildNextPromptPreview())); }
-        catch (err) { console.error(err); return '提示词生成失败：' + err.message; }
+        catch (err) { console.error(err); return I18n.t('提示词生成失败：') + err.message; }
     },
 
     _promptHtml() {
         const open = this._cht().promptOpen;
         const text = this._chtPromptText();
         return `<div class="cx-sec cx-promptsec" data-open="${open ? '1' : '0'}">` +
-            `<div class="cx-sttl cx-sttl-row"><button type="button" class="cx-gh cx-ph" data-act="ptoggle" aria-expanded="${open ? 'true' : 'false'}"><span class="cx-caret" aria-hidden="true"></span><span class="cx-gname">当前提示词</span></button>` +
-            `<button type="button" class="cx-btn" data-act="openprompt">打开提示词查看器</button></div>` +
-            `<pre class="cx-pre">${DebugCtl.esc(text || '（无内容）')}</pre></div>`;
+            `<div class="cx-sttl cx-sttl-row"><button type="button" class="cx-gh cx-ph" data-act="ptoggle" aria-expanded="${open ? 'true' : 'false'}"><span class="cx-caret" aria-hidden="true"></span><span class="cx-gname">${I18n.t('当前提示词')}</span></button>` +
+            `<button type="button" class="cx-btn" data-act="openprompt">${I18n.t('打开提示词查看器')}</button></div>` +
+            `<pre class="cx-pre">${DebugCtl.esc(text || I18n.t('（无内容）'))}</pre></div>`;
     },
 
     _chtRefreshPrompt() {
         const box = this._cht().bound; if (!box) return;
         const pre = box.querySelector('.cx-promptsec .cx-pre'); if (!pre) return;
-        pre.textContent = this._chtPromptText() || '（无内容）';
+        pre.textContent = this._chtPromptText() || I18n.t('（无内容）');
     },
 
     // ---------- 描述（作弊器行与插件测试标签共用） ----------
@@ -964,20 +964,20 @@ Object.assign(DebugModuleJump, {
                 const c = it.condition;
                 if (!c || c.type !== 'variable' || !c.variableId) return '';
                 const v = vs && vs.getVariable ? vs.getVariable(c.variableId) : null;
-                const vName = (v && v.name) ? v.name : '变量';
+                const vName = (v && v.name) ? v.name : I18n.t('变量');
                 return `${vName} ${this._opSym(c.operator)} ${c.value}`;
             }).filter(Boolean);
-            const join = (g.logic === 'OR') ? ' 或 ' : ' 且 ';
+            const join = (g.logic === 'OR') ? I18n.t(' 或 ') : I18n.t(' 且 ');
             return items.length > 1 ? `(${items.join(join)})` : items.join(join);
         };
-        return def.groups.map(walkGroup).filter(Boolean).join(def.logic === 'OR' ? ' 或 ' : ' 且 ');
+        return def.groups.map(walkGroup).filter(Boolean).join(def.logic === 'OR' ? I18n.t(' 或 ') : I18n.t(' 且 '));
     },
 
     _describeSwitchConds(sw) {
         return sw.map((s) => {
             const d = s.conditionDef ? this._describeDef(s.conditionDef) : '';
-            const tag = s.type === 'display' ? '展示' : (s.type === 'trigger' ? '生效' : (s.type || ''));
-            return d ? `${tag ? tag + '时' : ''}${d}` : '';
-        }).filter(Boolean).join('；');
+            const tag = s.type === 'display' ? I18n.t('展示') : (s.type === 'trigger' ? I18n.t('生效') : (s.type || ''));
+            return d ? `${tag ? I18n.t('{tag}时', { tag }) : ''}${d}` : '';
+        }).filter(Boolean).join(I18n.t('；'));
     }
 });

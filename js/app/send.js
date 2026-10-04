@@ -13,10 +13,10 @@ Object.assign(App, {
     _formatUserDisplayContent(roleplay, meta, allowEmptyAdvance = true) {
         const r = (roleplay != null && String(roleplay).trim()) ? String(roleplay).trim() : '';
         const m = (meta != null && String(meta).trim()) ? String(meta).trim() : '';
-        if (!r && !m) return allowEmptyAdvance ? '【场外】自动推进' : null;
+        if (!r && !m) return allowEmptyAdvance ? I18n.t('【场外】自动推进') : null;
         if (r && !m) return r;
-        if (!r && m) return '【场外】有事';
-        return r + '\n【场外】有事';
+        if (!r && m) return I18n.t('【场外】有事');
+        return r + '\n' + I18n.t('【场外】有事');
     },
 
     /**
@@ -26,8 +26,8 @@ Object.assign(App, {
      */
     _parseRoleplayMeta(raw) {
         const s = (raw != null && String(raw).trim()) ? String(raw).trim() : '';
-        const metaLabel = '【场外指令】';
-        const roleplayLabel = '【剧情】';
+        const metaLabel = (s.includes(I18n.t('【场外指令】')) ? I18n.t('【场外指令】') : '【场外指令】');
+        const roleplayLabel = (s.includes(I18n.t('【剧情】')) ? I18n.t('【剧情】') : '【剧情】');
         const idxMeta = s.indexOf(metaLabel);
         const idxRole = s.indexOf(roleplayLabel);
         if (idxMeta >= 0 && idxRole >= 0) {
@@ -54,10 +54,10 @@ Object.assign(App, {
     _formatUserContent(roleplay, meta, allowEmptyAdvance = true) {
         const r = (roleplay != null && String(roleplay).trim()) ? String(roleplay).trim() : '';
         const m = (meta != null && String(meta).trim()) ? String(meta).trim() : '';
-        if (!r && !m) return allowEmptyAdvance ? `【场外指令】\n${this.AUTO_ADVANCE_TEXT}` : null;
+        if (!r && !m) return allowEmptyAdvance ? `${I18n.t('【场外指令】')}\n${this.AUTO_ADVANCE_TEXT}` : null;
         if (r && !m) return r;
-        if (!r && m) return `【场外指令】\n${m}`;
-        return `【剧情】\n${r}\n\n【场外指令】\n${m}`;
+        if (!r && m) return `${I18n.t('【场外指令】')}\n${m}`;
+        return `${I18n.t('【剧情】')}\n${r}\n\n${I18n.t('【场外指令】')}\n${m}`;
     },
 
     // ===== 发送消息（从 game/ 迁移）=====
@@ -115,12 +115,12 @@ Object.assign(App, {
         }
         box.style.display = 'block';
         const html = arr.map((a, i) =>
-            `<div class="pending-action-item"><span class="pending-action-name">${(a.pluginName||a.pluginId||'').replace(/</g,'&lt;')}：</span>` +
+            `<div class="pending-action-item"><span class="pending-action-name">${(a.pluginName||a.pluginId||'').replace(/</g,'&lt;')}${I18n.t('：')}</span>` +
             `<span class="pending-action-desc">${(a.actionDesc||a.type||'').replace(/</g,'&lt;')}</span>` +
-            `<button type="button" class="pending-action-remove" data-idx="${i}" title="删除这条">×</button></div>`
+            `<button type="button" class="pending-action-remove" data-idx="${i}" title="${I18n.t('删除这条')}">×</button></div>`
         ).join('');
         box.innerHTML =
-            `<div class="pending-actions-header">暂存操作 (${arr.length}) <button type="button" id="pending-actions-clear" class="btn-small">全部清除</button></div>` +
+            `<div class="pending-actions-header">${I18n.t('暂存操作 ({n})', { n: arr.length })} <button type="button" id="pending-actions-clear" class="btn-small">${I18n.t('全部清除')}</button></div>` +
             `<div class="pending-actions-list">${html}</div>`;
         box.querySelectorAll('.pending-action-remove').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -144,7 +144,7 @@ Object.assign(App, {
 
         // 生成中禁止发送（必须先停止）
         if (this.isGenerating) {
-            Toast.show('正在生成中，请先点击“停止”再发送新消息', 'warning');
+            Toast.show(I18n.t('正在生成中，请先点击“停止”再发送新消息'), 'warning');
             return;
         }
 
@@ -205,7 +205,7 @@ Object.assign(App, {
                 injected: true
             });
         }
-        const userContentForPrompt = roleplay || (!meta ? this.PROMPT_EMPTY_USER_PLACEHOLDER : '(仅场外)');
+        const userContentForPrompt = roleplay || (!meta ? this.PROMPT_EMPTY_USER_PLACEHOLDER : I18n.t('(仅场外)'));
         ChatDisplay.addMessage({
             role: 'user',
             content: userContentForPrompt,
@@ -283,7 +283,7 @@ Object.assign(App, {
         if (!this.isGenerating) return;
         this._stopRequested = true;
         if (this.abortController) this.abortController.abort();
-        Toast.show('已停止生成', 'info');
+        Toast.show(I18n.t('已停止生成'), 'info');
         const seq = this._generationSeq;
         setTimeout(() => {
             if (this.isGenerating && this._generationSeq === seq) {

@@ -14,7 +14,8 @@ const TAG_TYPES = ['var', 'rule', 'time', 'module', 'delivery', 'foreshadow', 'p
 const TAG_TYPE_PATTERN = TAG_TYPES.join('|');
 
 /** 提示词里的格式示例词：AI 照抄它们不算真实操作。 */
-const TAG_PLACEHOLDER_WORDS = new Set(['事件名', '变量名', '规则名', '插件名', '标题', '参数', '数值', '值', '操作', '内容', '描述', '触发条件', '参数ID', '类型']);
+const TAG_PLACEHOLDER_WORDS = new Set(['事件名', '变量名', '规则名', '插件名', '标题', '参数', '数值', '值', '操作', '内容', '描述', '触发条件', '参数ID', '类型',
+    'event name', 'variable name', 'rule name', 'plugin name', 'title', 'param', 'params', 'parameter', 'parameter list', 'value', 'number', 'operation', 'content', 'description', 'trigger condition', 'param id', 'paramid', 'type']);
 
 /** 数值参数的绝对值上限，超过当作无效输入。 */
 const TAG_NUMBER_LIMIT = 1e12;
@@ -132,7 +133,7 @@ class TagParser {
                 const close = rest.search(/[>＞]/);
                 const nextOpen = rest.search(/[<＜]/);
                 if (close < 0 || (nextOpen >= 0 && nextOpen < close)) {
-                    malformed.push({ raw: line.slice(s.index).trim(), reason: nextOpen >= 0 && close >= 0 ? '标签里又套了一个标签' : '标签没有以「>」结尾' });
+                    malformed.push({ raw: line.slice(s.index).trim(), reason: nextOpen >= 0 && close >= 0 ? I18n.t('标签里又套了一个标签') : I18n.t('标签没有以「>」结尾') });
                 }
             }
             lineStart += line.length + 1;
@@ -171,7 +172,7 @@ class TagParser {
         const seen = new Set();
         for (const tag of tags) {
             if (seen.has(tag.key)) {
-                effects.push({ kind: tag.type, tag: tag.raw, ok: false, ignored: true, summary: tag.raw, reason: '同一条指令在回复里重复出现，只执行了一次' });
+                effects.push({ kind: tag.type, tag: tag.raw, ok: false, ignored: true, summary: tag.raw, reason: I18n.t('同一条指令在回复里重复出现，只执行了一次') });
                 continue;
             }
             seen.add(tag.key);
@@ -179,7 +180,7 @@ class TagParser {
             try {
                 eff = this.applyTag(tag);
             } catch (e) {
-                eff = { kind: tag.type, tag: tag.raw, ok: false, summary: tag.raw, reason: '执行时出错：' + (e && e.message ? e.message : e) };
+                eff = { kind: tag.type, tag: tag.raw, ok: false, summary: tag.raw, reason: I18n.t('执行时出错：{msg}', { msg: (e && e.message ? e.message : e) }) };
             }
             effects.push(eff);
         }
@@ -203,11 +204,11 @@ class TagParser {
         const base = { kind: tag.type, tag: tag.raw };
         const fail = (reason, extra) => ({ ...base, ok: false, summary: tag.raw, reason, ...(extra || {}) });
         const ok = (summary, extra) => ({ ...base, ok: true, summary, ...(extra || {}) });
-        if (tag.args.length && tag.args.every(a => a === '' || TAG_PLACEHOLDER_WORDS.has(a))) {
-            return fail('这是提示词里的格式示例，不是真实操作', { quiet: true });
+        if (tag.args.length && tag.args.every(a => a === '' || TAG_PLACEHOLDER_WORDS.has(a) || TAG_PLACEHOLDER_WORDS.has(String(a).toLowerCase()))) {
+            return fail(I18n.t('这是提示词里的格式示例，不是真实操作'), { quiet: true });
         }
-        if (tag.args.some(a => TAG_PLACEHOLDER_WORDS.has(a) && (tag.type === 'module' || tag.type === 'var' || tag.type === 'rule'))) {
-            return fail('这是提示词里的格式示例，不是真实操作', { quiet: true });
+        if (tag.args.some(a => (TAG_PLACEHOLDER_WORDS.has(a) || TAG_PLACEHOLDER_WORDS.has(String(a).toLowerCase())) && (tag.type === 'module' || tag.type === 'var' || tag.type === 'rule'))) {
+            return fail(I18n.t('这是提示词里的格式示例，不是真实操作'), { quiet: true });
         }
         switch (tag.type) {
             case 'var': return this._doVar(tag, ok, fail);
@@ -218,8 +219,8 @@ class TagParser {
             case 'foreshadow': return this._doForeshadow(tag, ok, fail);
             case 'plugin': return this._doPlugin(tag, ok, fail);
             case 'summary': return this._doSummary(tag, ok, fail);
-            case 'interrupt': return fail('这个指令现在不会生效');
-            default: return fail('不认识的指令类型');
+            case 'interrupt': return fail(I18n.t('这个指令现在不会生效'));
+            default: return fail(I18n.t('不认识的指令类型'));
         }
     }
 
@@ -232,9 +233,9 @@ class TagParser {
     /** 把 AI 写的名字（或 id）对到本回合范围内的变量。 */
     _resolveVariable(nameOrId) {
         const vs = this.variableSystem;
-        if (!vs) return { error: '变量系统没有准备好' };
+        if (!vs) return { error: I18n.t('变量系统没有准备好') };
         const key = String(nameOrId == null ? '' : nameOrId).trim();
-        if (!key) return { error: '没有写变量名' };
+        if (!key) return { error: I18n.t('没有写变量名') };
         const all = Array.from(vs.variables.values());
         const inScope = (v) => !this.scope || this.scope.variableIds.has(v.id);
         const pick = (list) => {
@@ -245,14 +246,14 @@ class TagParser {
             return byId.length === 1 ? byId[0] : null;
         };
         const scoped = pick(all.filter(inScope));
-        if (scoped === 'dup') return { error: '有多个同名变量，无法确定是哪一个' };
+        if (scoped === 'dup') return { error: I18n.t('有多个同名变量，无法确定是哪一个') };
         if (scoped) return { variable: scoped };
         const anyHit = pick(all);
         if (anyHit && anyHit !== 'dup') {
-            if (anyHit.readonly || anyHit.category === 'builtin') return { error: '「' + key + '」由系统计算，不能直接修改' };
-            return { error: '「' + key + '」现在不在可用变量里' };
+            if (anyHit.readonly || anyHit.category === 'builtin') return { error: I18n.t('「{name}」由系统计算，不能直接修改', { name: key }) };
+            return { error: I18n.t('「{name}」现在不在可用变量里', { name: key }) };
         }
-        return { error: '没有叫「' + key + '」的变量' };
+        return { error: I18n.t('没有叫「{name}」的变量', { name: key }) };
     }
 
     _num(raw) {
@@ -263,8 +264,8 @@ class TagParser {
     }
 
     _describeValue(v) {
-        if (v === undefined || v === null || v === '') return '（空）';
-        if (typeof v === 'boolean') return v ? '是' : '否';
+        if (v === undefined || v === null || v === '') return I18n.t('（空）');
+        if (typeof v === 'boolean') return v ? I18n.t('是') : I18n.t('否');
         if (typeof v === 'object') { try { return JSON.stringify(v); } catch (_) { return String(v); } }
         return String(v);
     }
@@ -289,110 +290,110 @@ class TagParser {
         const name = variable.name || variable.id;
         const op = TAG_OP_ALIAS[String(rawOp == null ? '' : rawOp).trim().toLowerCase()] || null;
         const type = this._typeOf(variable);
-        if (!op) return { ok: false, reason: '不认识的操作「' + rawOp + '」' };
-        if (variable.readonly || variable.category === 'builtin') return { ok: false, reason: '「' + name + '」由系统计算，不能直接修改' };
+        if (!op) return { ok: false, reason: I18n.t('不认识的操作「{op}」', { op: rawOp }) };
+        if (variable.readonly || variable.category === 'builtin') return { ok: false, reason: I18n.t('「{name}」由系统计算，不能直接修改', { name }) };
         const before = this._clone(variable.value);
         const value = rawValue == null ? '' : rawValue;
-        const typeLabel = TAG_TYPE_LABEL[type] || type;
+        const typeLabel = TAG_TYPE_LABEL[type] ? I18n.t(TAG_TYPE_LABEL[type]) : type;
         const bad = (why) => ({ ok: false, reason: why });
         const finish = (okResult, text) => {
-            if (!okResult) return bad('「' + name + '」没有改动');
+            if (!okResult) return bad(I18n.t('「{name}」没有改动', { name }));
             return { ok: true, before, after: this._clone(variable.value), text };
         };
 
         if (type === 'number') {
-            if (!['add', 'subtract', 'multiply', 'divide', 'set'].includes(op)) return bad('「' + name + '」是' + typeLabel + '，不支持「' + rawOp + '」');
+            if (!['add', 'subtract', 'multiply', 'divide', 'set'].includes(op)) return bad(I18n.t('「{name}」是{type}，不支持「{op}」', { name, type: typeLabel, op: rawOp }));
             const n = this._num(value);
-            if (isNaN(n)) return bad('「' + name + '」是' + typeLabel + '，「' + value + '」不是数字');
-            if (Math.abs(n) > TAG_NUMBER_LIMIT) return bad('数字「' + value + '」太大了');
-            if (op === 'divide' && n === 0) return bad('不能除以 0');
+            if (isNaN(n)) return bad(I18n.t('「{name}」是{type}，「{value}」不是数字', { name, type: typeLabel, value }));
+            if (Math.abs(n) > TAG_NUMBER_LIMIT) return bad(I18n.t('数字「{value}」太大了', { value }));
+            if (op === 'divide' && n === 0) return bad(I18n.t('不能除以 0'));
             const cur = Number(variable.value) || 0;
             const next = op === 'add' ? cur + n : op === 'subtract' ? cur - n : op === 'multiply' ? cur * n : op === 'divide' ? cur / n : n;
-            if (!isFinite(next) || Math.abs(next) > TAG_NUMBER_LIMIT) return bad('改完之后的数字超出范围');
+            if (!isFinite(next) || Math.abs(next) > TAG_NUMBER_LIMIT) return bad(I18n.t('改完之后的数字超出范围'));
             variable.value = cur;
             const done = vs.executeOperation(variable.id, op === 'set' ? 'set' : op, n);
-            const text = op === 'add' ? '+' + n : op === 'subtract' ? '-' + n : op === 'multiply' ? '×' + n : op === 'divide' ? '÷' + n : '改为 ' + n;
+            const text = op === 'add' ? '+' + n : op === 'subtract' ? '-' + n : op === 'multiply' ? '×' + n : op === 'divide' ? '÷' + n : I18n.t('改为 {v}', { v: n });
             return finish(done, text);
         }
         if (type === 'string') {
-            if (op !== 'set' && op !== 'append') return bad('「' + name + '」是' + typeLabel + '，只能设置或追加');
+            if (op !== 'set' && op !== 'append') return bad(I18n.t('「{name}」是{type}，只能设置或追加', { name, type: typeLabel }));
             const s = String(value);
-            if (s.length > TAG_TEXT_LIMIT) return bad('文字太长了（超过 ' + TAG_TEXT_LIMIT + ' 字）');
+            if (s.length > TAG_TEXT_LIMIT) return bad(I18n.t('文字太长了（超过 {n} 字）', { n: TAG_TEXT_LIMIT }));
             const next = op === 'set' ? s : String(variable.value == null ? '' : variable.value) + s;
-            if (next.length > TAG_TEXT_LIMIT * 20) return bad('追加后文字太长了');
+            if (next.length > TAG_TEXT_LIMIT * 20) return bad(I18n.t('追加后文字太长了'));
             variable.value = variable.clampValue(next).value;
-            return { ok: true, before, after: variable.value, text: op === 'set' ? '改为「' + s + '」' : '追加「' + s + '」' };
+            return { ok: true, before, after: variable.value, text: op === 'set' ? I18n.t('改为「{v}」', { v: s }) : I18n.t('追加「{v}」', { v: s }) };
         }
         if (type === 'boolean') {
-            if (op !== 'set') return bad('「' + name + '」是' + typeLabel + '，只能设置为是或否');
+            if (op !== 'set') return bad(I18n.t('「{name}」是{type}，只能设置为是或否', { name, type: typeLabel }));
             const s = String(value).trim().toLowerCase();
             let b;
             if (['true', '是', '开', '1', 'yes', 'on'].includes(s)) b = true;
             else if (['false', '否', '关', '0', 'no', 'off'].includes(s)) b = false;
-            else return bad('「' + name + '」是' + typeLabel + '，「' + value + '」不是是或否');
+            else return bad(I18n.t('「{name}」是{type}，「{value}」不是是或否', { name, type: typeLabel, value }));
             const done = vs.executeOperation(variable.id, 'set', b);
-            return finish(done, '改为' + (b ? '是' : '否'));
+            return finish(done, I18n.t('改为{v}', { v: b ? I18n.t('是') : I18n.t('否') }));
         }
         if (type === 'list') {
-            if (!['append', 'remove', 'extend', 'set'].includes(op)) return bad('「' + name + '」是' + typeLabel + '，不支持「' + rawOp + '」');
-            if (String(value).length > TAG_TEXT_LIMIT) return bad('内容太长了');
+            if (!['append', 'remove', 'extend', 'set'].includes(op)) return bad(I18n.t('「{name}」是{type}，不支持「{op}」', { name, type: typeLabel, op: rawOp }));
+            if (String(value).length > TAG_TEXT_LIMIT) return bad(I18n.t('内容太长了'));
             let arg = value;
             if (op === 'extend') arg = String(value).split(/[,，]/).map(x => TagParser._stripQuotes(x)).filter(x => x !== '');
             if (op === 'set') {
                 try { arg = JSON.parse(value); } catch (_) { arg = String(value).split(/[,，]/).map(x => TagParser._stripQuotes(x)).filter(x => x !== ''); }
-                if (!Array.isArray(arg)) return bad('「' + name + '」是' + typeLabel + '，需要写成列表');
+                if (!Array.isArray(arg)) return bad(I18n.t('「{name}」是{type}，需要写成列表', { name, type: typeLabel }));
             }
-            if (op === 'remove' && !(variable.value || []).includes(arg)) return bad('「' + name + '」里没有「' + value + '」');
+            if (op === 'remove' && !(variable.value || []).includes(arg)) return bad(I18n.t('「{name}」里没有「{value}」', { name, value }));
             const done = vs.executeOperation(variable.id, op, arg);
-            return finish(done, op === 'append' ? '加入「' + value + '」' : op === 'remove' ? '移除「' + value + '」' : op === 'extend' ? '加入 ' + arg.length + ' 项' : '改为 ' + this._describeValue(arg));
+            return finish(done, op === 'append' ? I18n.t('加入「{v}」', { v: value }) : op === 'remove' ? I18n.t('移除「{v}」', { v: value }) : op === 'extend' ? I18n.t('加入 {n} 项', { n: arg.length }) : I18n.t('改为 {v}', { v: this._describeValue(arg) }));
         }
         if (type === 'list_of_object') {
             if (op === 'add_item') {
                 const item = this._parsePairs(value);
-                if (!Object.keys(item).length) return bad('「' + name + '」要写成 字段=值 的形式');
+                if (!Object.keys(item).length) return bad(I18n.t('「{name}」要写成 字段=值 的形式', { name }));
                 const done = vs.executeOperation(variable.id, 'add_item', item);
-                return finish(done, '新增一项');
+                return finish(done, I18n.t('新增一项'));
             }
             if (op === 'remove_item') {
                 const idx = this._num(value);
-                if (isNaN(idx) || !Number.isInteger(idx)) return bad('序号「' + value + '」不是整数');
-                if (idx < 0 || idx >= (variable.value || []).length) return bad('序号 ' + idx + ' 超出范围');
-                return finish(vs.executeOperation(variable.id, 'remove_item', idx), '移除序号 ' + idx);
+                if (isNaN(idx) || !Number.isInteger(idx)) return bad(I18n.t('序号「{value}」不是整数', { value }));
+                if (idx < 0 || idx >= (variable.value || []).length) return bad(I18n.t('序号 {idx} 超出范围', { idx }));
+                return finish(vs.executeOperation(variable.id, 'remove_item', idx), I18n.t('移除序号 {idx}', { idx }));
             }
             if (op === 'modify_item') {
                 const p = this._parsePairs(value);
-                if (typeof p.index !== 'number' || !p.field || !p.op) return bad('要写成 index=序号,field=字段,op=add或set,value=值');
+                if (typeof p.index !== 'number' || !p.field || !p.op) return bad(I18n.t('要写成 index=序号,field=字段,op=add或set,value=值'));
                 const idx = p.index;
-                if (!Number.isInteger(idx) || idx < 0 || idx >= (variable.value || []).length) return bad('序号 ' + idx + ' 超出范围');
+                if (!Number.isInteger(idx) || idx < 0 || idx >= (variable.value || []).length) return bad(I18n.t('序号 {idx} 超出范围', { idx }));
                 if (p.op === 'add' || p.op === 'subtract') {
-                    if (typeof variable.value[idx][p.field] !== 'number' || typeof p.value !== 'number') return bad('字段「' + p.field + '」不是数字，不能加减');
+                    if (typeof variable.value[idx][p.field] !== 'number' || typeof p.value !== 'number') return bad(I18n.t('字段「{field}」不是数字，不能加减', { field: p.field }));
                 }
-                return finish(vs.executeOperation(variable.id, 'modify_item', { index: idx, field: p.field, op: p.op, value: p.value }), '修改序号 ' + idx);
+                return finish(vs.executeOperation(variable.id, 'modify_item', { index: idx, field: p.field, op: p.op, value: p.value }), I18n.t('修改序号 {idx}', { idx }));
             }
             if (op === 'set') {
                 let arr;
-                try { arr = JSON.parse(value); } catch (_) { return bad('需要写成 JSON 列表'); }
-                if (!Array.isArray(arr) || !arr.every(x => x && typeof x === 'object')) return bad('「' + name + '」是' + typeLabel + '，每一项都要是对象');
-                return finish(vs.executeOperation(variable.id, 'set', arr), '改为 ' + arr.length + ' 项');
+                try { arr = JSON.parse(value); } catch (_) { return bad(I18n.t('需要写成 JSON 列表')); }
+                if (!Array.isArray(arr) || !arr.every(x => x && typeof x === 'object')) return bad(I18n.t('「{name}」是{type}，每一项都要是对象', { name, type: typeLabel }));
+                return finish(vs.executeOperation(variable.id, 'set', arr), I18n.t('改为 {n} 项', { n: arr.length }));
             }
-            return bad('「' + name + '」是' + typeLabel + '，不支持「' + rawOp + '」');
+            return bad(I18n.t('「{name}」是{type}，不支持「{op}」', { name, type: typeLabel, op: rawOp }));
         }
         if (type === 'object') {
             if (op === 'modify_item') {
                 const p = this._parsePairs(value);
-                if (!p.field || !p.op) return bad('要写成 field=字段,op=add或set,value=值');
-                if ((p.op === 'add' || p.op === 'subtract') && (typeof (variable.value || {})[p.field] !== 'number' || typeof p.value !== 'number')) return bad('字段「' + p.field + '」不是数字，不能加减');
-                return finish(vs.executeOperation(variable.id, 'modify_item', { field: p.field, op: p.op, value: p.value }), '修改「' + p.field + '」');
+                if (!p.field || !p.op) return bad(I18n.t('要写成 field=字段,op=add或set,value=值'));
+                if ((p.op === 'add' || p.op === 'subtract') && (typeof (variable.value || {})[p.field] !== 'number' || typeof p.value !== 'number')) return bad(I18n.t('字段「{field}」不是数字，不能加减', { field: p.field }));
+                return finish(vs.executeOperation(variable.id, 'modify_item', { field: p.field, op: p.op, value: p.value }), I18n.t('修改「{field}」', { field: p.field }));
             }
             if (op === 'set') {
                 let obj;
-                try { obj = JSON.parse(value); } catch (_) { return bad('需要写成 JSON 对象'); }
-                if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return bad('「' + name + '」是' + typeLabel + '，需要写成 JSON 对象');
-                return finish(vs.executeOperation(variable.id, 'set', obj), '改为新的对象');
+                try { obj = JSON.parse(value); } catch (_) { return bad(I18n.t('需要写成 JSON 对象')); }
+                if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return bad(I18n.t('「{name}」是{type}，需要写成 JSON 对象', { name, type: typeLabel }));
+                return finish(vs.executeOperation(variable.id, 'set', obj), I18n.t('改为新的对象'));
             }
-            return bad('「' + name + '」是' + typeLabel + '，不支持「' + rawOp + '」');
+            return bad(I18n.t('「{name}」是{type}，不支持「{op}」', { name, type: typeLabel, op: rawOp }));
         }
-        return bad('「' + name + '」的类型不支持这个操作');
+        return bad(I18n.t('「{name}」的类型不支持这个操作', { name }));
     }
 
     _clone(v) {
@@ -405,14 +406,14 @@ class TagParser {
 
     _doVar(tag, ok, fail) {
         const [nameOrId, op, ...rest] = tag.args;
-        if (!nameOrId || !op) return fail('缺少变量名或操作');
+        if (!nameOrId || !op) return fail(I18n.t('缺少变量名或操作'));
         const r = this._resolveVariable(nameOrId);
         if (r.error) return fail(r.error);
         const res = this._operate(r.variable, op, rest.join('|'));
         if (!res.ok) return fail(res.reason);
         this.variableSystem.updateBuiltinVariables();
         this._record('variable', tag.raw, { variableId: r.variable.id, before: res.before, after: res.after });
-        return ok('「' + (r.variable.name || r.variable.id) + '」' + res.text + '（' + this._describeValue(res.before) + ' → ' + this._describeValue(res.after) + '）', { variableId: r.variable.id });
+        return ok(I18n.t('「{name}」{text}（{before} → {after}）', { name: r.variable.name || r.variable.id, text: res.text, before: this._describeValue(res.before), after: this._describeValue(res.after) }), { variableId: r.variable.id });
     }
 
     /** 把规则的取值写法整理成「操作 + 值」。支持 operation 字段，也支持 "+10" "-5" "set 100" "100" 这类简写。 */
@@ -441,29 +442,29 @@ class TagParser {
 
     _doRule(tag, ok, fail) {
         const [nameOrId, ruleName, param] = tag.args;
-        if (!nameOrId || !ruleName) return fail('缺少变量名或规则名');
+        if (!nameOrId || !ruleName) return fail(I18n.t('缺少变量名或规则名'));
         const r = this._resolveVariable(nameOrId);
         if (r.error) return fail(r.error);
         const v = r.variable;
         const name = v.name || v.id;
         const rules = Array.isArray(v.changeRules) ? v.changeRules : [];
-        if (!rules.length) return fail('「' + name + '」没有可用的快捷规则');
+        if (!rules.length) return fail(I18n.t('「{name}」没有可用的快捷规则', { name }));
         const rule = rules.find(x => x.name === ruleName);
-        if (!rule) return fail('「' + name + '」没有叫「' + ruleName + '」的快捷规则（可用：' + rules.map(x => x.name).join('、') + '）');
+        if (!rule) return fail(I18n.t('「{name}」没有叫「{rule}」的快捷规则（可用：{list}）', { name, rule: ruleName, list: rules.map(x => x.name).join(I18n.t('、')) }));
         if (rule.min != null || rule.max != null) {
             const n = this._num(param);
             if (!isNaN(n)) {
-                if (rule.min != null && n < Number(rule.min)) return fail('「' + ruleName + '」的取值不能小于 ' + rule.min);
-                if (rule.max != null && n > Number(rule.max)) return fail('「' + ruleName + '」的取值不能大于 ' + rule.max);
+                if (rule.min != null && n < Number(rule.min)) return fail(I18n.t('「{rule}」的取值不能小于 {n}', { rule: ruleName, n: rule.min }));
+                if (rule.max != null && n > Number(rule.max)) return fail(I18n.t('「{rule}」的取值不能大于 {n}', { rule: ruleName, n: rule.max }));
             }
         }
         const conv = this._ruleToOp(rule, param, v);
-        if (conv.value === undefined || (typeof conv.value === 'string' && /\$\w+/.test(conv.value))) return fail('「' + ruleName + '」需要再写一个参数');
+        if (conv.value === undefined || (typeof conv.value === 'string' && /\$\w+/.test(conv.value))) return fail(I18n.t('「{rule}」需要再写一个参数', { rule: ruleName }));
         const res = this._operate(v, conv.op, conv.value);
         if (!res.ok) return fail(res.reason);
         this.variableSystem.updateBuiltinVariables();
         this._record('variable', tag.raw, { variableId: v.id, ruleName, before: res.before, after: res.after });
-        return ok('「' + name + '」执行「' + ruleName + '」（' + this._describeValue(res.before) + ' → ' + this._describeValue(res.after) + '）', { variableId: v.id });
+        return ok(I18n.t('「{name}」执行「{rule}」（{before} → {after}）', { name, rule: ruleName, before: this._describeValue(res.before), after: this._describeValue(res.after) }), { variableId: v.id });
     }
 
     // ---------- 时间 ----------
@@ -479,36 +480,36 @@ class TagParser {
 
     _doTime(tag, ok, fail) {
         const ts = this.timeSystem;
-        if (!ts) return fail('时间系统没有准备好');
+        if (!ts) return fail(I18n.t('时间系统没有准备好'));
         let [param, op, val] = tag.args;
-        if (!param || !op) return fail('缺少时间参数或操作');
+        if (!param || !op) return fail(I18n.t('缺少时间参数或操作'));
         param = TAG_TIME_PARAM_ALIAS[param] || String(param).trim().toLowerCase();
         const p = ts.getParameter(param);
-        if (!p) return fail('没有叫「' + param + '」的时间参数');
-        if (p.calculationOnly || p.type !== 'base') return fail('「' + param + '」由系统自动计算，不能直接修改');
+        if (!p) return fail(I18n.t('没有叫「{name}」的时间参数', { name: param }));
+        if (p.calculationOnly || p.type !== 'base') return fail(I18n.t('「{name}」由系统自动计算，不能直接修改', { name: param }));
         const action = TAG_OP_ALIAS[String(op).trim().toLowerCase()];
-        if (action !== 'add' && action !== 'set') return fail('时间只能用 add（推进）或 set（设定）');
+        if (action !== 'add' && action !== 'set') return fail(I18n.t('时间只能用 add（推进）或 set（设定）'));
         const n = this._num(val);
-        if (isNaN(n)) return fail('「' + val + '」不是数字');
-        if (!Number.isInteger(n)) return fail('时间需要整数');
-        if (Math.abs(n) > TAG_NUMBER_LIMIT) return fail('数字「' + val + '」太大了');
+        if (isNaN(n)) return fail(I18n.t('「{value}」不是数字', { value: val }));
+        if (!Number.isInteger(n)) return fail(I18n.t('时间需要整数'));
+        if (Math.abs(n) > TAG_NUMBER_LIMIT) return fail(I18n.t('数字「{value}」太大了', { value: val }));
         const units = this._timeUnits();
         const before = { ...ts.systemValues };
         const after = { ...before };
         const key = p.systemBinding;
         if (action === 'add') {
-            if (n < 0) return fail('时间只能往前推进');
+            if (n < 0) return fail(I18n.t('时间只能往前推进'));
             after[key] = (after[key] || 0) + n;
         } else {
             const lim = { month: [1, units.mpy], day: [1, units.dpm], hour: [0, units.hpd - 1], minute: [0, units.mph - 1] }[key];
-            if (lim && (n < lim[0] || n > lim[1])) return fail('「' + param + '」要在 ' + lim[0] + ' 到 ' + lim[1] + ' 之间');
+            if (lim && (n < lim[0] || n > lim[1])) return fail(I18n.t('「{name}」要在 {min} 到 {max} 之间', { name: param, min: lim[0], max: lim[1] }));
             after[key] = n;
         }
         TagParser.normalizeTime(after, units);
         const cmp = ['year', 'month', 'day', 'hour', 'minute'];
         for (const k of cmp) {
             if ((after[k] || 0) > (before[k] || 0)) break;
-            if ((after[k] || 0) < (before[k] || 0)) return fail('时间只能往前推进');
+            if ((after[k] || 0) < (before[k] || 0)) return fail(I18n.t('时间只能往前推进'));
         }
         const changes = {};
         for (const k of cmp) {
@@ -518,9 +519,12 @@ class TagParser {
         }
         ts.advanceTime(changes);
         this._record('time', tag.raw, { before, after });
-        const label = { year: '年', month: '月', day: '日', hour: '时', minute: '分' }[param] || param;
+        const timeText = {
+            add: { year: I18n.t('时间推进{n}年', { n }), month: I18n.t('时间推进{n}月', { n }), day: I18n.t('时间推进{n}日', { n }), hour: I18n.t('时间推进{n}时', { n }), minute: I18n.t('时间推进{n}分', { n }) },
+            set: { year: I18n.t('时间设为{n}年', { n }), month: I18n.t('时间设为{n}月', { n }), day: I18n.t('时间设为{n}日', { n }), hour: I18n.t('时间设为{n}时', { n }), minute: I18n.t('时间设为{n}分', { n }) }
+        }[action][param] || (action === 'add' ? I18n.t('时间推进{n}{unit}', { n, unit: param }) : I18n.t('时间设为{n}{unit}', { n, unit: param }));
         const now = (this.promptGenerator && typeof this.promptGenerator.formatTimeLine === 'function') ? this.promptGenerator.formatTimeLine() : ts.getDisplayTime();
-        return ok('时间' + (action === 'add' ? '推进' + n + label : '设为' + n + label) + '（现在是 ' + now + '）');
+        return ok(timeText + I18n.t('（现在是 {now}）', { now }));
     }
 
     // ---------- 事件 ----------
@@ -534,12 +538,12 @@ class TagParser {
     _resolveModule(nameOrId, candidates) {
         const ms = this.moduleSystem;
         const key = String(nameOrId == null ? '' : nameOrId).trim();
-        if (!key) return { error: '没有写事件名' };
+        if (!key) return { error: I18n.t('没有写事件名') };
         const all = Array.from(ms.modules.values()).filter(m => m.id !== ms.rootModuleId);
         const pool = candidates ? all.filter(m => candidates.has(m.id)) : all;
         const byName = pool.filter(m => (m.name || m.id) === key);
         if (byName.length === 1) return { id: byName[0].id };
-        if (byName.length > 1) return { error: '有多个同名事件，无法确定是哪一个' };
+        if (byName.length > 1) return { error: I18n.t('有多个同名事件，无法确定是哪一个') };
         const byId = pool.filter(m => m.id === key);
         if (byId.length === 1) return { id: byId[0].id };
         return { notInPool: all.some(m => (m.name || m.id) === key || m.id === key) };
@@ -586,13 +590,13 @@ class TagParser {
         const op = (o) => ({ '>=': '≥', '<=': '≤', '==': '＝', '!=': '≠' })[o] || o;
         if (c.type === 'variable') {
             const cur = vs ? vs.getValue(c.variableId) : undefined;
-            return `${vname(c.variableId)} ${op(c.operator)} ${c.value}（当前 ${this._describeValue(cur)}）`;
+            return `${vname(c.variableId)} ${op(c.operator)} ${c.value}` + I18n.t('（当前 {cur}）', { cur: this._describeValue(cur) });
         }
         if (c.type === 'variable_compare') return `${vname(c.variableId)} ${op(c.operator)} ${vname(c.compareVariableId)}`;
-        if (c.type === 'module') return `「${this._moduleName(c.moduleId)}」要先${c.state === 'completed' ? '完成' : '进入'}`;
-        if (c.type === 'time' || c.type === 'time_range') return '时间还没到';
-        if (c.type === 'tag') return '需要的标签没有出现';
-        return '有一项条件没满足';
+        if (c.type === 'module') return c.state === 'completed' ? I18n.t('「{name}」要先完成', { name: this._moduleName(c.moduleId) }) : I18n.t('「{name}」要先进入', { name: this._moduleName(c.moduleId) });
+        if (c.type === 'time' || c.type === 'time_range') return I18n.t('时间还没到');
+        if (c.type === 'tag') return I18n.t('需要的标签没有出现');
+        return I18n.t('有一项条件没满足');
     }
 
     /** 列出没满足的进入条件，每条一句人话。 */
@@ -604,7 +608,7 @@ class TagParser {
             const parent = ms.getModule(target.parentModuleId);
             const fd = parent && parent.flows ? parent.flows[target.flowName] : null;
             if (fd && fd.entryEvent && fd.entryEvent !== target.id && !ms.checkModuleState(fd.entryEvent, 'completed')) {
-                out.push(`要先完成「${this._moduleName(fd.entryEvent)}」`);
+                out.push(I18n.t('要先完成「{name}」', { name: this._moduleName(fd.entryEvent) }));
             }
         }
         const sources = ms._getEntrySources(target.id);
@@ -627,55 +631,55 @@ class TagParser {
 
     _doModule(tag, ok, fail) {
         const ms = this.moduleSystem;
-        if (!ms) return fail('事件系统没有准备好');
+        if (!ms) return fail(I18n.t('事件系统没有准备好'));
         let [action, nameOrId] = tag.args;
         action = ({ enter: 'enter', '进入': 'enter', complete: 'complete', '完成': 'complete', finish: 'complete' })[String(action || '').trim().toLowerCase()];
-        if (!action) return fail('事件操作只有 enter（进入）和 complete（完成）');
-        if (!nameOrId) return fail('没有写事件名');
+        if (!action) return fail(I18n.t('事件操作只有 enter（进入）和 complete（完成）'));
+        if (!nameOrId) return fail(I18n.t('没有写事件名'));
         const key = String(nameOrId).trim();
 
         if (action === 'enter') {
             const found = this._resolveModule(key, this.scope ? this.scope.moduleIds : null);
             if (found.error) return fail(found.error);
             if (!found.id) {
-                if (!found.notInPool) return fail('没有叫「' + key + '」的事件');
+                if (!found.notInPool) return fail(I18n.t('没有叫「{name}」的事件', { name: key }));
                 const any = this._resolveModule(key, null);
                 const st = any.id ? ms.getModule(any.id).state : '';
-                if (st === 'entered') return fail('「' + key + '」已经在进行中');
-                if (st === 'completed') return fail('「' + key + '」已经完成了');
-                return fail('「' + key + '」现在不能进入（不在可进入的事件里）');
+                if (st === 'entered') return fail(I18n.t('「{name}」已经在进行中', { name: key }));
+                if (st === 'completed') return fail(I18n.t('「{name}」已经完成了', { name: key }));
+                return fail(I18n.t('「{name}」现在不能进入（不在可进入的事件里）', { name: key }));
             }
             const target = ms.getModule(found.id);
-            if (!target.isLeaf()) return fail('「' + key + '」不是具体事件，不能直接进入');
+            if (!target.isLeaf()) return fail(I18n.t('「{name}」不是具体事件，不能直接进入', { name: key }));
             if (!this._canEnterNow(target)) {
                 const unmet = this._withCurrentCompleted(target, () => this._unmetEntryConditions(target));
-                return fail('「' + key + '」的进入条件还没满足' + (unmet.length ? '：' + unmet.join('；') : ''));
+                return fail(unmet.length ? I18n.t('「{name}」的进入条件还没满足：{why}', { name: key, why: unmet.join(I18n.t('；')) }) : I18n.t('「{name}」的进入条件还没满足', { name: key }));
             }
             const res = ms.jumpToModule(found.id, { force: true, updateVariables: false });
-            if (!res || !res.success) return fail('「' + key + '」进入失败：' + ((res && res.error) || '原因不明'));
+            if (!res || !res.success) return fail(I18n.t('「{name}」进入失败：{why}', { name: key, why: (res && res.error) || I18n.t('原因不明') }));
             const changes = res.changes || {};
             const done = (changes.completed || []).filter(id => id !== found.id).map(id => this._moduleName(id));
             this._record('module', tag.raw, { action, moduleId: found.id });
-            return ok('进入事件「' + target.name + '」' + (done.length ? '（前面的「' + done.join('、') + '」按顺序算作已完成）' : ''), { moduleId: found.id });
+            return ok(I18n.t('进入事件「{name}」', { name: target.name }) + (done.length ? I18n.t('（前面的「{list}」按顺序算作已完成）', { list: done.join(I18n.t('、')) }) : ''), { moduleId: found.id });
         }
 
         const currentIds = new Set(ms.getCurrentModuleIds().filter(id => id !== ms.rootModuleId && ms.getModule(id) && ms.getModule(id).isLeaf()));
         const found = this._resolveModule(key, currentIds);
         if (found.error) return fail(found.error);
-        if (!found.id) return fail(found.notInPool ? '「' + key + '」不是正在进行的事件' : '没有叫「' + key + '」的事件');
+        if (!found.id) return fail(found.notInPool ? I18n.t('「{name}」不是正在进行的事件', { name: key }) : I18n.t('没有叫「{name}」的事件', { name: key }));
         const target = ms.getModule(found.id);
         const pending = ms.getPendingDeliveryInfoForModule(target).map(d => d.title);
         const res = ms.completeModule(found.id);
         if (!res || !res.success) {
-            if (pending.length) return fail('「' + key + '」还有没确认的投递：' + pending.join('、'));
+            if (pending.length) return fail(I18n.t('「{name}」还有没确认的投递：{list}', { name: key, list: pending.join(I18n.t('、')) }));
             const why = this._describeUnmet(target.completionConditions);
-            return fail('「' + key + '」的完成条件还没满足' + (why ? '：' + why : ''));
+            return fail(why ? I18n.t('「{name}」的完成条件还没满足：{why}', { name: key, why }) : I18n.t('「{name}」的完成条件还没满足', { name: key }));
         }
         this._record('module', tag.raw, { action, moduleId: found.id });
         if (this.summarySystem && typeof this.summarySystem.recordPendingParentSummary === 'function') {
             this.summarySystem.recordPendingParentSummary(ms, found.id);
         }
-        return ok('完成事件「' + target.name + '」' + (res.autoEntered ? '，自动进入「' + this._moduleName(res.autoEntered) + '」' : ''), { moduleId: found.id });
+        return ok(I18n.t('完成事件「{name}」', { name: target.name }) + (res.autoEntered ? I18n.t('，自动进入「{name}」', { name: this._moduleName(res.autoEntered) }) : ''), { moduleId: found.id });
     }
 
     // ---------- 投递 ----------
@@ -696,28 +700,28 @@ class TagParser {
 
     _doDelivery(tag, ok, fail) {
         let [title, status] = tag.args;
-        if (!title) return fail('没有写投递标题');
+        if (!title) return fail(I18n.t('没有写投递标题'));
         const st = String(status == null || status === '' ? 'done' : status).trim().toLowerCase();
-        const isDone = ['done', '完成', '已完成', 'true', '是', '已收到'].includes(st);
-        const isUndone = ['uncompleted', 'undone', '未完成', 'false', '否', '没完成'].includes(st);
-        if (!isDone && !isUndone) return fail('投递状态只能写 done 或 uncompleted');
+        const isDone = ['done', 'complete', 'completed', 'confirmed', 'received', 'yes', '完成', '已完成', 'true', '是', '已收到'].includes(st);
+        const isUndone = ['uncompleted', 'undone', 'not done', 'not completed', 'incomplete', 'no', '未完成', 'false', '否', '没完成'].includes(st);
+        if (!isDone && !isUndone) return fail(I18n.t('投递状态只能写 done 或 uncompleted'));
         const ce = this.moduleSystem ? this.moduleSystem.conditionEvaluator : null;
         const entry = this._pendingDeliveries().find(x => (x.item.title || x.item.id) === title);
         const cond = this.summarySystem && this.summarySystem.conditionalDeliveries
             ? this.summarySystem.conditionalDeliveries.find(d => d.title === title) : null;
-        if (!entry && !cond) return fail('没有叫「' + title + '」的投递信息');
+        if (!entry && !cond) return fail(I18n.t('没有叫「{name}」的投递信息', { name: title }));
         if (entry) {
-            if (isDone && entry.item.completed) return fail('「' + title + '」之前已经确认过了');
-            if (!entry.item.completed && !entry.module.getPendingDeliveryInfo(ce).includes(entry.item)) return fail('「' + title + '」现在还没有出现');
+            if (isDone && entry.item.completed) return fail(I18n.t('「{name}」之前已经确认过了', { name: title }));
+            if (!entry.item.completed && !entry.module.getPendingDeliveryInfo(ce).includes(entry.item)) return fail(I18n.t('「{name}」现在还没有出现', { name: title }));
             entry.item.completed = isDone;
         }
         if (cond) {
-            if (isDone && cond.completed) return fail('「' + title + '」之前已经确认过了');
+            if (isDone && cond.completed) return fail(I18n.t('「{name}」之前已经确认过了', { name: title }));
             if (isDone) this.summarySystem.markConditionalDeliveryDone(title);
             else this.summarySystem.markConditionalDeliveryUncomplete(title);
         }
         this._record('delivery', tag.raw, { title, status: isDone ? 'done' : 'uncompleted' });
-        return ok(isDone ? '确认投递「' + title + '」' : '投递「' + title + '」标为未完成，之后还会再提醒');
+        return ok(isDone ? I18n.t('确认投递「{name}」', { name: title }) : I18n.t('投递「{name}」标为未完成，之后还会再提醒', { name: title }));
     }
 
     // ---------- 伏笔 ----------
@@ -730,13 +734,13 @@ class TagParser {
         let m = s.match(/^module\s*:\s*(.+?)\s*:\s*(entered|completed)$/i);
         if (m) {
             const found = this._resolveModule(m[1], null);
-            if (!found.id) return { error: '触发条件里的事件「' + m[1] + '」没有找到' };
+            if (!found.id) return { error: I18n.t('触发条件里的事件「{name}」没有找到', { name: m[1] }) };
             return { cond: { type: 'module', moduleId: found.id, state: m[2].toLowerCase() }, str: 'module:' + found.id + ':' + m[2].toLowerCase() };
         }
         m = s.match(/^variable\s*:\s*(.+?)\s*(>=|<=|==|!=|≥|≤|≠|＝|=|>|<)\s*(.+)$/i);
         if (m) {
             const r = this._resolveVariable(m[1]);
-            if (r.error) return { error: '触发条件里的变量：' + r.error };
+            if (r.error) return { error: I18n.t('触发条件里的变量：{why}', { why: r.error }) };
             const val = ss ? ss._parseCondValue(m[3].trim()) : m[3].trim();
             const opv = TagParser._normOp(m[2]);
             return { cond: { type: 'variable', variableId: r.variable.id, operator: opv, value: val }, str: 'variable:' + r.variable.id + opv + m[3].trim() };
@@ -744,81 +748,81 @@ class TagParser {
         m = s.match(/^time\s*:\s*(\w+)\s*(>=|<=|==|!=|≥|≤|≠|＝|=|>|<)\s*(.+)$/i);
         if (m) {
             const param = TAG_TIME_PARAM_ALIAS[m[1]] || m[1].toLowerCase();
-            if (!this.timeSystem || !this.timeSystem.getParameter(param)) return { error: '触发条件里的时间参数「' + m[1] + '」不存在' };
+            if (!this.timeSystem || !this.timeSystem.getParameter(param)) return { error: I18n.t('触发条件里的时间参数「{name}」不存在', { name: m[1] }) };
             const val = ss ? ss._parseCondValue(m[3].trim()) : m[3].trim();
             const opt = TagParser._normOp(m[2]);
             return { cond: { type: 'time', param, operator: opt, value: val }, str: 'time:' + param + opt + m[3].trim() };
         }
-        return { error: '触发条件的写法不对，应为 variable:变量名>=数值、time:day>=30 或 module:事件名:completed' };
+        return { error: I18n.t('触发条件的写法不对，应为 variable:变量名>=数值、time:day>=30 或 module:事件名:completed') };
     }
 
     _doForeshadow(tag, ok, fail) {
         const ss = this.summarySystem;
-        if (!ss || typeof ss.addConditionalDelivery !== 'function') return fail('伏笔功能没有准备好');
+        if (!ss || typeof ss.addConditionalDelivery !== 'function') return fail(I18n.t('伏笔功能没有准备好'));
         const [title, description, ...rest] = tag.args;
-        if (!title) return fail('没有写伏笔标题');
-        if (String(title).length > 200 || String(description || '').length > TAG_TEXT_LIMIT) return fail('伏笔内容太长了');
-        if (ss.conditionalDeliveries.some(d => d.title === title && !d.completed)) return fail('已经有一条同名的伏笔了');
+        if (!title) return fail(I18n.t('没有写伏笔标题'));
+        if (String(title).length > 200 || String(description || '').length > TAG_TEXT_LIMIT) return fail(I18n.t('伏笔内容太长了'));
+        if (ss.conditionalDeliveries.some(d => d.title === title && !d.completed)) return fail(I18n.t('已经有一条同名的伏笔了'));
         const c = this._foreshadowCondition(rest.join('|'));
         if (c.error) return fail(c.error);
         ss.addConditionalDelivery({ title, content: description || '', conditionStr: c.str, conditionParsed: c.cond });
         this._record('foreshadow', tag.raw, { title });
-        return ok('记下伏笔「' + title + '」' + (c.str ? '，条件满足后提醒' : '，下一轮就会提醒'));
+        return ok(I18n.t('记下伏笔「{name}」', { name: title }) + (c.str ? I18n.t('，条件满足后提醒') : I18n.t('，下一轮就会提醒')));
     }
 
     // ---------- 插件 ----------
 
     _doPlugin(tag, ok, fail) {
-        if (!this.pluginSystem || typeof this.pluginSystem.findActive !== 'function') return fail('插件系统没有准备好');
+        if (!this.pluginSystem || typeof this.pluginSystem.findActive !== 'function') return fail(I18n.t('插件系统没有准备好'));
         const [nameOrId, ...rest] = tag.args;
-        if (!nameOrId) return fail('没有写插件名');
+        if (!nameOrId) return fail(I18n.t('没有写插件名'));
         const plugin = this.pluginSystem.findActive(nameOrId);
-        if (!plugin) return fail('没有叫「' + nameOrId + '」的插件，或它现在没有启用');
+        if (!plugin) return fail(I18n.t('没有叫「{name}」的插件，或它现在没有启用', { name: nameOrId }));
         const content = rest.join('|');
-        if (content.length > TAG_TEXT_LIMIT) return fail('插件内容太长了');
+        if (content.length > TAG_TEXT_LIMIT) return fail(I18n.t('插件内容太长了'));
         this._record('plugin', tag.raw, { pluginId: plugin.id });
-        return ok('调用插件「' + (plugin.name || plugin.id) + '」', { plugin: { id: plugin.id, name: plugin.name, type: plugin.type, config: plugin.config, content } });
+        return ok(I18n.t('调用插件「{name}」', { name: plugin.name || plugin.id }), { plugin: { id: plugin.id, name: plugin.name, type: plugin.type, config: plugin.config, content } });
     }
 
     // ---------- 总结 ----------
 
     _doSummary(tag, ok, fail) {
         const ss = this.summarySystem;
-        if (!ss) return fail('总结功能没有准备好');
+        if (!ss) return fail(I18n.t('总结功能没有准备好'));
         const args = tag.args;
         const type = String(args[0] || '').toLowerCase();
         if (type === 'global') {
             const content = args.slice(1).join('|').trim();
-            if (!content) return fail('总结内容是空的');
+            if (!content) return fail(I18n.t('总结内容是空的'));
             ss.addSingleSummary(content);
             this._record('summary', tag.raw, { type });
-            return ok('记下一条剧情总结');
+            return ok(I18n.t('记下一条剧情总结'));
         }
         if (type === 'module') {
             const ms = this.moduleSystem;
             let moduleId = null, content;
             if (args.length >= 3) {
                 const found = this._resolveModule(args[1], null);
-                if (!found.id) return fail('没有叫「' + args[1] + '」的事件');
+                if (!found.id) return fail(I18n.t('没有叫「{name}」的事件', { name: args[1] }));
                 moduleId = found.id; content = args.slice(2).join('|').trim();
             } else {
                 const cur = ms.getCurrentModuleIds().filter(id => id !== ms.rootModuleId)[0];
-                if (!cur) return fail('现在没有正在进行的事件');
+                if (!cur) return fail(I18n.t('现在没有正在进行的事件'));
                 moduleId = cur; content = args.slice(1).join('|').trim();
             }
-            if (!content) return fail('总结内容是空的');
+            if (!content) return fail(I18n.t('总结内容是空的'));
             ss.setModuleSummary(moduleId, content);
             this._record('summary', tag.raw, { type, moduleId });
-            return ok('记下「' + this._moduleName(moduleId) + '」的总结');
+            return ok(I18n.t('记下「{name}」的总结', { name: this._moduleName(moduleId) }));
         }
         if (type === 'plugin') {
             const content = args.slice(1).join('|').trim();
-            if (!content) return fail('总结内容是空的');
+            if (!content) return fail(I18n.t('总结内容是空的'));
             ss.addPluginSummaryContent(content);
             this._record('summary', tag.raw, { type });
-            return ok('记下一条插件总结');
+            return ok(I18n.t('记下一条插件总结'));
         }
-        return fail('总结类型只有 global、module、plugin');
+        return fail(I18n.t('总结类型只有 global、module、plugin'));
     }
 }
 

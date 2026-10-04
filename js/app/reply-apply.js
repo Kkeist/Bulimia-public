@@ -52,7 +52,7 @@ Object.assign(App, {
         const hasInstructions = scanned.tags.length > 0 || scanned.malformed.length > 0;
         const config = this.getEngineConfig();
         if (!config) {
-            if (hasInstructions) effects.push({ kind: 'unknown', tag: '', ok: false, summary: '', reason: '当前模组没有可用的游戏数据，AI 回复里的指令都没有执行' });
+            if (hasInstructions) effects.push({ kind: 'unknown', tag: '', ok: false, summary: '', reason: I18n.t('当前模组没有可用的游戏数据，AI 回复里的指令都没有执行') });
             this._finishReplyEffects(effects);
             return { effects };
         }
@@ -87,7 +87,7 @@ Object.assign(App, {
             if (JSON.stringify(State.currentModulePath) !== pathBefore) this._afterModulePathChanged(config, effects);
         } catch (e) {
             console.error('落地 AI 回复里的指令时出错:', e);
-            effects.push({ kind: 'unknown', tag: '', ok: false, summary: '', reason: '处理指令时出错：' + (e && e.message ? e.message : e) + '。这一轮的指令都没有生效' });
+            effects.push({ kind: 'unknown', tag: '', ok: false, summary: '', reason: I18n.t('处理指令时出错：{msg}。这一轮的指令都没有生效', { msg: e && e.message ? e.message : e }) });
         }
         this._finishReplyEffects(effects);
         return { effects };
@@ -110,7 +110,7 @@ Object.assign(App, {
             try {
                 this._runModuleGeneratorsForCurrentPath(cur, path);
             } catch (e) {
-                effects.push({ kind: 'plugin', tag: '', ok: false, summary: '', reason: '模块生成器出错：' + (e && e.message ? e.message : e) });
+                effects.push({ kind: 'plugin', tag: '', ok: false, summary: '', reason: I18n.t('模块生成器出错：{msg}', { msg: e && e.message ? e.message : e }) });
             }
         }
     },
@@ -148,15 +148,15 @@ Object.assign(App, {
             if (p.type === 'module_generator') {
                 const tpl = p.config && p.config.moduleTemplate;
                 const flowKey = p.config && p.config.outputFlow;
-                if (!tpl || !flowKey) { eff.ok = false; eff.reason = '「' + (p.name || p.id) + '」缺少要生成的模块'; continue; }
+                if (!tpl || !flowKey) { eff.ok = false; eff.reason = I18n.t('「{name}」缺少要生成的模块', { name: p.name || p.id }); continue; }
                 const added = ModuleManager.addDynamicSubModuleFromRaw(tpl, flowKey);
-                if (!added) { eff.ok = false; eff.reason = '「' + (tpl.name || tpl.id) + '」已经生成过了'; continue; }
-                eff.summary = '生成了「' + (tpl.name || tpl.id) + '」';
+                if (!added) { eff.ok = false; eff.reason = I18n.t('「{name}」已经生成过了', { name: tpl.name || tpl.id }); continue; }
+                eff.summary = I18n.t('生成了「{name}」', { name: tpl.name || tpl.id });
                 continue;
             }
             if (p.type !== 'interactive' && p.type !== 'display_interactive') {
                 eff.ok = false;
-                eff.reason = '「' + (p.name || p.id) + '」不接收 AI 的回复';
+                eff.reason = I18n.t('「{name}」不接收 AI 的回复', { name: p.name || p.id });
                 continue;
             }
             const res = this._deliverPluginReply(p, p.content, engine, postWrites);
@@ -179,9 +179,9 @@ Object.assign(App, {
             if (window.PluginRegistry && PluginRegistry.noteReply) PluginRegistry.noteReply(plugin.id, r);
             const note = this._pluginReplyNote(r);
             const tag = '<' + plugin.config.blockId + '>';
-            if (r.unbound) out.push({ kind: 'plugin', tag, ok: false, summary: '', reason: '「' + (plugin.name || plugin.id) + '」还没有设置回复要写进哪个变量，回复没有保存' });
-            else if (r.errors.length && !r.changes.length) out.push({ kind: 'plugin', tag, ok: false, summary: '', reason: '「' + (plugin.name || plugin.id) + '」的回复没有写入：' + r.errors.join('；') });
-            else out.push({ kind: 'plugin', tag, ok: true, summary: '「' + (plugin.name || plugin.id) + '」收到回复' + note });
+            if (r.unbound) out.push({ kind: 'plugin', tag, ok: false, summary: '', reason: I18n.t('「{name}」还没有设置回复要写进哪个变量，回复没有保存', { name: plugin.name || plugin.id }) });
+            else if (r.errors.length && !r.changes.length) out.push({ kind: 'plugin', tag, ok: false, summary: '', reason: I18n.t('「{name}」的回复没有写入：{errors}', { name: plugin.name || plugin.id, errors: r.errors.join(I18n.t('；')) }) });
+            else out.push({ kind: 'plugin', tag, ok: true, summary: I18n.t('「{name}」收到回复', { name: plugin.name || plugin.id }) + note });
         }
         return out;
     },
@@ -189,9 +189,9 @@ Object.assign(App, {
     /** 回复写入时需要补充给玩家看的说明（内容被截短、记录被清理、部分没写入）。 */
     _pluginReplyNote(r) {
         let note = '';
-        if (r.truncated) note += '（内容太长，只保留了前 5000 个字）';
-        if (r.changes.some(c => c.trimmed)) note += '（记录太长，较早的内容已清理）';
-        if (r.errors.length && r.changes.length) note += '（部分没有写入：' + r.errors.join('；') + '）';
+        if (r.truncated) note += I18n.t('（内容太长，只保留了前 5000 个字）');
+        if (r.changes.some(c => c.trimmed)) note += I18n.t('（记录太长，较早的内容已清理）');
+        if (r.errors.length && r.changes.length) note += I18n.t('（部分没有写入：{errors}）', { errors: r.errors.join(I18n.t('；')) });
         return note;
     },
 
@@ -203,8 +203,8 @@ Object.assign(App, {
         const store = PluginRuntime.storeFromVariableSystem(engine.variableSystem);
         const r = PluginRuntime.deliverReply(plugin, body, store);
         if (window.PluginRegistry && PluginRegistry.noteReply) PluginRegistry.noteReply(plugin.id, r);
-        if (r.unbound) return { ok: false, note: '', reason: '「' + (plugin.name || plugin.id) + '」还没有设置回复要写进哪个变量，回复没有保存' };
-        if (r.errors.length && !r.changes.length) return { ok: false, note: '', reason: '「' + (plugin.name || plugin.id) + '」的回复没有写入：' + r.errors.join('；') };
+        if (r.unbound) return { ok: false, note: '', reason: I18n.t('「{name}」还没有设置回复要写进哪个变量，回复没有保存', { name: plugin.name || plugin.id }) };
+        if (r.errors.length && !r.changes.length) return { ok: false, note: '', reason: I18n.t('「{name}」的回复没有写入：{errors}', { name: plugin.name || plugin.id, errors: r.errors.join(I18n.t('；')) }) };
         return { ok: true, note: this._pluginReplyNote(r), reason: '' };
     },
 
@@ -215,7 +215,7 @@ Object.assign(App, {
     _runModuleGeneratorsForCurrentPath(cur, pathIds) {
         if (!window.PluginRegistry || !PluginRegistry.onEnter) return;
         PluginRegistry.onEnter(pathIds).then(res => {
-            if (res.errors.length && window.Toast) Toast.show('有插件在进入模块时没能运行，详情见调试里的插件测试。', 'warning');
+            if (res.errors.length && window.Toast) Toast.show(I18n.t('有插件在进入模块时没能运行，详情见调试里的插件测试。'), 'warning');
         });
     },
 
@@ -255,11 +255,11 @@ Object.assign(App, {
         const version = msg.swipeId || 0;
         const data = msg.swipeData && msg.swipeData[version];
         if (!msg.preTurnState) {
-            Toast.show('只有最新一条回复切换版本时，游戏状态才会跟着变。', 'info', 5000);
+            Toast.show(I18n.t('只有最新一条回复切换版本时，游戏状态才会跟着变。'), 'info', 5000);
             return;
         }
         if (!data) {
-            Toast.show('这个版本没有保存当时的游戏变化，游戏状态保持不变。', 'warning', 6000);
+            Toast.show(I18n.t('这个版本没有保存当时的游戏变化，游戏状态保持不变。'), 'warning', 6000);
             return;
         }
         this._restoreTurnState(msg.preTurnState);
@@ -289,8 +289,8 @@ Object.assign(App, {
         const okList = shown.filter(e => e.ok);
         const badList = shown.filter(e => !e.ok);
         const parts = [];
-        if (okList.length) parts.push('**本轮变化**\n' + okList.map(e => '- ' + e.summary).join('\n'));
-        if (badList.length) parts.push('**没有生效**\n' + badList.map(e => '- ' + (e.tag ? '`' + e.tag + '`：' : '') + e.reason).join('\n'));
+        if (okList.length) parts.push('**' + I18n.t('本轮变化') + '**\n' + okList.map(e => '- ' + e.summary).join('\n'));
+        if (badList.length) parts.push('**' + I18n.t('没有生效') + '**\n' + badList.map(e => '- ' + (e.tag ? '`' + e.tag + '`' + I18n.t('：') : '') + e.reason).join('\n'));
         return parts.join('\n\n');
     },
 
@@ -309,8 +309,8 @@ Object.assign(App, {
         const serial = shouldIncrement ? (State.variables.turnSerial = (State.variables.turnSerial || 0) + 1) : (State.variables.turnSerial || 0);
         const serialStr = String(serial).padStart(3, '0');
         const timeStr = State.gameState?.currentDate || (State.variables.time
-            ? `第${State.variables.time.day || 1}天 ${String(State.variables.time.hour ?? 8).padStart(2, '0')}:00`
-            : '第1天 08:00');
+            ? I18n.t('第{day}天 {time}', { day: State.variables.time.day || 1, time: String(State.variables.time.hour ?? 8).padStart(2, '0') + ':00' })
+            : I18n.t('第{day}天 {time}', { day: 1, time: '08:00' }));
         return `serial: ${serialStr}\ntime: ${timeStr}\n${String(rawSummary).trim()}`;
     }
 });

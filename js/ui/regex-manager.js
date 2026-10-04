@@ -119,7 +119,7 @@ const RegexManager = {
         } else {
             const container = document.getElementById('regex-preset-bindings');
             if (container) {
-                container.innerHTML = '<div class="item-list-empty">请先选择预设。</div>';
+                container.innerHTML = '<div class="item-list-empty">' + I18n.t('请先选择预设。') + '</div>';
             }
         }
     },
@@ -143,7 +143,7 @@ const RegexManager = {
         this._redraw(() => {
             container.textContent = '';
             if (scripts.length === 0) {
-                container.innerHTML = '<div class="item-list-empty">还没有正则脚本。</div>';
+                container.innerHTML = '<div class="item-list-empty">' + I18n.t('还没有正则脚本。') + '</div>';
                 return;
             }
             const isSelectMode = this.multiSelectMode?.[type];
@@ -167,14 +167,14 @@ const RegexManager = {
             box.dataset.id = script.id;
             box.dataset.type = type;
             box.checked = selectedSet.has(script.id);
-            box.setAttribute('aria-label', '选择这条正则');
+            box.setAttribute('aria-label', I18n.t('选择这条正则'));
             head.appendChild(box);
         }
         const toggle = document.createElement('button');
         toggle.type = 'button';
         toggle.className = 'card-toggle';
         toggle.dataset.act = 'toggle';
-        toggle.setAttribute('aria-label', '展开或收起');
+        toggle.setAttribute('aria-label', I18n.t('展开或收起'));
         toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
         const chev = document.createElement('span');
         chev.className = 'chev' + (expanded ? '' : ' is-right');
@@ -187,9 +187,9 @@ const RegexManager = {
         const actions = document.createElement('div');
         actions.className = 'card-head-actions';
         actions.innerHTML =
-            '<button type="button" class="btn-small' + (script.enabled ? ' is-on' : '') + '" data-act="enable" aria-pressed="' + (script.enabled ? 'true' : 'false') + '">' + (script.enabled ? '已启用' : '未启用') + '</button>' +
-            '<button type="button" class="btn-small" data-act="edit">编辑</button>' +
-            '<button type="button" class="btn-small danger" data-act="delete">删除</button>';
+            '<button type="button" class="btn-small' + (script.enabled ? ' is-on' : '') + '" data-act="enable" aria-pressed="' + (script.enabled ? 'true' : 'false') + '">' + (script.enabled ? I18n.t('已启用') : I18n.t('未启用')) + '</button>' +
+            '<button type="button" class="btn-small" data-act="edit">' + I18n.t('编辑') + '</button>' +
+            '<button type="button" class="btn-small danger" data-act="delete">' + I18n.t('删除') + '</button>';
         head.appendChild(actions);
         card.appendChild(head);
 
@@ -204,8 +204,8 @@ const RegexManager = {
             pre.textContent = text;
             body.append(l, pre);
         };
-        addBlock('匹配规则', script.pattern || '');
-        addBlock('替换内容', script.replacement || '');
+        addBlock(I18n.t('匹配规则'), script.pattern || '');
+        addBlock(I18n.t('替换内容'), script.replacement || '');
         if (script.description) {
             const d = document.createElement('div');
             d.className = 'card-meta';
@@ -224,20 +224,20 @@ const RegexManager = {
         if (!container) return;
         
         if (!this.currentPresetId) {
-            container.innerHTML = '<div class="item-list-empty">请先选择预设。</div>';
+            container.innerHTML = '<div class="item-list-empty">' + I18n.t('请先选择预设。') + '</div>';
             return;
         }
         
         const preset = PresetManager.getAll().find(p => p.id === this.currentPresetId);
         if (!preset) {
-            container.innerHTML = '<div class="item-list-empty">找不到这个预设。</div>';
+            container.innerHTML = '<div class="item-list-empty">' + I18n.t('找不到这个预设。') + '</div>';
             return;
         }
         
         // 获取预设绑定的正则脚本
         const regexBindings = preset.regexBindings || [];
         if (regexBindings.length === 0) {
-            container.innerHTML = '<div class="item-list-empty">当前预设没有绑定正则。</div>';
+            container.innerHTML = '<div class="item-list-empty">' + I18n.t('当前预设没有绑定正则。') + '</div>';
             return;
         }
         
@@ -245,7 +245,7 @@ const RegexManager = {
         const boundScripts = scripts.filter(s => regexBindings.includes(s.id));
         
         if (boundScripts.length === 0) {
-            container.innerHTML = '<div class="item-list-empty">没有找到绑定的正则，请重新导入。</div>';
+            container.innerHTML = '<div class="item-list-empty">' + I18n.t('没有找到绑定的正则，请重新导入。') + '</div>';
             return;
         }
         
@@ -260,7 +260,7 @@ const RegexManager = {
         if (!select) return;
         
         const presets = PresetManager.getAll();
-        select.innerHTML = '<option value="">选择预设</option>' +
+        select.innerHTML = '<option value="">' + I18n.t('选择预设') + '</option>' +
             presets.map(p => `<option value="${this._escapeHtml(p.id)}">${this._escapeHtml(p.name)}</option>`).join('');
     },
     
@@ -285,7 +285,7 @@ const RegexManager = {
      */
     async createPreset() {
         if (!this.currentPresetId) {
-            Toast.show('请先选择预设。', 'warning');
+            Toast.show(I18n.t('请先选择预设。'), 'warning');
             return;
         }
         
@@ -295,7 +295,7 @@ const RegexManager = {
             RegexProcessor.createRegexScript(script);
             PresetManager.bindRegexToPreset(this.currentPresetId, script.id);
             this.loadRegexScripts();
-            Toast.show('已创建。', 'success');
+            Toast.show(I18n.t('已创建。'), 'success');
         }
     },
     
@@ -304,7 +304,7 @@ const RegexManager = {
      */
     async updatePreset() {
         if (!this.currentPresetId) {
-            Toast.show('请先选择预设。', 'warning');
+            Toast.show(I18n.t('请先选择预设。'), 'warning');
             return;
         }
         
@@ -319,7 +319,7 @@ const RegexManager = {
         preset.regexBindings = [...presetScripts];
         PresetManager.update(preset.id, preset);
         this.loadRegexScripts();
-        Toast.show('已绑定全部预设正则。', 'success');
+        Toast.show(I18n.t('已绑定全部预设正则。'), 'success');
     },
     
     /**
@@ -327,7 +327,7 @@ const RegexManager = {
      */
     async applyPreset() {
         if (!this.currentPresetId) {
-            Toast.show('请先选择预设。', 'warning');
+            Toast.show(I18n.t('请先选择预设。'), 'warning');
             return;
         }
         
@@ -354,7 +354,7 @@ const RegexManager = {
             });
         }
         
-        Toast.show('已应用。', 'success');
+        Toast.show(I18n.t('已应用。'), 'success');
     },
     
     
@@ -367,7 +367,7 @@ const RegexManager = {
             script.type = type;
             RegexProcessor.createRegexScript(script);
             this.loadRegexScripts();
-            Toast.show('已添加。', 'success');
+            Toast.show(I18n.t('已添加。'), 'success');
         }
     },
     
@@ -379,11 +379,11 @@ const RegexManager = {
         const scriptIds = set ? Array.from(set) : [];
         
         if (!scriptIds.length) {
-            Toast.show('请先选择要删除的正则。', 'warning');
+            Toast.show(I18n.t('请先选择要删除的正则。'), 'warning');
             return;
         }
         
-        const confirmed = await Modal.confirm('删除正则', `确定要删除选中的 ${scriptIds.length} 条正则吗？`, { danger: true, confirmLabel: '删除' });
+        const confirmed = await Modal.confirm(I18n.t('删除正则'), I18n.t('确定要删除选中的 {n} 条正则吗？', { n: scriptIds.length }), { danger: true, confirmLabel: I18n.t('删除') });
         if (!confirmed) return;
         
         const records = scriptIds.map(id => this._removeScript(id)).filter(Boolean);
@@ -394,7 +394,7 @@ const RegexManager = {
         }
         
         this.loadRegexScripts();
-        Toast.undo(`已删除 ${records.length} 条正则。`, () => {
+        Toast.undo(I18n.t('已删除 {n} 条正则。', { n: records.length }), () => {
             records.forEach(r => this._restoreScript(r));
             this.loadRegexScripts();
         });
@@ -453,7 +453,7 @@ const RegexManager = {
             scripts = RegexProcessor.getAllScripts().filter(s => s.type === 'global');
         } else {
             if (!this.currentPresetId) {
-                Toast.show('请先选择预设。', 'warning');
+                Toast.show(I18n.t('请先选择预设。'), 'warning');
                 return;
             }
             const preset = PresetManager.getAll().find(p => p.id === this.currentPresetId);
@@ -492,11 +492,11 @@ const RegexManager = {
         const set = this.selectedIds.preset;
         const scriptIds = set ? Array.from(set) : [];
         if (!scriptIds.length) {
-            Toast.show('请先勾选要移动的正则。', 'warning');
+            Toast.show(I18n.t('请先勾选要移动的正则。'), 'warning');
             return;
         }
         
-        const confirmed = await Modal.confirm('移到全局', `确定将选中的 ${scriptIds.length} 条正则移到全局吗？`);
+        const confirmed = await Modal.confirm(I18n.t('移到全局'), I18n.t('确定将选中的 {n} 条正则移到全局吗？', { n: scriptIds.length }));
         if (!confirmed) return;
         
         const allScripts = RegexProcessor.getAllScripts();
@@ -525,7 +525,7 @@ const RegexManager = {
         
         set.clear();
         this.loadRegexScripts();
-        Toast.show(`已移到全局：${scriptIds.length} 条。`, 'success');
+        Toast.show(I18n.t('已移到全局：{n} 条。', { n: scriptIds.length }), 'success');
     },
     
     /**
@@ -533,24 +533,24 @@ const RegexManager = {
      */
     async moveSelectedToPreset() {
         if (!this.currentPresetId) {
-            Toast.show('请先选择预设。', 'warning');
+            Toast.show(I18n.t('请先选择预设。'), 'warning');
             return;
         }
         
         const set = this.selectedIds.global;
         const scriptIds = set ? Array.from(set) : [];
         if (!scriptIds.length) {
-            Toast.show('请先勾选要移动的正则。', 'warning');
+            Toast.show(I18n.t('请先勾选要移动的正则。'), 'warning');
             return;
         }
         
-        const confirmed = await Modal.confirm('移到预设', `确定将选中的 ${scriptIds.length} 条正则移到当前预设吗？`);
+        const confirmed = await Modal.confirm(I18n.t('移到预设'), I18n.t('确定将选中的 {n} 条正则移到当前预设吗？', { n: scriptIds.length }));
         if (!confirmed) return;
         
         const allScripts = RegexProcessor.getAllScripts();
         const preset = PresetManager.getAll().find(p => p.id === this.currentPresetId);
         if (!preset) {
-            Toast.show('找不到这个预设。', 'error');
+            Toast.show(I18n.t('找不到这个预设。'), 'error');
             return;
         }
         if (!preset.regexBindings) preset.regexBindings = [];
@@ -574,7 +574,7 @@ const RegexManager = {
         PresetManager.update(preset.id, preset);
         set.clear();
         this.loadRegexScripts();
-        Toast.show(`已移到当前预设：${scriptIds.length} 条。`, 'success');
+        Toast.show(I18n.t('已移到当前预设：{n} 条。', { n: scriptIds.length }), 'success');
     },
     
     /**
@@ -584,42 +584,42 @@ const RegexManager = {
         const flags = String(script?.flags ?? 'gi');
         const html = `
             <div class="form-group">
-                <label for="edit-regex-name">名称</label>
+                <label for="edit-regex-name">${I18n.t('名称')}</label>
                 <input type="text" id="edit-regex-name" autocomplete="off">
             </div>
             <div class="form-group">
-                <label for="edit-regex-pattern">匹配规则</label>
+                <label for="edit-regex-pattern">${I18n.t('匹配规则')}</label>
                 <input type="text" id="edit-regex-pattern" autocomplete="off" spellcheck="false">
             </div>
             <div class="form-group">
-                <label for="edit-regex-replacement">替换内容</label>
+                <label for="edit-regex-replacement">${I18n.t('替换内容')}</label>
                 <textarea id="edit-regex-replacement" rows="3"></textarea>
             </div>
             <div class="form-group">
-                <label>匹配方式</label>
-                <label class="setting-check"><input type="checkbox" data-flag="g">匹配全部</label>
-                <label class="setting-check"><input type="checkbox" data-flag="i">忽略大小写</label>
-                <label class="setting-check"><input type="checkbox" data-flag="m">多行匹配</label>
-                <label class="setting-check"><input type="checkbox" data-flag="s">点号匹配换行</label>
+                <label>${I18n.t('匹配方式')}</label>
+                <label class="setting-check"><input type="checkbox" data-flag="g">${I18n.t('匹配全部')}</label>
+                <label class="setting-check"><input type="checkbox" data-flag="i">${I18n.t('忽略大小写')}</label>
+                <label class="setting-check"><input type="checkbox" data-flag="m">${I18n.t('多行匹配')}</label>
+                <label class="setting-check"><input type="checkbox" data-flag="s">${I18n.t('点号匹配换行')}</label>
             </div>
             <div class="form-group">
-                <label for="edit-regex-description">描述</label>
+                <label for="edit-regex-description">${I18n.t('描述')}</label>
                 <textarea id="edit-regex-description" rows="3"></textarea>
             </div>
         `;
 
         return new Promise((resolve) => {
-            Modal.show(script ? '编辑正则' : '新建正则', html, {
+            Modal.show(script ? I18n.t('编辑正则') : I18n.t('新建正则'), html, {
                 buttons: [
-                    { label: '取消', action: 'cancel' },
-                    { label: '保存', action: 'save', class: 'btn-primary' }
+                    { label: I18n.t('取消'), action: 'cancel' },
+                    { label: I18n.t('保存'), action: 'save', class: 'btn-primary' }
                 ],
                 onAction: (action) => {
                     if (action !== 'save') { resolve(null); Modal.close(); return; }
                     const name = document.getElementById('edit-regex-name').value.trim();
                     const pattern = document.getElementById('edit-regex-pattern').value.trim();
                     if (!name || !pattern) {
-                        Toast.show('名称和匹配规则不能为空。', 'error');
+                        Toast.show(I18n.t('名称和匹配规则不能为空。'), 'error');
                         return;
                     }
                     const picked = Array.prototype.filter.call(document.querySelectorAll('#modal-container [data-flag]'), b => b.checked)
@@ -686,7 +686,7 @@ const RegexManager = {
         if (updated) {
             RegexProcessor.updateScript(scriptId, updated);
             this.loadRegexScripts();
-            Toast.show('已保存。', 'success');
+            Toast.show(I18n.t('已保存。'), 'success');
         }
     },
     
@@ -697,7 +697,7 @@ const RegexManager = {
         const record = this._removeScript(scriptId);
         if (!record) return;
         this.loadRegexScripts();
-        Toast.undo('已删除正则。', () => {
+        Toast.undo(I18n.t('已删除正则。'), () => {
             this._restoreScript(record);
             this.loadRegexScripts();
         });
@@ -749,12 +749,16 @@ const RegexManager = {
                 skippedTotal += skipped;
             }
             this.loadRegexScripts();
-            const kind = type === 'preset' ? '预设' : '全局';
-            if (skippedTotal) Toast.show(`已导入 ${total} 条${kind}正则，${skippedTotal} 条没有匹配规则，已跳过。`, 'warning', 6000);
-            else Toast.show(`已导入 ${total} 条${kind}正则。`, 'success');
+            const isPreset = type === 'preset';
+            if (skippedTotal) Toast.show(isPreset
+                ? I18n.t('已导入 {total} 条预设正则，{skipped} 条没有匹配规则，已跳过。', { total, skipped: skippedTotal })
+                : I18n.t('已导入 {total} 条全局正则，{skipped} 条没有匹配规则，已跳过。', { total, skipped: skippedTotal }), 'warning', 6000);
+            else Toast.show(isPreset
+                ? I18n.t('已导入 {total} 条预设正则。', { total })
+                : I18n.t('已导入 {total} 条全局正则。', { total }), 'success');
         } catch (error) {
             console.error('Import regex files error:', error);
-            Toast.show(error instanceof SyntaxError ? '这个文件不是正则脚本文件，换一个再试。' : '导入失败：' + error.message, 'error');
+            Toast.show(error instanceof SyntaxError ? I18n.t('这个文件不是正则脚本文件，换一个再试。') : I18n.t('导入失败：{msg}', { msg: error.message }), 'error');
         }
     },
     
@@ -765,7 +769,7 @@ const RegexManager = {
         if (!files || files.length === 0) return;
         
         if (!this.currentPresetId) {
-            Toast.show('请先选择预设。', 'warning');
+            Toast.show(I18n.t('请先选择预设。'), 'warning');
             return;
         }
         
@@ -774,7 +778,7 @@ const RegexManager = {
             let skippedTotal = 0;
             const preset = PresetManager.getAll().find(p => p.id === this.currentPresetId);
             if (!preset) {
-                Toast.show('找不到这个预设。', 'error');
+                Toast.show(I18n.t('找不到这个预设。'), 'error');
                 return;
             }
             
@@ -834,11 +838,11 @@ const RegexManager = {
             
             // 刷新显示
             this.loadRegexScripts();
-            if (skippedTotal) Toast.show(`已导入 ${totalImported} 条预设正则，${skippedTotal} 条没有匹配规则，已跳过。`, 'warning', 6000);
-            else Toast.show(`已导入 ${totalImported} 条预设正则。`, 'success');
+            if (skippedTotal) Toast.show(I18n.t('已导入 {total} 条预设正则，{skipped} 条没有匹配规则，已跳过。', { total: totalImported, skipped: skippedTotal }), 'warning', 6000);
+            else Toast.show(I18n.t('已导入 {total} 条预设正则。', { total: totalImported }), 'success');
         } catch (error) {
             console.error('Import preset regex error:', error);
-            Toast.show(error instanceof SyntaxError ? '这个文件不是正则脚本文件，换一个再试。' : '导入失败：' + error.message, 'error');
+            Toast.show(error instanceof SyntaxError ? I18n.t('这个文件不是正则脚本文件，换一个再试。') : I18n.t('导入失败：{msg}', { msg: error.message }), 'error');
         }
     }
     ,
@@ -850,7 +854,7 @@ const RegexManager = {
      */
     _normalizeImportedRegex(scriptData, fallbackFileName = '') {
         const id = scriptData.id;
-        const name = scriptData.name || scriptData.scriptName || fallbackFileName.replace(/\.[^/.]+$/, '') || '未命名正则';
+        const name = scriptData.name || scriptData.scriptName || fallbackFileName.replace(/\.[^/.]+$/, '') || I18n.t('未命名正则');
         const description = scriptData.description || '';
         const context = scriptData.context || {};
 
