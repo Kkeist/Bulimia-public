@@ -60,7 +60,7 @@ const MermaidRenderer = {
                 });
                 this.initialized = true;
             } catch (error) {
-                throw new Error('图表组件初始化失败');
+                throw new Error(I18n.t('图表组件初始化失败'));
             }
         }
     },
@@ -73,7 +73,7 @@ const MermaidRenderer = {
             const script = document.createElement('script');
             script.src = 'vendor/mermaid/mermaid.min.js';
             script.onload = () => resolve();
-            script.onerror = () => reject(new Error('图表组件加载失败'));
+            script.onerror = () => reject(new Error(I18n.t('图表组件加载失败')));
             document.head.appendChild(script);
         });
     },
@@ -138,7 +138,7 @@ const MermaidRenderer = {
             await this.init();
         } catch (error) {
             for (const diagram of diagramsToRender) {
-                diagram.element.innerHTML = `<div class="mermaid-error">${error.message}，图表无法显示。</div>`;
+                diagram.element.innerHTML = `<div class="mermaid-error">${I18n.t('{msg}，图表无法显示。', { msg: error.message })}</div>`;
             }
             return;
         }
@@ -151,7 +151,7 @@ const MermaidRenderer = {
                 diagram.element.textContent = '';
                 const box = document.createElement('div');
                 box.className = 'mermaid-error';
-                box.textContent = '图表格式有误，无法显示。';
+                box.textContent = I18n.t('图表格式有误，无法显示。');
                 diagram.element.appendChild(box);
             }
         }

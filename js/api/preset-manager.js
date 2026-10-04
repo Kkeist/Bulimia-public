@@ -219,7 +219,7 @@ const PresetManager = {
      * 3. 不过滤 {{// 注释内容
      */
     _parseSillyTavernPreset(data) {
-        const name = data.name || data.preset_name || '未命名预设';
+        const name = data.name || data.preset_name || I18n.t('未命名预设');
         const preset = {
             id: data.id || `preset_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
             name,
@@ -376,7 +376,7 @@ const PresetManager = {
     create(name) {
         const preset = {
             id: String(Date.now()),
-            name: name || '新预设',
+            name: name || I18n.t('新预设'),
             source: 'local',
             enabled: true,
             createdAt: Date.now(),

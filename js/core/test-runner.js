@@ -190,7 +190,7 @@ class TestRunner {
         // 获取当前值
         const param = this.timeSystem.getParameter(parameterId);
         if (!param) {
-            throw new Error(`时间参数${parameterId}不存在`);
+            throw new Error(I18n.t('时间参数{id}不存在', { id: parameterId }));
         }
 
         const currentValue = param.calculate(this.timeSystem.systemValues);
@@ -308,7 +308,7 @@ class TestRunner {
         let html = `<div class="test-results">`;
         html += `<div class="test-header ${results.status}">`;
         html += `<strong>${results.testName}</strong> - ${results.status.toUpperCase()}<br>`;
-        html += `通过: ${results.passedTests}/${results.totalTests} | 用时: ${results.duration}ms`;
+        html += I18n.t('通过: {passed}/{total} | 用时: {ms}ms', { passed: results.passedTests, total: results.totalTests, ms: results.duration });
         html += `</div>\n\n`;
 
         for (const testResult of results.results) {
@@ -316,7 +316,7 @@ class TestRunner {
             html += `  <strong>${testResult.testName}</strong>: ${testResult.status}\n`;
 
             if (testResult.error) {
-                html += `  错误: ${testResult.error}\n`;
+                html += '  ' + I18n.t('错误: {error}', { error: testResult.error }) + '\n';
             }
 
             for (const step of testResult.steps) {

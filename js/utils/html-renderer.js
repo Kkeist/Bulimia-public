@@ -50,7 +50,7 @@ const HtmlRenderer = {
     _createPlaceholder(htmlContent) {
         const id = 'html-render-' + Date.now() + '-' + (this.counter++);
         return '<div class="html-render-container" data-html-id="' + id + '" data-html-content="' + this._encode(htmlContent) + '">' +
-            '<div class="html-render-loading">正在载入页面…</div></div>';
+            '<div class="html-render-loading">' + I18n.t('正在载入页面…') + '</div></div>';
     },
 
     /** 渲染容器里所有还没渲染的占位 */
@@ -66,7 +66,7 @@ const HtmlRenderer = {
         placeholder.classList.add('html-rendered');
         let html;
         try { html = this._decode(encoded); }
-        catch (e) { placeholder.textContent = '这段网页内容无法显示。'; return; }
+        catch (e) { placeholder.textContent = I18n.t('这段网页内容无法显示。'); return; }
 
         const wrapper = document.createElement('div');
         wrapper.className = 'html-iframe-wrapper';
@@ -76,7 +76,7 @@ const HtmlRenderer = {
         toolbar.className = 'html-render-toolbar';
         const label = document.createElement('span');
         label.className = 'html-render-label';
-        label.textContent = '网页内容';
+        label.textContent = I18n.t('网页内容');
         const actions = document.createElement('div');
         actions.className = 'html-render-actions';
         const mk = (text, fn) => {
@@ -87,8 +87,8 @@ const HtmlRenderer = {
             b.addEventListener('click', fn);
             return b;
         };
-        actions.appendChild(mk('全屏', () => this.toggleFullscreen(id)));
-        actions.appendChild(mk('复制', () => this.copyHtml(html)));
+        actions.appendChild(mk(I18n.t('全屏'), () => this.toggleFullscreen(id)));
+        actions.appendChild(mk(I18n.t('复制'), () => this.copyHtml(html)));
         toolbar.appendChild(label);
         toolbar.appendChild(actions);
 
@@ -100,7 +100,7 @@ const HtmlRenderer = {
 
         window.PluginSandbox.mount(stage, {
             pluginId: id,
-            name: '网页内容',
+            name: I18n.t('网页内容'),
             minHeight: 120,
             getDoc: () => ({ html, css: '' })
         });
@@ -120,7 +120,7 @@ const HtmlRenderer = {
         try {
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 await navigator.clipboard.writeText(text);
-                notify('已复制。', 'success');
+                notify(I18n.t('已复制。'), 'success');
                 return;
             }
         } catch (e) { /* 剪贴板接口被拒绝，改用下面的方式 */ }
@@ -133,7 +133,7 @@ const HtmlRenderer = {
         let ok = false;
         try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
         document.body.removeChild(ta);
-        notify(ok ? '已复制。' : '复制失败，请允许浏览器的剪贴板权限后重试。', ok ? 'success' : 'error');
+        notify(ok ? I18n.t('已复制。') : I18n.t('复制失败，请允许浏览器的剪贴板权限后重试。'), ok ? 'success' : 'error');
     },
 
     async renderAll() {

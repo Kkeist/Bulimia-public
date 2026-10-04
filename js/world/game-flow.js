@@ -61,7 +61,7 @@ class GameFlow {
      * @returns {string} Prompt文本
      */
     getUniversalPrompt(context = {}) {
-        if (!this.currentModule) return "当前无模块";
+        if (!this.currentModule) return I18n.t("当前无模块");
 
         const timeline = this.currentModule.content.timeline || [];
         const currentEvent = timeline[this.timelineIndex];
@@ -69,19 +69,19 @@ class GameFlow {
 
         // 1. 检查是否在时间线末尾 -> 模块转换
         if (this.timelineIndex >= timeline.length - 1) {
-            let template = prompts.stage_transition || "本阶段结束，是否进入下一阶段？";
+            let template = prompts.stage_transition || I18n.t("本阶段结束，是否进入下一阶段？");
             return this.formatPrompt(template, {
                 current_stage: this.currentModule.name,
-                condition: "时间线结束",
+                condition: I18n.t("时间线结束"),
                 next_stage: this.getNextStageName()
             });
         }
 
         // 2. 普通时间线推进
-        let template = prompts.general_ask || "当前是【{{current_time}}】，是否继续？";
+        let template = prompts.general_ask || I18n.t("当前是【{{current_time}}】，是否继续？");
         return this.formatPrompt(template, {
-            current_time: currentEvent ? currentEvent.name : "未知时间",
-            action: "进入下一阶段",
+            current_time: currentEvent ? currentEvent.name : I18n.t("未知时间"),
+            action: I18n.t("进入下一阶段"),
             ...context
         });
     }
@@ -100,7 +100,7 @@ class GameFlow {
      */
     getNextStageName() {
         // 这里应该去查找下一模块的ID对应的Name，简化处理直接返回ID
-        return this.currentModule.next_stage || "无";
+        return this.currentModule.next_stage || I18n.t("无");
     }
 
     /**

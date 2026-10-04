@@ -168,8 +168,8 @@ const Modal = {
 
             this.show(title, `<div class="confirm-message">${message}</div>`, {
                 buttons: [
-                    { label: '取消', action: 'cancel' },
-                    { label: opts.confirmLabel || '确定', action: 'confirm', class: opts.danger ? 'btn-danger' : 'btn-primary' }
+                    { label: I18n.t('取消'), action: 'cancel' },
+                    { label: opts.confirmLabel || I18n.t('确定'), action: 'confirm', class: opts.danger ? 'btn-danger' : 'btn-primary' }
                 ],
                 onAction: (action) => {
                     this.isResolved = true;
@@ -224,8 +224,8 @@ const Modal = {
             };
             this.show(title, `<div class="input-dialog">${descHtml}${field}</div>`, {
                 buttons: [
-                    { label: '取消', action: 'cancel' },
-                    { label: '确定', action: 'confirm', class: 'btn-primary' }
+                    { label: I18n.t('取消'), action: 'cancel' },
+                    { label: I18n.t('确定'), action: 'confirm', class: 'btn-primary' }
                 ],
                 onAction: finish
             });
@@ -247,7 +247,7 @@ const Modal = {
         return new Promise(resolve => {
             this.show(title, `<div class="confirm-message">${message}</div>`, {
                 buttons: [
-                    { label: '确定', action: 'close', class: 'btn-primary' }
+                    { label: I18n.t('确定'), action: 'close', class: 'btn-primary' }
                 ],
                 onAction: () => {
                     this.close();

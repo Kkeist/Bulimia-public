@@ -10,7 +10,7 @@ Object.assign(App, {
         // AI名称
         const aiNameInput = document.getElementById('input-ai-name');
         if (aiNameInput) {
-            aiNameInput.value = settings.aiName || '故事之声';
+            aiNameInput.value = settings.aiName || I18n.t('故事之声');
         }
 
         // 主题
@@ -99,8 +99,8 @@ Object.assign(App, {
 
         // 如果启用"将角色名字作为停止字符串"
         if (settings.names_as_stop_strings) {
-            const userName = PersonaManager.current?.name || State.gameState?.playerName || '玩家';
-            const aiName = settings.aiName || '故事之声';
+            const userName = PersonaManager.current?.name || State.gameState?.playerName || I18n.t('玩家');
+            const aiName = settings.aiName || I18n.t('故事之声');
             result.push(`\n${userName}:`);
             result.push(`\n${aiName}:`);
         }

@@ -34,12 +34,12 @@ export function createModulesRouter(moduleRoot, listOpts = {}) {
     async function knownKey(req, res) {
         const key = req.params.folderKey;
         if (!isSafeSegment(key)) {
-            res.status(400).json({ error: true, message: '模组文件夹名不正确。' });
+            res.status(400).json({ error: true, code: 'bad-module-key', message: '模组文件夹名不正确。' });
             return null;
         }
         const known = (await readList()).map(moduleKeyOf).filter(Boolean);
         if (!known.includes(key)) {
-            res.status(404).json({ error: true, message: '没有找到这个模组。' });
+            res.status(404).json({ error: true, code: 'module-not-found', message: '没有找到这个模组。' });
             return null;
         }
         return key;
@@ -64,7 +64,7 @@ export function createModulesRouter(moduleRoot, listOpts = {}) {
             const txt = await fs.readFile(path.join(moduleRoot, key, 'module.json'), 'utf8');
             res.type('application/json').send(txt);
         } catch {
-            res.status(404).json({ error: true, message: '没有找到这个模组的文件。' });
+            res.status(404).json({ error: true, code: 'module-file-not-found', message: '没有找到这个模组的文件。' });
         }
     });
 
@@ -74,14 +74,14 @@ export function createModulesRouter(moduleRoot, listOpts = {}) {
         const body = req.body;
         if (!body || typeof body !== 'object' || Array.isArray(body)
             || typeof body.id !== 'string' || !body.id || typeof body.name !== 'string') {
-            return res.status(400).json({ error: true, message: '模组内容不完整，没有保存。' });
+            return res.status(400).json({ error: true, code: 'module-incomplete', message: '模组内容不完整，没有保存。' });
         }
         const dirPath = path.join(moduleRoot, key);
         const filePath = path.join(dirPath, 'module.json');
         try {
             await fs.access(dirPath);
         } catch {
-            return res.status(404).json({ error: true, message: '模组文件夹不存在。' });
+            return res.status(404).json({ error: true, code: 'module-dir-missing', message: '模组文件夹不存在。' });
         }
         const txt = JSON.stringify(body, null, 2);
         const tmpPath = `${filePath}.tmp.${process.pid}.${crypto.randomBytes(4).toString('hex')}`;
@@ -97,7 +97,7 @@ export function createModulesRouter(moduleRoot, listOpts = {}) {
             });
             res.json({ ok: true, bytes: Buffer.byteLength(txt, 'utf8'), folderKey: key });
         } catch {
-            res.status(500).json({ error: true, message: '写入失败，原文件没有被改动。请确认磁盘空间和文件权限。' });
+            res.status(500).json({ error: true, code: 'write-failed', message: '写入失败，原文件没有被改动。请确认磁盘空间和文件权限。' });
         }
     });
 
@@ -108,7 +108,7 @@ export function createModulesRouter(moduleRoot, listOpts = {}) {
         try {
             await fs.access(filePath);
         } catch {
-            return res.status(404).json({ error: true, message: '没有现有的模组文件可备份。' });
+            return res.status(404).json({ error: true, code: 'no-backup-source', message: '没有现有的模组文件可备份。' });
         }
         try {
             const name = await withLock(key, async () => {
@@ -122,7 +122,7 @@ export function createModulesRouter(moduleRoot, listOpts = {}) {
             });
             res.json({ ok: true, backup: name });
         } catch {
-            res.status(500).json({ error: true, message: '备份失败，请确认磁盘空间和文件权限。' });
+            res.status(500).json({ error: true, code: 'backup-failed', message: '备份失败，请确认磁盘空间和文件权限。' });
         }
     });
 

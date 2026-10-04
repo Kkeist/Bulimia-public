@@ -25,7 +25,7 @@ Object.assign(DebugModuleJump, {
         this._rawCache = {};
         let h = `<div class="mjx" id="mjx-raw">`;
         if (!msgs.length) {
-            h += `<div class="mjx-empty">还没有历史 AI 回复。</div></div>`;
+            h += `<div class="mjx-empty">${I18n.t('还没有历史 AI 回复。')}</div></div>`;
             box.innerHTML = h;
             this._bindRawTab(box);
             return;
@@ -38,12 +38,12 @@ Object.assign(DebugModuleJump, {
             const k = 'raw' + n;
             const showRaw = !!this._rawShowRaw && this._rawShowRaw[k];
             this._rawCache[k] = { raw, text: textOf(raw) };
-            h += `<div class="mjx-sec"><div class="mjx-sttl">第 ${n} 条回复` +
-                `<span><button type="button" class="mjx-b${!showRaw ? ' mjx-b-jump' : ''}" data-rawmode="text|${k}">文字版</button>` +
-                `<button type="button" class="mjx-b${showRaw ? ' mjx-b-jump' : ''}" data-rawmode="raw|${k}">原始版</button></span></div>` +
+            h += `<div class="mjx-sec"><div class="mjx-sttl">${I18n.t('第 {n} 条回复', { n })}` +
+                `<span><button type="button" class="mjx-b${!showRaw ? ' mjx-b-jump' : ''}" data-rawmode="text|${k}">${I18n.t('文字版')}</button>` +
+                `<button type="button" class="mjx-b${showRaw ? ' mjx-b-jump' : ''}" data-rawmode="raw|${k}">${I18n.t('原始版')}</button></span></div>` +
                 `<pre class="mjx-pre">${esc(showRaw ? raw : textOf(raw))}</pre>` +
-                `<div class="mjx-drow"><b>抽出的操作（${ops.length}）</b><div class="mjx-qitems">${ops.length ? ops.map(o => `<span class="mjx-qchip">${esc(o)}</span>`).join('') : '<span class="mjx-qnone">无</span>'}</div></div>` +
-                (effects.length ? `<div class="mjx-drow"><b>执行结果（${effects.length}）</b><div class="mjx-qitems">${effects.map(e => `<div class="mjx-qchip">${esc((e.ok ? '生效：' : '没生效：') + (e.ok ? e.summary : (e.tag ? e.tag + '，' : '') + e.reason))}</div>`).join('')}</div></div>` : '') + `</div>`;
+                `<div class="mjx-drow"><b>${I18n.t('抽出的操作（{n}）', { n: ops.length })}</b><div class="mjx-qitems">${ops.length ? ops.map(o => `<span class="mjx-qchip">${esc(o)}</span>`).join('') : `<span class="mjx-qnone">${I18n.t('无')}</span>`}</div></div>` +
+                (effects.length ? `<div class="mjx-drow"><b>${I18n.t('执行结果（{n}）', { n: effects.length })}</b><div class="mjx-qitems">${effects.map(e => `<div class="mjx-qchip">${esc((e.ok ? I18n.t('生效：') : I18n.t('没生效：')) + (e.ok ? e.summary : (e.tag ? e.tag + I18n.t('，') : '') + e.reason))}</div>`).join('')}</div></div>` : '') + `</div>`;
         });
         h += `</div>`;
         box.innerHTML = h;

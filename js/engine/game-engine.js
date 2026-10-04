@@ -305,7 +305,7 @@ class BulimiaEngine {
     async advance(userInput) {
         if (this.isProcessing) {
             if (typeof Toast !== 'undefined') {
-                Toast.show('正在处理中，请稍候...', 'warning');
+                Toast.show(I18n.t('正在处理中，请稍候...'), 'warning');
             }
             console.warn('Already processing, please wait...');
             return null;
@@ -431,7 +431,7 @@ class BulimiaEngine {
                 }
             } else {
                 // Mock response
-                response = { success: true, content: `[系统]: 收到输入 "${userInput}"，但当前没有连接到AI API。这是一个模拟响应。` };
+                response = { success: true, content: I18n.t('[系统]: 收到输入 "{input}"，但当前没有连接到AI API。这是一个模拟响应。', { input: userInput }) };
             }
 
             // 12. Parse response (uses AI tag format, no special TF/value parsing)
@@ -519,9 +519,9 @@ class BulimiaEngine {
     async advanceQuick(type, customRequest = '') {
         if (typeof Advancer === 'undefined') {
             if (typeof Toast !== 'undefined') {
-                Toast.show('推进器系统未初始化', 'error');
+                Toast.show(I18n.t('推进器系统未初始化'), 'error');
             }
-            return { success: false, error: '推进器系统未初始化' };
+            return { success: false, error: I18n.t('推进器系统未初始化') };
         }
         const advancePrompt = Advancer.buildAdvancePrompt?.(type, customRequest) || customRequest;
         return this.advance(advancePrompt);
@@ -616,7 +616,7 @@ class BulimiaEngine {
 
         // Depth 0: background
         let block = '```background\n';
-        block += `当前时间：${currentState.currentTime}\n`;
+        block += I18n.t('当前时间：{time}', { time: currentState.currentTime }) + '\n';
         if (this.currentModule) {
             block += `\n【${this.currentModule.name}】\n`;
             for (const info of this.currentModule.info) {
@@ -638,15 +638,15 @@ class BulimiaEngine {
                 });
                 block += `【${plugin.name}】(blockId: ${plugin.config.blockId || plugin.id})\n`;
                 block += segment + '\n';
-                block += `回复格式: <plugin|${plugin.id}|参数列表>\n\n`;
+                block += I18n.t('回复格式: <plugin|{id}|参数列表>', { id: plugin.id }) + '\n\n';
             }
             block += '```\n\n';
         }
-        block += '```variables\n【变量】\n';
+        block += '```variables\n' + I18n.t('【变量】') + '\n';
         for (const variable of this.variableSystem.variables.values()) {
             if (variable.category === 'builtin' || variable.category === 'temp') continue;
             block += `${variable.name} (${variable.id}, ${variable.type}): ${JSON.stringify(variable.value)}\n`;
-            if (variable.generalRules) block += `  规则: ${variable.generalRules}\n`;
+            if (variable.generalRules) block += '  ' + I18n.t('规则: {rules}', { rules: variable.generalRules }) + '\n';
             if (variable.supportedOperations && variable.supportedOperations.length > 0) {
                 for (const op of variable.supportedOperations) {
                     const params = Object.entries(op.params || {}).map(([k, v]) => `${k}=${v}`).join(', ');
@@ -656,7 +656,7 @@ class BulimiaEngine {
             if (variable.changeRules && variable.changeRules.length > 0) {
                 for (const rule of variable.changeRules) {
                     const hasParams = rule.value && typeof rule.value === 'string' && rule.value.includes('$param');
-                    block += `  <rule|${variable.id}|${rule.name}${hasParams ? '|参数' : ''}>\n`;
+                    block += `  <rule|${variable.id}|${rule.name}${hasParams ? '|' + I18n.t('参数') : ''}>\n`;
                 }
             }
         }
@@ -667,7 +667,7 @@ class BulimiaEngine {
         block = '```queue\n';
         const queue = this.moduleSystem.getQueue();
         if (queue.length > 0) {
-            block += '【当前队列】（可立即操作）\n';
+            block += I18n.t('【当前队列】（可立即操作）') + '\n';
             for (const moduleId of queue) {
                 const module = this.moduleSystem.getModule(moduleId);
                 if (!module) continue;
@@ -676,27 +676,27 @@ class BulimiaEngine {
                     const pendingDelivery = this.moduleSystem.getPendingDeliveryInfoForModule(module);
                     if (pendingDelivery.length > 0) {
                         const titles = pendingDelivery.map(d => `"${d.title}"`).join(', ');
-                        block += `  可完成: <module|complete|${moduleId}> (需确认deliveryInfo: ${titles})\n`;
+                        block += '  ' + I18n.t('可完成: <module|complete|{id}> (需确认deliveryInfo: {titles})', { id: moduleId, titles }) + '\n';
                     } else {
-                        block += `  可完成: <module|complete|${moduleId}>\n`;
+                        block += '  ' + I18n.t('可完成: <module|complete|{id}>', { id: moduleId }) + '\n';
                     }
                 } else if (this.moduleSystem.canEnterModule(moduleId)) {
-                    block += `  可进入: <module|enter|${moduleId}>\n`;
+                    block += '  ' + I18n.t('可进入: <module|enter|{id}>', { id: moduleId }) + '\n';
                 }
                 block += '\n';
             }
         } else {
-            block += '【当前队列】（空）\n';
+            block += I18n.t('【当前队列】（空）') + '\n';
         }
         block += '```\n\n';
         if (this.currentModule) {
             const pending = this.moduleSystem.getPendingDeliveryInfoForModule(this.currentModule);
             if (pending.length > 0) {
-                block += '```delivery\n【待确认投递信息】\n';
+                block += '```delivery\n' + I18n.t('【待确认投递信息】') + '\n';
                 pending.forEach((d, i) => {
                     block += `${i + 1}. ${d.title}\n`;
-                    block += `   内容: ${d.content}\n`;
-                    block += `   确认格式: <delivery|${d.title}|done>\n\n`;
+                    block += '   ' + I18n.t('内容: {content}', { content: d.content }) + '\n';
+                    block += '   ' + I18n.t('确认格式: <delivery|{title}|done>', { title: d.title }) + '\n\n';
                 });
                 block += '```\n\n';
             }
@@ -704,18 +704,18 @@ class BulimiaEngine {
         segments.push({ role: 'system', content: block, injection_depth: 2, injection_order: GAME_ORDER });
 
         // Depth 3: 操作提示（v5 真实路径生效格式：块格式，不是内联管道）
-        block = '【操作提示】\n你可以：\n';
-        block += '1. 改变量：用 <variables>...</variables> 块，每行「变量名<TAB>新值」（增减：变量名<TAB>+10）。\n';
-        block += '2. 确认投递：用 <delivery_completed>...</delivery_completed> 块，每行「投递标题<TAB>完成」。\n';
-        block += '3. 模块完成的剧情要点（可选）：用 <module_summary> 块写一行。\n';
-        block += '4. 事件进入/完成由系统按条件自动推进，AI 不需要主动写指令推。\n\n';
+        block = I18n.t('【操作提示】') + '\n' + I18n.t('你可以：') + '\n';
+        block += I18n.t('1. 改变量：用 <variables>...</variables> 块，每行「变量名<TAB>新值」（增减：变量名<TAB>+10）。') + '\n';
+        block += I18n.t('2. 确认投递：用 <delivery_completed>...</delivery_completed> 块，每行「投递标题<TAB>完成」。') + '\n';
+        block += I18n.t('3. 模块完成的剧情要点（可选）：用 <module_summary> 块写一行。') + '\n';
+        block += I18n.t('4. 事件进入/完成由系统按条件自动推进，AI 不需要主动写指令推。') + '\n\n';
         segments.push({ role: 'system', content: block, injection_depth: 3, injection_order: GAME_ORDER });
 
         // Depth 4: summary only (worldbooks go in as separate segments by their own depth/order below)
         if (summaryData) {
             segments.push({
                 role: 'system',
-                content: `【总结】\n${summaryData}\n\n`,
+                content: I18n.t('【总结】') + `\n${summaryData}\n\n`,
                 injection_depth: 4,
                 injection_order: GAME_ORDER
             });

@@ -6,6 +6,13 @@
     "author": "内置教程",
     "description": "逐个演示模组的每个功能，每个事件的备注只写一句作用。",
     "path": "module/xiuxian-demo",
-    "enabled": true
+    "enabled": true,
+    "i18n": {
+      "en": {
+        "name": "Cultivation Module - Feature Showcase",
+        "description": "Demonstrates each module feature one by one; each event's note is a single sentence about what it does.",
+        "author": "Built-in Tutorial"
+      }
+    }
   }
 ]

@@ -35,11 +35,11 @@ class StorageManager {
     _storageError(e) {
         if (e instanceof StorageError) return e;
         const isQuota = e && (e.name === 'QuotaExceededError' || e.code === 22 || (typeof e.message === 'string' && /quota/i.test(e.message)));
-        if (isQuota) return new StorageError('quota', '浏览器的存储空间不够了，没有保存成功。请先导出存档备份，再清理浏览器空间。');
+        if (isQuota) return new StorageError('quota', I18n.t('浏览器的存储空间不够了，没有保存成功。请先导出存档备份，再清理浏览器空间。'));
         if (e && (e.name === 'SecurityError' || e.name === 'InvalidStateError')) {
-            return new StorageError('unavailable', '这个浏览器不允许保存数据（可能是隐私模式），存档和设置无法保存。');
+            return new StorageError('unavailable', I18n.t('这个浏览器不允许保存数据（可能是隐私模式），存档和设置无法保存。'));
         }
-        return new StorageError('failed', '存档没有保存成功，请重试。');
+        return new StorageError('failed', I18n.t('存档没有保存成功，请重试。'));
     }
 
     /**
@@ -48,23 +48,23 @@ class StorageManager {
     async init() {
         this.localAvailable = this._probeLocal();
         if (!this.localAvailable && typeof Toast !== 'undefined') {
-            Toast.show('这个浏览器不允许保存设置（可能是隐私模式），刷新后设置会丢失。', 'warning', 8000);
+            Toast.show(I18n.t('这个浏览器不允许保存设置（可能是隐私模式），刷新后设置会丢失。'), 'warning', 8000);
         }
         return new Promise((resolve, reject) => {
             if (typeof indexedDB === 'undefined') {
-                reject(new StorageError('unavailable', '这个浏览器不支持保存存档，游戏进度无法保存。'));
+                reject(new StorageError('unavailable', I18n.t('这个浏览器不支持保存存档，游戏进度无法保存。')));
                 return;
             }
             let request;
             try {
                 request = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VERSION);
             } catch (e) {
-                reject(new StorageError('unavailable', '这个浏览器不允许保存存档（可能是隐私模式），游戏进度无法保存。'));
+                reject(new StorageError('unavailable', I18n.t('这个浏览器不允许保存存档（可能是隐私模式），游戏进度无法保存。')));
                 return;
             }
 
             request.onerror = () => {
-                reject(new StorageError('unavailable', '这个浏览器不允许保存存档（可能是隐私模式），游戏进度无法保存。'));
+                reject(new StorageError('unavailable', I18n.t('这个浏览器不允许保存存档（可能是隐私模式），游戏进度无法保存。')));
             };
 
             request.onsuccess = () => {
@@ -117,7 +117,7 @@ class StorageManager {
      */
     async _dbOperation(storeName, mode, operation) {
         if (!this.db) {
-            throw new StorageError('unavailable', '存档功能不可用，游戏进度无法保存。');
+            throw new StorageError('unavailable', I18n.t('存档功能不可用，游戏进度无法保存。'));
         }
 
         return new Promise((resolve, reject) => {
@@ -378,7 +378,7 @@ class StorageManager {
                 if (raw && !localStorage.getItem(key + '.corrupt')) {
                     localStorage.setItem(key + '.corrupt', raw);
                     if (typeof Toast !== 'undefined' && Toast.show) {
-                        Toast.show('浏览器里保存的设置损坏了，已按空白设置继续，原内容已另外备份。', 'warning', 8000);
+                        Toast.show(I18n.t('浏览器里保存的设置损坏了，已按空白设置继续，原内容已另外备份。'), 'warning', 8000);
                     }
                 }
             } catch (_) { /* 备份也写不了，只能这样 */ }
@@ -413,17 +413,17 @@ class StorageManager {
                 if (cleaned) {
                     try {
                         localStorage.setItem(key, JSON.stringify(value));
-                        if (typeof Toast !== 'undefined' && Toast.show) Toast.show('浏览器存储空间不够，已清理调试缓存后保存成功。', 'warning', 4000);
+                        if (typeof Toast !== 'undefined' && Toast.show) Toast.show(I18n.t('浏览器存储空间不够，已清理调试缓存后保存成功。'), 'warning', 4000);
                         return true;
                     } catch (e2) {
                         /* 重试仍失败，下面提示玩家 */
                     }
                 }
                 if (typeof Toast !== 'undefined' && Toast.show) {
-                    Toast.show('浏览器存储空间不够，设置没有保存成功。请先导出存档备份，再清理浏览器空间。', 'error', 8000);
+                    Toast.show(I18n.t('浏览器存储空间不够，设置没有保存成功。请先导出存档备份，再清理浏览器空间。'), 'error', 8000);
                 }
             } else if (typeof Toast !== 'undefined' && Toast.show) {
-                Toast.show('设置没有保存成功：这个浏览器不允许保存数据（可能是隐私模式）。', 'error', 5000);
+                Toast.show(I18n.t('设置没有保存成功：这个浏览器不允许保存数据（可能是隐私模式）。'), 'error', 5000);
             }
             return false;
         }
@@ -546,18 +546,18 @@ class StorageManager {
         try {
             obj = JSON.parse(String(text || '').replace(/^\uFEFF/, ''));
         } catch (e) {
-            throw bad('这不是存档文件，内容无法读取。');
+            throw bad(I18n.t('这不是存档文件，内容无法读取。'));
         }
         const rec = obj && typeof obj === 'object' && obj.save && typeof obj.save === 'object' ? obj.save : obj;
         const data = rec && rec.data;
         const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
         if (!isObj(data) || (data.chatHistory === undefined && data.variables === undefined && data.gameState === undefined)) {
-            throw bad('这个文件里没有找到存档内容。');
+            throw bad(I18n.t('这个文件里没有找到存档内容。'));
         }
-        if (data.chatHistory !== undefined && !Array.isArray(data.chatHistory)) throw bad('存档里的聊天记录格式不对，无法导入。');
-        if (data.variables !== undefined && !isObj(data.variables)) throw bad('存档里的变量格式不对，无法导入。');
-        if (data.gameState !== undefined && !isObj(data.gameState)) throw bad('存档里的游戏状态格式不对，无法导入。');
-        return { id: typeof rec.id === 'string' && rec.id.trim() ? rec.id.trim() : '导入的存档', data };
+        if (data.chatHistory !== undefined && !Array.isArray(data.chatHistory)) throw bad(I18n.t('存档里的聊天记录格式不对，无法导入。'));
+        if (data.variables !== undefined && !isObj(data.variables)) throw bad(I18n.t('存档里的变量格式不对，无法导入。'));
+        if (data.gameState !== undefined && !isObj(data.gameState)) throw bad(I18n.t('存档里的游戏状态格式不对，无法导入。'));
+        return { id: typeof rec.id === 'string' && rec.id.trim() ? rec.id.trim() : I18n.t('导入的存档'), data };
     }
 
     /** 导入存档文字，用一个不与现有存档重名的新名字保存；返回新存档的名字 */
@@ -567,8 +567,8 @@ class StorageManager {
         let id = parsed.id;
         if (existing.has(id)) {
             let n = 1;
-            while (existing.has(`${parsed.id}（导入${n === 1 ? '' : n}）`)) n++;
-            id = `${parsed.id}（导入${n === 1 ? '' : n}）`;
+            while (existing.has(I18n.t('{id}（导入{n}）', { id: parsed.id, n: n === 1 ? '' : n }))) n++;
+            id = I18n.t('{id}（导入{n}）', { id: parsed.id, n: n === 1 ? '' : n });
         }
         await this.saveGame(id, parsed.data);
         return id;

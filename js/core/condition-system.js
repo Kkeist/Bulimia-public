@@ -89,7 +89,7 @@ class ConditionEvaluator {
         } else if (item.itemType === 'group') {
             return this.evaluateGroup(item.group, mode);
         }
-        return this._report('有一条条件既不是单个条件也不是条件组，已按不满足处理。');
+        return this._report(I18n.t('有一条条件既不是单个条件也不是条件组，已按不满足处理。'));
     }
 
     /**
@@ -99,7 +99,7 @@ class ConditionEvaluator {
      * @returns {boolean}
      */
     evaluateCondition(condition, mode) {
-        if (!condition || typeof condition !== 'object') return this._report('有一条条件是空的，已按不满足处理。');
+        if (!condition || typeof condition !== 'object') return this._report(I18n.t('有一条条件是空的，已按不满足处理。'));
         switch (condition.type) {
             case 'none':
                 return this.evaluateNone();
@@ -133,7 +133,7 @@ class ConditionEvaluator {
                 return this.evaluateTag(condition);
 
             default:
-                return this._report(`条件类型「${condition.type}」不认识，已按不满足处理。`);
+                return this._report(I18n.t('条件类型「{type}」不认识，已按不满足处理。', { type: condition.type }));
         }
     }
 
@@ -153,7 +153,7 @@ class ConditionEvaluator {
         const varValue = this.context.variableSystem.getValue(variableId);
 
         if (varValue === undefined) {
-            return this._report(`条件引用的变量「${variableId}」不存在，已按不满足处理。`);
+            return this._report(I18n.t('条件引用的变量「{name}」不存在，已按不满足处理。', { name: variableId }));
         }
 
         return this.compareValues(varValue, operator, value);
@@ -169,7 +169,7 @@ class ConditionEvaluator {
         const value2 = this.context.variableSystem.getValue(compareVariableId);
 
         if (value1 === undefined || value2 === undefined) {
-            return this._report(`条件引用的变量「${value1 === undefined ? variableId : compareVariableId}」不存在，已按不满足处理。`);
+            return this._report(I18n.t('条件引用的变量「{name}」不存在，已按不满足处理。', { name: value1 === undefined ? variableId : compareVariableId }));
         }
 
         return this.compareValues(value1, operator, value2);
@@ -204,12 +204,12 @@ class ConditionEvaluator {
         const mode = condition.mode || condition.timeType || 'absolute';
 
         if (mode === 'absolute') {
-            if (!condition.time || typeof condition.time !== 'object') return this._report('有一条时间条件没有设置时间，已按不满足处理。');
+            if (!condition.time || typeof condition.time !== 'object') return this._report(I18n.t('有一条时间条件没有设置时间，已按不满足处理。'));
             const targetTime = new TimePoint(condition.time);
             return currentTime.isAfterOrEqual(targetTime);
         }
         if (mode === 'relative') {
-            if (!condition.relative || !condition.relative.moduleId) return this._report('有一条相对时间条件没有设置参照事件，已按不满足处理。');
+            if (!condition.relative || !condition.relative.moduleId) return this._report(I18n.t('有一条相对时间条件没有设置参照事件，已按不满足处理。'));
             const baseTime = this.context.moduleSystem.getModuleTimestamp(
                 condition.relative.moduleId,
                 condition.relative.state
@@ -331,7 +331,7 @@ class ConditionEvaluator {
      */
     evaluateTag(condition) {
         const { matchType, tags } = condition;
-        if (!Array.isArray(tags)) return this._report('有一条标签条件没有设置标签，已按不满足处理。');
+        if (!Array.isArray(tags)) return this._report(I18n.t('有一条标签条件没有设置标签，已按不满足处理。'));
         const currentTags = this.context.getCurrentTags ? this.context.getCurrentTags() : [];
 
         if (matchType === 'any') {
@@ -385,7 +385,7 @@ class ConditionEvaluator {
                 }
                 return false;
             default:
-                return this._report(`比较方式「${operator}」不认识，已按不满足处理。`);
+                return this._report(I18n.t('比较方式「{op}」不认识，已按不满足处理。', { op: operator }));
         }
     }
 

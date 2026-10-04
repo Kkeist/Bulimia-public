@@ -1,0 +1,1556 @@
+{
+  "id": "xiuxian-demo",
+  "name": "Cultivation Module - Feature Showcase",
+  "version": "1.0.0",
+  "author": "Built-in Tutorial",
+  "description": "Demonstrates each module feature one by one; each event's note is a single sentence about what it does.",
+  "note": "Tutorial module: each event, variable and plugin demonstrates exactly one feature, and its note says what that feature does.",
+  "timeSystem": {
+    "parameters": [
+      {
+        "id": "prefix",
+        "type": "base",
+        "systemBinding": "prefix"
+      },
+      {
+        "id": "year",
+        "type": "base",
+        "systemBinding": "year"
+      },
+      {
+        "id": "month",
+        "type": "base",
+        "systemBinding": "month"
+      },
+      {
+        "id": "day",
+        "type": "base",
+        "systemBinding": "day"
+      },
+      {
+        "id": "hour",
+        "type": "base",
+        "systemBinding": "hour"
+      },
+      {
+        "id": "minute",
+        "type": "base",
+        "systemBinding": "minute"
+      },
+      {
+        "id": "shichen",
+        "type": "computed",
+        "formula": "hour/2",
+        "labels": [
+          "Zi",
+          "Chou",
+          "Yin",
+          "Mao",
+          "Chen",
+          "Si",
+          "Wu",
+          "Wei",
+          "Shen",
+          "You",
+          "Xu",
+          "Hai"
+        ],
+        "calculationOnly": true
+      }
+    ],
+    "initialValues": {
+      "prefix": "Immortal Era ",
+      "year": 1,
+      "month": 1,
+      "day": 1,
+      "hour": 8,
+      "minute": 0,
+      "shichen": 4
+    },
+    "displayFormat": "{{prefix}}Year {{year}}, Month {{month}}, Day {{day}} · {{shichen}} Hour"
+  },
+  "timeUnits": {
+    "minutesPerHour": 60,
+    "hoursPerDay": 24,
+    "daysPerMonth": 30,
+    "monthsPerYear": 12
+  },
+  "info": [
+    {
+      "content": "Feature showcase: each event demonstrates one feature and explains what it does to the player in a sentence or two. There is no story.",
+      "condition": null,
+      "persistent": true
+    }
+  ],
+  "variables": [
+    {
+      "id": "qi",
+      "name": "Qi",
+      "type": "number",
+      "category": "module",
+      "initialValue": 0,
+      "min": 0,
+      "max": 100,
+      "changeRules": [
+        {
+          "name": "Meditate",
+          "operation": "add",
+          "value": 10
+        },
+        {
+          "name": "Injured",
+          "operation": "subtract",
+          "value": 5
+        }
+      ],
+      "generalRules": "Number variable: 0 to 100. <var|Qi|add|10> adds or subtracts; <rule|Qi|Meditate> adds 10."
+    },
+    {
+      "id": "sect",
+      "name": "Sect",
+      "type": "string",
+      "category": "module",
+      "initialValue": "",
+      "maxLength": 8,
+      "generalRules": "Text variable: set it with <var|Sect|set|Eastern Mountain Sect>; at most 8 characters."
+    },
+    {
+      "id": "is_disciple",
+      "name": "Initiated",
+      "type": "boolean",
+      "category": "module",
+      "initialValue": false,
+      "generalRules": "Boolean variable: only yes or no; change it with <var|Initiated|set|true>."
+    },
+    {
+      "id": "bag",
+      "name": "Bag",
+      "type": "list",
+      "category": "module",
+      "initialValue": [],
+      "elementType": "string",
+      "generalRules": "List variable: append adds an item, remove removes one."
+    },
+    {
+      "id": "profile",
+      "name": "Profile",
+      "type": "object",
+      "category": "module",
+      "initialValue": {
+        "称号": "None"
+      },
+      "fields": [
+        {
+          "name": "称号",
+          "type": "string",
+          "default": "None"
+        }
+      ],
+      "generalRules": "Object variable: modify_item changes one of its fields."
+    },
+    {
+      "id": "friends",
+      "name": "Friends",
+      "type": "list_of_object",
+      "category": "module",
+      "initialValue": [],
+      "fields": [
+        {
+          "name": "姓名",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "情谊",
+          "type": "number",
+          "default": 0
+        }
+      ],
+      "generalRules": "Object-list variable: add_item adds an entry, modify_item changes one."
+    },
+    {
+      "id": "realm",
+      "name": "Realm",
+      "type": "string",
+      "category": "builtin",
+      "initialValue": "Mortal",
+      "computeConditions": [
+        {
+          "conditionDef": {
+            "logic": "AND",
+            "groups": [
+              {
+                "logic": "AND",
+                "items": [
+                  {
+                    "itemType": "condition",
+                    "condition": {
+                      "type": "variable",
+                      "variableId": "qi",
+                      "operator": ">=",
+                      "value": 50
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "formula": "'Foundation Establishment'"
+        },
+        {
+          "conditionDef": {
+            "logic": "AND",
+            "groups": [
+              {
+                "logic": "AND",
+                "items": [
+                  {
+                    "itemType": "condition",
+                    "condition": {
+                      "type": "variable",
+                      "variableId": "qi",
+                      "operator": ">=",
+                      "value": 20
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "formula": "'Qi Refining'"
+        }
+      ],
+      "generalRules": "Built-in variable: computed automatically from Qi; the AI cannot change it."
+    },
+    {
+      "id": "comprehension",
+      "name": "Comprehension",
+      "type": "number",
+      "category": "switch",
+      "initialValue": 5,
+      "switchConditions": [
+        {
+          "type": "display",
+          "action": "open",
+          "condition": {
+            "logic": "OR",
+            "groups": [
+              {
+                "logic": "OR",
+                "items": [
+                  {
+                    "itemType": "condition",
+                    "condition": {
+                      "type": "tag",
+                      "matchType": "any",
+                      "tags": [
+                        "switch_demo"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "generalRules": "Switch variable: only sent to the AI when the event carries the switch demo tag."
+    },
+    {
+      "id": "root_type",
+      "name": "Spirit Root",
+      "type": "string",
+      "category": "module",
+      "initialValue": "Untested",
+      "readonly": true,
+      "generalRules": "Read-only variable: the AI can see it but cannot modify it."
+    },
+    {
+      "id": "scratch",
+      "name": "Scratch",
+      "type": "string",
+      "category": "temp",
+      "initialValue": "",
+      "generalRules": "Temporary variable: not sent to the AI; reserved for plugins."
+    }
+  ],
+  "plugins": [
+    {
+      "id": "status_panel",
+      "name": "Variable Panel",
+      "type": "display",
+      "note": "Display plugin: read-only display of Qi and Realm.",
+      "inlineHtml": "<meta name=\"color-scheme\" content=\"only light\">\n<div class=\"panel\">\n    <div class=\"row\"><span class=\"k\">Qi</span><b class=\"v\" data-bind=\"qi\"></b></div>\n    <div class=\"bar\"><div class=\"fill\" data-bind=\"qi\" data-bind-as=\"width\" data-bind-max=\"100\"></div></div>\n    <div class=\"row\"><span class=\"k\">Realm</span><b class=\"v\" data-bind=\"realm\"></b></div>\n</div>",
+      "inlineStyle": ":root { color-scheme: only light; }\n* { box-sizing: border-box; }\nhtml, body { margin: 0; padding: 0; background: #ffffff; color: #111111; }\nbody { font-family: -apple-system, \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans SC\", sans-serif; font-size: 14px; line-height: 1.5; }\n.panel { padding: 12px; background: #ffffff; }\n.row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }\n.k { color: #666666; font-size: 12px; }\n.v { font-weight: 600; overflow-wrap: anywhere; text-align: right; }\n.bar { height: 6px; margin: 4px 0 10px; background: #ececec; border: 1px solid #cfcfcf; }\n.fill { height: 100%; width: 0; background: #111111; }",
+      "config": {
+        "requiredVariables": [
+          "qi",
+          "realm"
+        ]
+      }
+    }
+  ],
+  "flows": {
+    "main": {
+      "entryEvent": null,
+      "subModules": [
+        {
+          "id": "g_structure",
+          "name": "Event Structure",
+          "type": "trigger_chain",
+          "note": "Parent event: groups related child events together.",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "linkedList": {
+            "prev": null,
+            "next": "g_time"
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "chain_1",
+                  "name": "Trigger Chain",
+                  "type": "trigger_chain",
+                  "note": "Trigger chain: events run in order; the previous one must finish before the next can start.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Trigger chain: events run in order; the previous one must finish before the next can start."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": null,
+                    "next": "chain_2"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "chain_2",
+                  "name": "Next Step in the Chain",
+                  "type": "trigger_chain",
+                  "note": "The next event in the chain; it can only be entered after the previous one is completed.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "The next event in the chain; it can only be entered after the previous one is completed."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": "chain_1",
+                    "next": "time_system"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "free_demo",
+                  "name": "Free Trigger",
+                  "type": "free_trigger",
+                  "note": "Free trigger: no fixed order; can be entered any time its conditions are met.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Free trigger: no fixed order; can be entered any time its conditions are met."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "sect_entry",
+                  "name": "Sub-flow Entry",
+                  "type": "free_trigger",
+                  "note": "Sub-flow entry: events in the sub-flow can only be entered after this one is completed.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Sub-flow entry: events in the sub-flow can only be entered after this one is completed."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "g_time",
+          "name": "Time",
+          "type": "trigger_chain",
+          "note": "Time: the module defines how years, months, days, hours and minutes advance and are displayed.",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "linkedList": {
+            "prev": "g_structure",
+            "next": "g_cond"
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "time_system",
+                  "name": "Time System",
+                  "type": "trigger_chain",
+                  "note": "Time system: sets year/month/day/hour/minute and the display format; the AI advances time with <time|hour|add|2>.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Time system: sets year/month/day/hour/minute and the display format; the AI advances time with <time|hour|add|2>."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": null,
+                    "next": "cond_complete"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "time_computed",
+                  "name": "Computed Parameter",
+                  "type": "free_trigger",
+                  "note": "Computed parameter: the double-hour is derived from the hour automatically and cannot be modified directly.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Computed parameter: the double-hour is derived from the hour automatically and cannot be modified directly."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "time_units",
+                  "name": "Time Carry-over",
+                  "type": "free_trigger",
+                  "note": "Time carry-over: sets days per month and months per year; here every month has 30 days.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Time carry-over: sets days per month and months per year; here every month has 30 days."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "time_line",
+                  "name": "Timeline",
+                  "type": "timeline",
+                  "note": "Timeline: can only be entered once the specified time arrives; it must carry a time condition.",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "time",
+                                  "timeType": "absolute",
+                                  "time": {
+                                    "year": 1,
+                                    "month": 1,
+                                    "day": 1,
+                                    "hour": 12,
+                                    "minute": 0
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Timeline: can only be entered once the specified time arrives; it must carry a time condition."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "g_cond",
+          "name": "Conditions",
+          "type": "trigger_chain",
+          "note": "Conditions: control when an event can be entered and when it can be completed.",
+          "tags": [
+            "cond_group"
+          ],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "linkedList": {
+            "prev": "g_time",
+            "next": "g_var"
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "cond_complete",
+                  "name": "Completion Condition",
+                  "type": "trigger_chain",
+                  "note": "Completion condition: the event can only be completed once it is met; here Initiated must be yes.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "variable",
+                                  "variableId": "is_disciple",
+                                  "operator": "==",
+                                  "value": true
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "info": [
+                    {
+                      "content": "Completion condition: the event can only be completed once it is met; here Initiated must be yes."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": null,
+                    "next": "cond_module"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_module",
+                  "name": "Event State Condition",
+                  "type": "trigger_chain",
+                  "note": "Event state condition: checks whether another event has been entered or completed.",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "module",
+                                  "moduleId": "chain_1",
+                                  "state": "completed"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Event state condition: checks whether another event has been entered or completed."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": "cond_complete",
+                    "next": "var_on_enter"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_enter",
+                  "name": "Entry Condition",
+                  "type": "free_trigger",
+                  "note": "Entry condition: must be met to enter; here Qi must be at least 10.",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "variable",
+                                  "variableId": "qi",
+                                  "operator": ">=",
+                                  "value": 10
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Entry condition: must be met to enter; here Qi must be at least 10."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_compare",
+                  "name": "Variable Comparison Condition",
+                  "type": "free_trigger",
+                  "note": "Variable comparison condition: compares two variables against each other; here Qi must be at least Comprehension.",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "variable_compare",
+                                  "variableId": "qi",
+                                  "operator": ">=",
+                                  "compareVariableId": "comprehension"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Variable comparison condition: compares two variables against each other; here Qi must be at least Comprehension."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_time",
+                  "name": "Time Condition",
+                  "type": "free_trigger",
+                  "note": "Time condition: met only once the specified date arrives.",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "time",
+                                  "timeType": "absolute",
+                                  "time": {
+                                    "year": 1,
+                                    "month": 1,
+                                    "day": 2
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Time condition: met only once the specified date arrives."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_relative",
+                  "name": "Relative Time Condition",
+                  "type": "free_trigger",
+                  "note": "Relative time condition: met some time after another event is completed.",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "time",
+                                  "mode": "relative",
+                                  "timeType": "relative",
+                                  "relative": {
+                                    "moduleId": "chain_1",
+                                    "state": "completed",
+                                    "offset": {
+                                      "hour": 2
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Relative time condition: met some time after another event is completed."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_tag",
+                  "name": "Tag Condition",
+                  "type": "free_trigger",
+                  "note": "Tag condition: checks whether an active event carries a specified tag.",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "tag",
+                                  "matchType": "any",
+                                  "tags": [
+                                    "cond_group"
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Tag condition: checks whether an active event carries a specified tag."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_nested",
+                  "name": "Condition Combination",
+                  "type": "free_trigger",
+                  "note": "Condition combination: nests multiple conditions with AND / OR.",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "OR",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "variable",
+                                  "variableId": "qi",
+                                  "operator": ">=",
+                                  "value": 10
+                                }
+                              },
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "variable",
+                                  "variableId": "is_disciple",
+                                  "operator": "==",
+                                  "value": true
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "module",
+                                  "moduleId": "chain_1",
+                                  "state": "completed"
+                                }
+                              },
+                              {
+                                "itemType": "group",
+                                "group": {
+                                  "logic": "OR",
+                                  "items": [
+                                    {
+                                      "itemType": "condition",
+                                      "condition": {
+                                        "type": "variable",
+                                        "variableId": "qi",
+                                        "operator": ">=",
+                                        "value": 5
+                                      }
+                                    },
+                                    {
+                                      "itemType": "condition",
+                                      "condition": {
+                                        "type": "tag",
+                                        "matchType": "any",
+                                        "tags": [
+                                          "cond_group"
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Condition combination: nests multiple conditions with AND / OR."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "g_var",
+          "name": "Variables",
+          "type": "trigger_chain",
+          "note": "Variables: an event can define variables and can also set variables on entry.",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "linkedList": {
+            "prev": "g_cond",
+            "next": "g_info"
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "var_on_enter",
+                  "name": "Set Variables on Entry",
+                  "type": "trigger_chain",
+                  "note": "Set variables on entry: when jumped into from the debug page, Sect is automatically set to Eastern Mountain Sect.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Set variables on entry: when jumped into from the debug page, Sect is automatically set to Eastern Mountain Sect."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "variableSetOnEnter": {
+                    "sect": "Eastern Mountain Sect"
+                  },
+                  "linkedList": {
+                    "prev": null,
+                    "next": "var_scope"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "var_scope",
+                  "name": "Scoped Variable",
+                  "type": "trigger_chain",
+                  "note": "Scoped variable: a variable defined in an event is only visible in that event and its child events.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Scoped variable: a variable defined in an event is only visible in that event and its child events."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [
+                    {
+                      "id": "aura",
+                      "name": "Aura",
+                      "type": "number",
+                      "category": "module",
+                      "initialValue": 1,
+                      "generalRules": "Scope demo: only visible inside the scoped variable event."
+                    }
+                  ],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": "var_on_enter",
+                    "next": "info_basic"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "var_switch",
+                  "name": "Switch Variable",
+                  "type": "free_trigger",
+                  "note": "Switch variable: Comprehension is only sent to the AI while an event with the switch demo tag is active.",
+                  "tags": [
+                    "switch_demo"
+                  ],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Switch variable: Comprehension is only sent to the AI while an event with the switch demo tag is active."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "g_info",
+          "name": "Persistent Background",
+          "type": "trigger_chain",
+          "note": "Persistent background: background marked persistent is still sent to the AI after entering child events.",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [
+            {
+              "content": "Persistent background: this entry is also sent while child events are active.",
+              "condition": null,
+              "persistent": true
+            },
+            {
+              "content": "This-event background: this entry is only sent while this event itself is active.",
+              "condition": null,
+              "persistent": false
+            }
+          ],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "linkedList": {
+            "prev": "g_var",
+            "next": "g_summary"
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "info_basic",
+                  "name": "Background",
+                  "type": "trigger_chain",
+                  "note": "Background: text sent to the AI while the event is active; it can carry conditions.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Background: this entry is always sent while this event is active.",
+                      "condition": null
+                    },
+                    {
+                      "content": "Conditional background: this entry is only sent when Qi is at least 10.",
+                      "condition": {
+                        "type": "display",
+                        "conditionDef": {
+                          "logic": "AND",
+                          "groups": [
+                            {
+                              "logic": "AND",
+                              "items": [
+                                {
+                                  "itemType": "condition",
+                                  "condition": {
+                                    "type": "variable",
+                                    "variableId": "qi",
+                                    "operator": ">=",
+                                    "value": 10
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": null,
+                    "next": "delivery_demo"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "delivery_demo",
+                  "name": "Delivery",
+                  "type": "trigger_chain",
+                  "note": "Delivery: information the AI must acknowledge; the event cannot be completed before it is confirmed.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Delivery: information the AI must acknowledge; the event cannot be completed before it is confirmed."
+                    }
+                  ],
+                  "deliveryInfo": [
+                    {
+                      "title": "Confirm Delivery",
+                      "content": "Delivery: this entry must be confirmed by the AI with <delivery|Confirm Delivery|done>.",
+                      "condition": null
+                    },
+                    {
+                      "title": "Conditional Delivery",
+                      "content": "Conditional delivery: confirmation is only required when Qi is at least 10.",
+                      "condition": {
+                        "type": "display",
+                        "conditionDef": {
+                          "logic": "AND",
+                          "groups": [
+                            {
+                              "logic": "AND",
+                              "items": [
+                                {
+                                  "itemType": "condition",
+                                  "condition": {
+                                    "type": "variable",
+                                    "variableId": "qi",
+                                    "operator": ">=",
+                                    "value": 10
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": "info_basic",
+                    "next": "queue_demo"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "queue_demo",
+                  "name": "Queue Display",
+                  "type": "trigger_chain",
+                  "note": "Queue display: controls how many upcoming event names are listed in the prompt.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Queue display: controls how many upcoming event names are listed in the prompt."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "queueDisplay": {
+                    "before": 1,
+                    "after": 2
+                  },
+                  "linkedList": {
+                    "prev": "delivery_demo",
+                    "next": "summary_leaf"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "info_calendar",
+                  "name": "Calendar Background",
+                  "type": "free_trigger",
+                  "note": "Calendar background: background can be sent only during a date range or at certain hours each day.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Date background: only sent from Year 1, Month 1, Day 1 to Day 10.",
+                      "condition": {
+                        "type": "display",
+                        "conditionDef": {
+                          "logic": "AND",
+                          "groups": [
+                            {
+                              "logic": "AND",
+                              "items": [
+                                {
+                                  "itemType": "condition",
+                                  "condition": {
+                                    "type": "time_range",
+                                    "timeType": "absolute",
+                                    "start": {
+                                      "year": 1,
+                                      "month": 1,
+                                      "day": 1
+                                    },
+                                    "end": {
+                                      "year": 1,
+                                      "month": 1,
+                                      "day": 10,
+                                      "hour": 23,
+                                      "minute": 59
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "content": "Hour background: sent every day between 6:00 and 18:00.",
+                      "condition": {
+                        "type": "display",
+                        "conditionDef": {
+                          "logic": "AND",
+                          "groups": [
+                            {
+                              "logic": "AND",
+                              "items": [
+                                {
+                                  "itemType": "condition",
+                                  "condition": {
+                                    "type": "time_range",
+                                    "timeType": "absolute",
+                                    "start": {
+                                      "hour": 6
+                                    },
+                                    "end": {
+                                      "hour": 17
+                                    },
+                                    "repeat": {
+                                      "enabled": true,
+                                      "interval": {
+                                        "day": 1
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "g_summary",
+          "name": "Event Summary",
+          "type": "trigger_chain",
+          "note": "Event summary: when child events are completed, the AI is asked to write a summary for this parent event.",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "summary": {
+            "enabled": true,
+            "autoSummarize": true,
+            "promptList": [
+              {
+                "condition": [],
+                "content": "Summarize this group of events in one sentence."
+              }
+            ]
+          },
+          "linkedList": {
+            "prev": "g_info",
+            "next": "g_plugin"
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "summary_leaf",
+                  "name": "Summarized Event",
+                  "type": "trigger_chain",
+                  "note": "Completing it triggers the summary of its parent event.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Completing it triggers the summary of its parent event."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": null,
+                    "next": "plugin_demo"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "g_plugin",
+          "name": "Plugins",
+          "type": "trigger_chain",
+          "note": "Plugins: small panels attached to a module or event and shown in the sidebar.",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "linkedList": {
+            "prev": "g_summary",
+            "next": null
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "plugin_demo",
+                  "name": "Display Plugin",
+                  "type": "trigger_chain",
+                  "note": "Display plugin: shows variables read-only; here it shows Qi and Realm.",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "Display plugin: shows variables read-only; here it shows Qi and Realm."
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": null,
+                    "next": null
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "sect": {
+      "name": "Sect Routine",
+      "entryEvent": "sect_entry",
+      "subModules": [
+        {
+          "id": "sect_event",
+          "name": "Event in the Sub-flow",
+          "type": "free_trigger",
+          "note": "Sub-flow: another line running in parallel with the main line; this is one of its events.",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [
+            {
+              "content": "Sub-flow: another line running in parallel with the main line; this is one of its events."
+            }
+          ],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": []
+            }
+          }
+        }
+      ]
+    }
+  }
+}

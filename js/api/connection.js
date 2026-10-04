@@ -22,7 +22,7 @@ class APIError extends Error {
 }
 
 function makeAbortError() {
-    const e = new Error('已停止生成');
+    const e = new Error(I18n.t('已停止生成'));
     e.name = 'AbortError';
     e.kind = 'aborted';
     return e;
@@ -50,7 +50,7 @@ const APIConnection = {
 
     providers: {
         claude_cli: {
-            name: '本机 Claude 命令行',
+            name: I18n.t('本机 Claude 命令行'),
             defaultEndpoint: '',
             defaultModels: ['sonnet', 'opus', 'haiku'],
             supportsModelsList: false,
@@ -111,25 +111,25 @@ const APIConnection = {
             supportsModelsList: false
         },
         moonshot: {
-            name: 'Moonshot 月之暗面',
+            name: I18n.t('Moonshot 月之暗面'),
             defaultEndpoint: 'https://api.moonshot.cn/v1',
             defaultModels: ['moonshot-v1-128k', 'moonshot-v1-32k', 'moonshot-v1-8k'],
             supportsModelsList: false
         },
         zhipu: {
-            name: '智谱AI (GLM)',
+            name: I18n.t('智谱AI (GLM)'),
             defaultEndpoint: 'https://open.bigmodel.cn/api/paas/v4',
             defaultModels: ['glm-4-plus', 'glm-4', 'glm-4-flash', 'glm-3-turbo'],
             supportsModelsList: false
         },
         qwen: {
-            name: '通义千问',
+            name: I18n.t('通义千问'),
             defaultEndpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
             defaultModels: ['qwen-max', 'qwen-plus', 'qwen-turbo'],
             supportsModelsList: false
         },
         custom: {
-            name: '自定义 (OpenAI兼容)',
+            name: I18n.t('自定义 (OpenAI兼容)'),
             defaultEndpoint: '',
             defaultModels: [],
             supportsModelsList: true
@@ -173,14 +173,14 @@ const APIConnection = {
     checkConfigured(cfg) {
         cfg = cfg || this.config;
         if (cfg.provider === 'claude_cli') return null;
-        if (!cfg.endpoint) return '请先在设置里填写 API 地址。';
+        if (!cfg.endpoint) return I18n.t('请先在设置里填写 API 地址。');
         let u;
         try { u = new URL(cfg.endpoint); } catch (e) { u = null; }
         if (!u || (u.protocol !== 'http:' && u.protocol !== 'https:')) {
-            return 'API 地址不正确，需要以 http:// 或 https:// 开头。';
+            return I18n.t('API 地址不正确，需要以 http:// 或 https:// 开头。');
         }
-        if (!cfg.apiKey && !this._isLocalEndpoint(cfg.endpoint)) return '请先在设置里填写 API 密钥。';
-        if (!cfg.model) return '请先在设置里选择模型。';
+        if (!cfg.apiKey && !this._isLocalEndpoint(cfg.endpoint)) return I18n.t('请先在设置里填写 API 密钥。');
+        if (!cfg.model) return I18n.t('请先在设置里选择模型。');
         return null;
     },
 
@@ -237,44 +237,56 @@ const APIConnection = {
         }
     },
 
+    /** 本机服务（server/）返回的中文提示：按词条翻译，带参数的几条按格式还原参数 */
+    _localizeServerMsg(msg) {
+        if (typeof msg !== 'string' || !msg) return msg;
+        let m = msg.match(/^等待 (.+) 响应超时。$/);
+        if (m) return I18n.t('等待 {host} 响应超时。', { host: m[1] });
+        m = msg.match(/^无法连接到 (.+)，请检查地址和网络。$/);
+        if (m) return I18n.t('无法连接到 {host}，请检查地址和网络。', { host: m[1] });
+        m = msg.match(/^本机的 Claude 命令行没有正常结束（退出码 (.+)），请在终端里运行 claude 确认能正常使用。$/);
+        if (m) return I18n.t('本机的 Claude 命令行没有正常结束（退出码 {code}），请在终端里运行 claude 确认能正常使用。', { code: m[1] });
+        return I18n.t(msg);
+    },
+
     _hostOf(url) {
         try { return new URL(url).host; } catch (e) { return String(url || ''); }
     },
 
     _httpError(status, bodyText, resp, host) {
         const detail = this._redact(this._extractErrorText(bodyText));
-        const tail = detail ? `\n服务商返回：${detail}` : '';
+        const tail = detail ? `\n${I18n.t('服务商返回：{detail}', { detail })}` : '';
         if (status === 401 || status === 403) {
-            return new APIError('auth', `服务商没有接受密钥（${status}），请在设置里检查密钥和 API 地址。${tail}`, { status });
+            return new APIError('auth', `${I18n.t('服务商没有接受密钥（{status}），请在设置里检查密钥和 API 地址。', { status })}${tail}`, { status });
         }
         if (status === 404) {
-            return new APIError('not-found', `没有找到这个接口或模型（404），请检查 API 地址（常见是少了 /v1）和模型名称。${tail}`, { status });
+            return new APIError('not-found', `${I18n.t('没有找到这个接口或模型（404），请检查 API 地址（常见是少了 /v1）和模型名称。')}${tail}`, { status });
         }
         if (status === 429) {
             const wait = resp && resp.headers && resp.headers.get('retry-after');
-            const w = wait && /^\d+$/.test(wait) ? `，服务商建议 ${wait} 秒后再试` : '，请稍后再试';
-            return new APIError('rate-limit', `服务商提示请求太频繁或额度用完（429）${w}。${tail}`, { status });
+            const w = wait && /^\d+$/.test(wait) ? I18n.t('，服务商建议 {wait} 秒后再试', { wait }) : I18n.t('，请稍后再试');
+            return new APIError('rate-limit', `${I18n.t('服务商提示请求太频繁或额度用完（429）{w}。', { w })}${tail}`, { status });
         }
         if (status === 408 || status === 504) {
-            return new APIError('timeout', `服务商响应超时（${status}），请稍后再试。${tail}`, { status });
+            return new APIError('timeout', `${I18n.t('服务商响应超时（{status}），请稍后再试。', { status })}${tail}`, { status });
         }
         if (status === 413) {
-            return new APIError('http', `发送的内容太长（413），服务商拒绝了。可以在设置里减少历史或总结长度。${tail}`, { status });
+            return new APIError('http', `${I18n.t('发送的内容太长（413），服务商拒绝了。可以在设置里减少历史或总结长度。')}${tail}`, { status });
         }
         if (status >= 500) {
-            return new APIError('server', `服务商暂时出错（${status}），请稍后再试。${tail}`, { status });
+            return new APIError('server', `${I18n.t('服务商暂时出错（{status}），请稍后再试。', { status })}${tail}`, { status });
         }
-        return new APIError('http', `服务商拒绝了这次请求（${status}）。${tail}`, { status });
+        return new APIError('http', `${I18n.t('服务商拒绝了这次请求（{status}）。', { status })}${tail}`, { status });
     },
 
     _networkError(host) {
         if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-            return new APIError('network', '当前没有网络连接，请联网后重试。');
+            return new APIError('network', I18n.t('当前没有网络连接，请联网后重试。'));
         }
         const hint = (this.capabilities && this.capabilities.relay)
-            ? '如果地址没有填错，可能是该服务不允许网页直接连接，请在设置里把连接方式改为「经本机转发」。'
-            : '如果地址没有填错，可能是该服务不允许网页直接连接，请换一个允许网页访问的服务，或填写反向代理地址。';
-        return new APIError('network', `无法连接到 ${host}。请检查网络和 API 地址。${hint}`);
+            ? I18n.t('如果地址没有填错，可能是该服务不允许网页直接连接，请在设置里把连接方式改为「经本机转发」。')
+            : I18n.t('如果地址没有填错，可能是该服务不允许网页直接连接，请换一个允许网页访问的服务，或填写反向代理地址。');
+        return new APIError('network', `${I18n.t('无法连接到 {host}。请检查网络和 API 地址。', { host })}${hint}`);
     },
 
     // ==================== 各家请求格式 ====================
@@ -467,7 +479,7 @@ const APIConnection = {
             },
             _fromResponse(self, data, acc) {
                 if (data && data.promptFeedback && data.promptFeedback.blockReason) {
-                    throw new APIError('blocked', `这次请求被 Google 的安全过滤拦截了（${data.promptFeedback.blockReason}）。`);
+                    throw new APIError('blocked', I18n.t('这次请求被 Google 的安全过滤拦截了（{reason}）。', { reason: data.promptFeedback.blockReason }));
                 }
                 const cand = data && data.candidates && data.candidates[0];
                 const parts = (cand && cand.content && cand.content.parts) || [];
@@ -567,7 +579,7 @@ const APIConnection = {
     /** 流式事件里带的错误对象转成 APIError */
     _streamError(err) {
         const msg = typeof err === 'string' ? err : (err && (err.message || err.type)) || '';
-        return new APIError('server', `服务商在回复过程中报错：${this._redact(msg) || '未知错误'}`);
+        return new APIError('server', I18n.t('服务商在回复过程中报错：{msg}', { msg: this._redact(msg) || I18n.t('未知错误') }));
     },
 
     // ==================== 发送：主入口 ====================
@@ -633,7 +645,7 @@ const APIConnection = {
         if (cfg.relay) {
             const caps = await this.probeCapabilities();
             if (!caps.relay) {
-                throw new APIError('unsupported', '「经本机转发」只能在本机运行游戏时使用，请在设置里把连接方式改回直连。');
+                throw new APIError('unsupported', I18n.t('「经本机转发」只能在本机运行游戏时使用，请在设置里把连接方式改回直连。'));
             }
             const resp = await fetch('api/relay', {
                 method: 'POST',
@@ -645,7 +657,7 @@ const APIConnection = {
             if (relayError) {
                 let msg = '';
                 try { msg = (await resp.json()).message; } catch (e) { /* 没有说明文字 */ }
-                throw new APIError('network', msg || '本机转发失败，请重试。');
+                throw new APIError('network', msg ? this._localizeServerMsg(msg) : I18n.t('本机转发失败，请重试。'));
             }
             return resp;
         }
@@ -661,7 +673,7 @@ const APIConnection = {
         } catch (e) {
             guard.done();
             if (guard.userAborted) throw makeAbortError();
-            if (guard.timedOut) throw new APIError('timeout', `等待 ${this._hostOf(req.url)} 响应超过 ${Math.round(waitMs / 1000)} 秒，已停止。请检查网络，或稍后再试。`);
+            if (guard.timedOut) throw new APIError('timeout', I18n.t('等待 {host} 响应超过 {sec} 秒，已停止。请检查网络，或稍后再试。', { host: this._hostOf(req.url), sec: Math.round(waitMs / 1000) }));
             if (e instanceof APIError) throw e;
             throw this._networkError(this._hostOf(req.url));
         }
@@ -690,7 +702,7 @@ const APIConnection = {
         const contentType = resp.headers.get('content-type') || '';
         if (wantStream && /html/i.test(contentType)) {
             guard.done();
-            throw new APIError('bad-response', '服务返回了网页而不是 AI 回复，可能不是 AI 服务的地址（常见是少了 /v1）。');
+            throw new APIError('bad-response', I18n.t('服务返回了网页而不是 AI 回复，可能不是 AI 服务的地址（常见是少了 /v1）。'));
         }
         const readAsJson = !wantStream || /json/i.test(contentType);
 
@@ -700,13 +712,13 @@ const APIConnection = {
                 const raw = await resp.text();
                 try { data = JSON.parse(raw); } catch (e) {
                     guard.done();
-                    throw new APIError('bad-response', '服务返回的内容无法读取，可能不是 AI 服务的地址（常见是少了 /v1）。');
+                    throw new APIError('bad-response', I18n.t('服务返回的内容无法读取，可能不是 AI 服务的地址（常见是少了 /v1）。'));
                 }
             } catch (e) {
                 guard.done();
                 if (e instanceof APIError) throw e;
                 if (guard.userAborted) throw makeAbortError();
-                if (guard.timedOut) throw new APIError('timeout', `等待 ${this._hostOf(req.url)} 响应超过 ${Math.round(waitMs / 1000)} 秒，已停止。`);
+                if (guard.timedOut) throw new APIError('timeout', I18n.t('等待 {host} 响应超过 {sec} 秒，已停止。', { host: this._hostOf(req.url), sec: Math.round(waitMs / 1000) }));
                 throw this._networkError(this._hostOf(req.url));
             }
             guard.done();
@@ -764,15 +776,15 @@ const APIConnection = {
     _completeResult(messages, acc, streamed, incompleteReason, incompleteDetail) {
         if (!acc.text.trim()) {
             if (incompleteReason) {
-                throw new APIError('network', '回复中途断开了，没有收到任何内容。请重试。');
+                throw new APIError('network', I18n.t('回复中途断开了，没有收到任何内容。请重试。'));
             }
             if (acc.finish === 'content_filter') {
-                throw new APIError('blocked', '回复被服务商的内容过滤拦截了，请调整输入后重试。');
+                throw new APIError('blocked', I18n.t('回复被服务商的内容过滤拦截了，请调整输入后重试。'));
             }
             if (acc.finish === 'length' && acc.reasoning) {
-                throw new APIError('empty', '回复是空的：模型把长度上限都用在思考上了。请在输出预设里调大最大长度。');
+                throw new APIError('empty', I18n.t('回复是空的：模型把长度上限都用在思考上了。请在输出预设里调大最大长度。'));
             }
-            throw new APIError('empty', '服务返回了空回复，请重试。如果经常出现，请检查模型名称。');
+            throw new APIError('empty', I18n.t('服务返回了空回复，请重试。如果经常出现，请检查模型名称。'));
         }
         return this.finalizeReply({
             text: acc.text, reasoning: acc.reasoning, usage: acc.usage, finish: acc.finish,
@@ -922,10 +934,10 @@ const APIConnection = {
     async _sendClaudeCli(messages, cfg, options) {
         const caps = await this.probeCapabilities();
         if (!caps.service) {
-            throw new APIError('unsupported', '「本机 Claude 命令行」只能在本机运行游戏时使用，请在设置里换一个 API 服务商。');
+            throw new APIError('unsupported', I18n.t('「本机 Claude 命令行」只能在本机运行游戏时使用，请在设置里换一个 API 服务商。'));
         }
         if (!caps.localCli) {
-            throw new APIError('unsupported', '本机没有找到 Claude 命令行，请先安装并登录，或在设置里换一个 API 服务商。');
+            throw new APIError('unsupported', I18n.t('本机没有找到 Claude 命令行，请先安装并登录，或在设置里换一个 API 服务商。'));
         }
         const sys = messages.find(m => m.role === 'system');
         const chat = messages.filter(m => m.role !== 'system');
@@ -944,14 +956,14 @@ const APIConnection = {
         } catch (e) {
             guard.done();
             if (guard.userAborted) throw makeAbortError();
-            if (guard.timedOut) throw new APIError('timeout', '等待本机 Claude 命令行响应超时，已停止。');
-            throw new APIError('network', '无法连接本机服务，请确认游戏是用 Start.bat 启动的。');
+            if (guard.timedOut) throw new APIError('timeout', I18n.t('等待本机 Claude 命令行响应超时，已停止。'));
+            throw new APIError('network', I18n.t('无法连接本机服务，请确认游戏是用 Start.bat 启动的。'));
         }
         if (!resp.ok) {
             let msg = '';
             try { msg = (await resp.json()).message; } catch (e) { /* 没有说明文字 */ }
             guard.done();
-            throw new APIError(resp.status === 429 ? 'rate-limit' : 'http', msg || `本机 Claude 命令行请求失败（${resp.status}）。`, { status: resp.status });
+            throw new APIError(resp.status === 429 ? 'rate-limit' : 'http', msg ? this._localizeServerMsg(msg) : I18n.t('本机 Claude 命令行请求失败（{status}）。', { status: resp.status }), { status: resp.status });
         }
 
         const acc = { text: '', reasoning: '', usage: null, finish: null, ended: false };
@@ -963,7 +975,7 @@ const APIConnection = {
                 acc.text += evt.text;
                 if (typeof options.onChunk === 'function') options.onChunk(evt.text, acc.text);
             } else if (evt.type === 'error' && evt.error) {
-                errMsg = evt.error;
+                errMsg = this._localizeServerMsg(evt.error);
             } else if (evt.type === 'done') {
                 acc.ended = true;
             }
@@ -1025,11 +1037,11 @@ const APIConnection = {
             data = await resp.json();
         } catch (e) {
             guard.done();
-            throw new APIError('bad-response', '服务返回的模型列表无法读取，可能不是 AI 服务的地址（常见是少了 /v1）。');
+            throw new APIError('bad-response', I18n.t('服务返回的模型列表无法读取，可能不是 AI 服务的地址（常见是少了 /v1）。'));
         }
         guard.done();
         const models = adapter.parseModels(data);
-        if (!models.length) throw new APIError('empty', '服务没有返回可用的模型。');
+        if (!models.length) throw new APIError('empty', I18n.t('服务没有返回可用的模型。'));
         return models;
     }
 };

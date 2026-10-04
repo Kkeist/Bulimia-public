@@ -77,7 +77,7 @@ const App = {
             this.restoreUiPage();
         } catch (error) {
             console.error('Init error:', error);
-            Toast.show('初始化失败: ' + error.message, 'error');
+            Toast.show(I18n.t('初始化失败: {msg}', { msg: error.message }), 'error');
         } finally {
             document.documentElement.classList.remove('is-booting');
         }
@@ -133,7 +133,7 @@ const App = {
                 } else if (window.ModuleManager && ModuleManager.currentModule) {
                     this.buildDebugBridgeAndInitModuleJump();
                 } else {
-                    if (!DebugModuleJump.moduleSystem) DebugModuleJump.showError('请在设置中先加载模组');
+                    if (!DebugModuleJump.moduleSystem) DebugModuleJump.showError(I18n.t('请在设置中先加载模组'));
                     else if (DebugModuleJump.refresh) DebugModuleJump.refresh();
                 }
             }
@@ -160,7 +160,7 @@ const App = {
     async switchDebugTab(tabId) {
         if (window.DebugModuleJump && DebugModuleJump.syncFromState) {
             try { DebugModuleJump.syncFromState(); }
-            catch (e) { console.error('syncFromState', e); Toast.show('读取游戏进度失败：' + e.message, 'error'); }
+            catch (e) { console.error('syncFromState', e); Toast.show(I18n.t('读取游戏进度失败：{msg}', { msg: e.message }), 'error'); }
         }
         document.querySelectorAll('.debug-tab').forEach(tab => {
             tab.classList.toggle('active', tab.dataset.tab === tabId);
@@ -309,7 +309,7 @@ const App = {
             const pathIds = (pathStr === undefined || pathStr === '') ? [] : pathStr.split('|').filter(Boolean);
             const { node: selNode, name: selName } = (typeof ModuleManager !== 'undefined' && ModuleManager.getModuleNodeByPath) ? ModuleManager.getModuleNodeByPath(cur, pathIds) : {};
             if (typeof DebugViewer !== 'undefined' && typeof DebugViewer._showModuleDetail === 'function') {
-                DebugViewer._showModuleDetail(selNode || cur.content, selName || (pathIds.length === 0 ? cur.name : '未命名'), pathIds.length === 0, cur, pathIds);
+                DebugViewer._showModuleDetail(selNode || cur.content, selName || (pathIds.length === 0 ? cur.name : I18n.t('未命名')), pathIds.length === 0, cur, pathIds);
             }
         });
 
@@ -324,10 +324,10 @@ const App = {
             const btn = document.getElementById('btn-toggle-api-key');
             if (input.type === 'password') {
                 input.type = 'text';
-                btn.textContent = '隐藏';
+                btn.textContent = I18n.t('隐藏');
             } else {
                 input.type = 'password';
-                btn.textContent = '显示';
+                btn.textContent = I18n.t('显示');
             }
         });
         document.getElementById('api-provider-select')?.addEventListener('change', (e) => this.onProviderChange(e.target.value));
@@ -468,7 +468,7 @@ const App = {
         if (stopHost) {
             this._stopStringsField = TagList.create({
                 values: this.getStopStringList(),
-                placeholder: '输入后按回车添加',
+                placeholder: I18n.t('输入后按回车添加'),
                 separator: /\n/,
                 onChange: (values) => Storage.saveSettings({ stopStrings: values })
             });
@@ -561,7 +561,7 @@ const App = {
     // ===== 开始游戏 =====
 
     _newSaveId() {
-        return `存档_${new Date().toLocaleDateString().replace(/\//g, '-')}_${Date.now().toString().slice(-4)}`;
+        return I18n.t('存档_{date}_{n}', { date: new Date().toLocaleDateString().replace(/\//g, '-'), n: Date.now().toString().slice(-4) });
     },
 
     /** 按当前模组写入新游戏的起始状态：起始位置与各变量的初始值 */
@@ -582,7 +582,7 @@ const App = {
                 this._runModuleGeneratorsForCurrentPath(curModule, firstPath || []);
             } catch (error) {
                 console.error('Module generator error:', error);
-                Toast.show('部分初始内容没有生成成功：' + error.message, 'error', 8000);
+                Toast.show(I18n.t('部分初始内容没有生成成功：{msg}', { msg: error.message }), 'error', 8000);
             }
         }
         if (curModule?.content) {
@@ -636,12 +636,12 @@ const App = {
 
     async startNewGame() {
         if (this.isGenerating) {
-            Toast.show('正在生成中，请先停止。', 'warning');
+            Toast.show(I18n.t('正在生成中，请先停止。'), 'warning');
             return;
         }
         // 还没有开始任何游戏时直接开始，不用确认
         if (Engine.isRunning) {
-            const confirmed = await Modal.confirm('新游戏', '开始新游戏？当前游戏会自动保存。');
+            const confirmed = await Modal.confirm(I18n.t('新游戏'), I18n.t('开始新游戏？当前游戏会自动保存。'));
             if (!confirmed) return;
         }
 
@@ -659,7 +659,7 @@ const App = {
         this.updateSaveInfo();
         ChatDisplay.loadHistory(State.chatHistory || []);
 
-        if (await this.autoSaveToCurrentSlot()) Toast.show('已开始新游戏。', 'success');
+        if (await this.autoSaveToCurrentSlot()) Toast.show(I18n.t('已开始新游戏。'), 'success');
     }
 };
 

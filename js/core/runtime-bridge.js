@@ -7,7 +7,7 @@
  * 状态里的模块路径不含根模块 id（与 ModuleManager 一致）；核心系统的路径含根，转换时统一去掉。
  */
 const RuntimeBridge = {
-    DEFAULT_TIME_FORMAT: '{{year}}年{{month}}月{{day}}日 {{hour}}时',
+    DEFAULT_TIME_FORMAT: I18n.t('{{year}}年{{month}}月{{day}}日 {{hour}}时'),
 
     /** 去掉路径开头的根模块 id。 */
     stripRoot(path, rootId) {
@@ -38,7 +38,7 @@ const RuntimeBridge = {
      * @returns {{config, state, timeSystem, variableSystem, moduleSystem, conditionEvaluator, summarySystem, promptGenerator, tagParser}}
      */
     build(config, state, opts = {}) {
-        if (!config || !config.id) throw new Error('模组配置缺少根模块');
+        if (!config || !config.id) throw new Error(I18n.t('模组配置缺少根模块'));
         const rootId = config.id;
         const vars = (state && state.variables) || {};
 

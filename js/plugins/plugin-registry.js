@@ -149,7 +149,7 @@
                 }
             });
             if (missingId !== null) {
-                issues0.push({ level: 'warn', code: 'OWNER_MISSING', plugin: '当前位置', text: '当前所在的模块「' + missingId + '」已经不在模组里，它和它下面各层的插件没有加载。', hint: '回到上一层模块，或在模组编辑里把它加回来。' });
+                issues0.push({ level: 'warn', code: 'OWNER_MISSING', plugin: I18n.t('当前位置'), text: I18n.t('当前所在的模块「{id}」已经不在模组里，它和它下面各层的插件没有加载。', { id: missingId }), hint: I18n.t('回到上一层模块，或在模组编辑里把它加回来。') });
             }
             var issues = issues0;
             var byId = new Map();
@@ -158,13 +158,13 @@
                 var seenHere = {};
                 (Array.isArray(layer.list) ? layer.list : []).forEach(function (raw) {
                     if (!raw || typeof raw !== 'object') {
-                        issues.push({ level: 'error', code: 'ENTRY_BROKEN', plugin: layer.ownerName, text: '「' + layer.ownerName + '」里有一条插件登记不是正确的格式，已忽略。', hint: '在模组编辑里重新添加这个插件。' });
+                        issues.push({ level: 'error', code: 'ENTRY_BROKEN', plugin: layer.ownerName, text: I18n.t('「{name}」里有一条插件登记不是正确的格式，已忽略。', { name: layer.ownerName }), hint: I18n.t('在模组编辑里重新添加这个插件。') });
                         return;
                     }
                     var id = raw.id == null ? '' : String(raw.id);
-                    if (!id) { issues.push({ level: 'error', code: 'ID_MISSING', plugin: raw.name || '未命名插件', text: '有一个插件没有编号，无法使用。', hint: '重新添加这个插件。' }); return; }
+                    if (!id) { issues.push({ level: 'error', code: 'ID_MISSING', plugin: raw.name || I18n.t('未命名插件'), text: I18n.t('有一个插件没有编号，无法使用。'), hint: I18n.t('重新添加这个插件。') }); return; }
                     if (seenHere[id]) {
-                        issues.push({ level: 'error', code: 'ID_DUPLICATE', plugin: raw.name || id, text: '「' + layer.ownerName + '」下有两个编号相同的插件，后面这个没有生效。', hint: '删掉其中一个，或给它换个编号。' });
+                        issues.push({ level: 'error', code: 'ID_DUPLICATE', plugin: raw.name || id, text: I18n.t('「{name}」下有两个编号相同的插件，后面这个没有生效。', { name: layer.ownerName }), hint: I18n.t('删掉其中一个，或给它换个编号。') });
                         return;
                     }
                     seenHere[id] = true;
@@ -235,7 +235,7 @@
                 return PluginRenderer.loadFiles(def, { modulePath: modulePath, cache: self._cache }).then(function (files) {
                     if (files.pool && files.pool.text != null) {
                         try { files.pool = { text: files.pool.text, value: JSON.parse(files.pool.text) }; }
-                        catch (e) { files.pool = { error: '随机池文件内容格式不对：' + def.files.pool + '。', notFound: false }; }
+                        catch (e) { files.pool = { error: I18n.t('随机池文件内容格式不对：{file}。', { file: def.files.pool }), notFound: false }; }
                     }
                     return { it: it, def: def, files: files };
                 });
@@ -259,14 +259,14 @@
         _apply: function (cur, modulePath, collected, legacyItems, legacyScriptErrors, loaded) {
             var self = this;
             var issues = collected.issues.slice();
-            legacyScriptErrors.forEach(function (m) { if (m) issues.push({ level: 'error', code: 'FILE_MISSING', plugin: '旧式插件', text: m, hint: '检查脚本文件是否在模组文件夹里。' }); });
+            legacyScriptErrors.forEach(function (m) { if (m) issues.push({ level: 'error', code: 'FILE_MISSING', plugin: I18n.t('旧式插件'), text: m, hint: I18n.t('检查脚本文件是否在模组文件夹里。') }); });
 
             var system = new PluginSystem();
             var extraDefs = [];
             var siblingIds = collected.items.map(function (i) { return i.id; });
             var defsById = {};
             try { (ModuleManager.getAllVariableDefs(cur) || []).forEach(function (d) { defsById[d.id] = d; }); }
-            catch (e) { issues.push({ level: 'error', code: 'VARS_FAILED', plugin: '变量', text: '读取模组的变量时出错：' + e.message, hint: '检查模组里的变量设置。' }); }
+            catch (e) { issues.push({ level: 'error', code: 'VARS_FAILED', plugin: I18n.t('变量'), text: I18n.t('读取模组的变量时出错：{error}', { error: e.message }), hint: I18n.t('检查模组里的变量设置。') }); }
             loaded.forEach(function (l) {
                 var cfg = l.def.config || {};
                 if (cfg.tempStorage) extraDefs.push({ id: cfg.tempStorage, name: cfg.tempStorage, type: 'object', value: null });
@@ -327,11 +327,11 @@
             var oldEntries = new Map();
             var holder = { TYPES: this.TYPES, plugins: oldEntries, register: function (id, config) {
                 oldEntries.set(id, Object.assign({ id: id }, config));
-                if (config.onInit) { try { config.onInit(); } catch (e) { issues.push({ level: 'error', code: 'LEGACY_INIT', plugin: config.name || id, text: '旧式插件初始化出错：' + e.message, hint: '' }); } }
+                if (config.onInit) { try { config.onInit(); } catch (e) { issues.push({ level: 'error', code: 'LEGACY_INIT', plugin: config.name || id, text: I18n.t('旧式插件初始化出错：{error}', { error: e.message }), hint: '' }); } }
             } };
             legacyItems.forEach(function (l) {
                 try { PluginLegacy.register(holder, l.it.id, l.it.raw.type, l.config, l.it.raw.name); }
-                catch (e) { issues.push({ level: 'error', code: 'LEGACY_REGISTER', plugin: l.it.raw.name || l.it.id, text: '旧式插件登记出错：' + e.message, hint: '' }); }
+                catch (e) { issues.push({ level: 'error', code: 'LEGACY_REGISTER', plugin: l.it.raw.name || l.it.id, text: I18n.t('旧式插件登记出错：{error}', { error: e.message }), hint: '' }); }
             });
 
             // 只存在于 pluginConfigs 里、没有登记在模块上的旧式插件
@@ -341,7 +341,7 @@
                 var c = cfgs[cid];
                 if (c && PluginLegacy.handles(c.type, c)) {
                     try { PluginLegacy.register(holder, cid, c.type, c, c.label || c.name || cid); }
-                    catch (e) { issues.push({ level: 'error', code: 'LEGACY_REGISTER', plugin: c.label || c.name || cid, text: '旧式插件登记出错：' + e.message, hint: '' }); }
+                    catch (e) { issues.push({ level: 'error', code: 'LEGACY_REGISTER', plugin: c.label || c.name || cid, text: I18n.t('旧式插件登记出错：{error}', { error: e.message }), hint: '' }); }
                 }
             });
 
@@ -353,7 +353,7 @@
             // 激活：旧式的全局插件自动激活；显示类插件满足条件、并且模组没有另行限定时激活
             var open = Array.isArray(cur.content && cur.content.openPlugins) ? cur.content.openPlugins : [];
             open.forEach(function (id) {
-                if (!next.has(id)) issues.push({ level: 'warn', code: 'OPEN_MISSING', plugin: String(id), text: '模组设置了要显示的插件「' + id + '」，但当前没有这个插件。', hint: '在模组编辑里添加它，或从显示列表里去掉。' });
+                if (!next.has(id)) issues.push({ level: 'warn', code: 'OPEN_MISSING', plugin: String(id), text: I18n.t('模组设置了要显示的插件「{id}」，但当前没有这个插件。', { id: id }), hint: I18n.t('在模组编辑里添加它，或从显示列表里去掉。') });
             });
             var active = new Set();
             next.forEach(function (e, id) {
@@ -376,7 +376,7 @@
             if (!c.type || c.type === 'always') return true;
             if (!c.conditionDef || !window.ModuleManager || !ModuleManager._evaluateCondition) return true;
             try { return !!ModuleManager._evaluateCondition(c.conditionDef, State.variables || {}, this._cur); }
-            catch (e) { this._reportIssue({ level: 'warn', code: 'CONDITION_ERROR', plugin: def.name || def.id, text: '触发条件无法判断：' + e.message, hint: '检查这个插件的触发条件。' }); return false; }
+            catch (e) { this._reportIssue({ level: 'warn', code: 'CONDITION_ERROR', plugin: def.name || def.id, text: I18n.t('触发条件无法判断：{error}', { error: e.message }), hint: I18n.t('检查这个插件的触发条件。') }); return false; }
         },
 
         register: function (id, config) {
@@ -434,7 +434,7 @@
         _save: function () {
             if (window.App && App.autoSaveToCurrentSlot) {
                 try { App.autoSaveToCurrentSlot(); }
-                catch (e) { if (window.Toast) Toast.show('插件改动的变量没能存档：' + e.message, 'error'); else throw e; }
+                catch (e) { if (window.Toast) Toast.show(I18n.t('插件改动的变量没能存档：{error}', { error: e.message }), 'error'); else throw e; }
             }
         },
 
@@ -469,7 +469,7 @@
             if (entry.hasFrontend) { this._mountEntry(container, entry); return; }
             var d = document.createElement('div');
             d.className = 'plugin-item';
-            d.textContent = RT.typeLabel(entry.pluginType) + '：进入所属模块时自动运行，没有界面。';
+            d.textContent = I18n.t('{type}：进入所属模块时自动运行，没有界面。', { type: RT.typeLabel(entry.pluginType) });
             container.appendChild(d);
         },
 
@@ -493,7 +493,7 @@
                     var sig = '';
                     self.plugins.forEach(function (e, id) { if (e.def && e.hasFrontend && e.def.condition && e.def.condition.type && e.def.condition.type !== 'always') sig += id + (self._conditionMet(e.def) ? '1' : '0'); });
                     if (sig !== self._condSig) { self._condSig = sig; if (self._condSigReady) self.registerFromModule(); self._condSigReady = true; }
-                } catch (e) { self._reportIssue({ level: 'error', code: 'REFRESH_FAILED', plugin: '插件', text: '刷新插件界面时出错：' + e.message, hint: '' }); }
+                } catch (e) { self._reportIssue({ level: 'error', code: 'REFRESH_FAILED', plugin: I18n.t('插件'), text: I18n.t('刷新插件界面时出错：{error}', { error: e.message }), hint: '' }); }
             }, WATCH_MS);
         },
 
@@ -531,8 +531,8 @@
                     var toggle = document.createElement('button');
                     toggle.type = 'button';
                     toggle.className = 'plugin-widget-toggle';
-                    toggle.setAttribute('aria-label', '折叠或展开');
-                    toggle.textContent = '收起';
+                    toggle.setAttribute('aria-label', I18n.t('折叠或展开'));
+                    toggle.textContent = I18n.t('收起');
                     header.appendChild(title);
                     header.appendChild(toggle);
                     var content = document.createElement('div');
@@ -541,7 +541,7 @@
                     wrapper.appendChild(content);
                     var flip = function () {
                         wrapper.classList.toggle('collapsed');
-                        toggle.textContent = wrapper.classList.contains('collapsed') ? '展开' : '收起';
+                        toggle.textContent = wrapper.classList.contains('collapsed') ? I18n.t('展开') : I18n.t('收起');
                     };
                     header.addEventListener('click', flip);
                     var m = self._mountEntry(content, e);
@@ -564,14 +564,14 @@
             var frag = document.createDocumentFragment();
             var head = document.createElement('div');
             head.className = 'plugin-issues-head';
-            head.textContent = '有 ' + list.length + ' 个插件问题';
+            head.textContent = I18n.t('有 {n} 个插件问题', { n: list.length });
             frag.appendChild(head);
             list.forEach(function (i) {
                 var row = document.createElement('div');
                 row.className = 'plugin-issue plugin-issue-' + i.level;
                 var t = document.createElement('div');
                 t.className = 'plugin-issue-text';
-                t.textContent = '「' + i.plugin + '」' + i.text;
+                t.textContent = I18n.t('「{name}」{text}', { name: i.plugin, text: i.text });
                 row.appendChild(t);
                 if (i.hint) {
                     var h = document.createElement('div');
@@ -595,7 +595,7 @@
             var store = this._store();
             var res = RT.runAction(entry.def, msg, store);
             if (res.changes.length) this._save();
-            if (res.errors.length && inst && inst.notice) inst.notice('这次操作没有完全生效：' + res.errors.join('；'));
+            if (res.errors.length && inst && inst.notice) inst.notice(I18n.t('这次操作没有完全生效：{errors}', { errors: res.errors.join(I18n.t('；')) }));
             if (res.pendingText && window.App && App.addPendingPluginAction) {
                 App.addPendingPluginAction({ pluginId: pluginId, pluginName: entry.name, type: msg.action, label: msg.label, text: msg.text, actionDesc: res.pendingText, timestamp: Date.now() });
                 if (App.renderPendingPluginActions) App.renderPendingPluginActions();
@@ -607,9 +607,9 @@
         noteReply: function (pluginId, info) {
             var w = this._widgets.get(pluginId);
             if (w) {
-                if (info.unbound) w.inst.notice('AI 回复了这个插件，但还没有设置回复要写进哪个变量。');
-                else if (info.errors && info.errors.length) w.inst.notice('AI 的回复没有完全写入：' + info.errors.join('；'));
-                else if (info.truncated) w.inst.notice('AI 的回复太长，只保留了前 5000 个字。');
+                if (info.unbound) w.inst.notice(I18n.t('AI 回复了这个插件，但还没有设置回复要写进哪个变量。'));
+                else if (info.errors && info.errors.length) w.inst.notice(I18n.t('AI 的回复没有完全写入：{errors}', { errors: info.errors.join(I18n.t('；')) }));
+                else if (info.truncated) w.inst.notice(I18n.t('AI 的回复太长，只保留了前 5000 个字。'));
             }
             this.refreshVars();
         },
@@ -652,7 +652,7 @@
                 Object.keys(r.results).forEach(function (pid) { if (r.results[pid] !== null) all.ran.push(pid); });
                 r.errors.forEach(function (e) {
                     all.errors.push(e);
-                    self.issues.push({ level: 'error', code: 'RUN_FAILED', plugin: e.plugin, text: '进入模块时没能运行：' + e.message, hint: '' });
+                    self.issues.push({ level: 'error', code: 'RUN_FAILED', plugin: e.plugin, text: I18n.t('进入模块时没能运行：{error}', { error: e.message }), hint: '' });
                 });
             });
             if (all.ran.length) this._save();

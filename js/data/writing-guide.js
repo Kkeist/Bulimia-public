@@ -19,21 +19,37 @@ const WritingGuide = {
     PROTOCOL_ORDER: ['wg-reply-format-blocks', 'wg-turn-summary-format'],
     PROTOCOL: {
         'wg-reply-format-blocks': {
-            name: '回复格式与可解析块',
-            content: `# 回复格式
+            name: I18n.t('回复格式与可解析块'),
+            content: I18n.pick({
+                zh: `# 回复格式
 - **正文**：必须用 \`<content>\` 和 \`</content>\` 完整包裹；系统仅展示此块作为主内容。正文以外内容不得放入此块。
 - **本轮摘要**（必填）：见「本轮摘要格式」；须包含 \`<turn_summary>\` 和 \`</turn_summary>\`。
-- **系统指令**：内联标签 \`<类型|参数|参数|...>\`，一条一行，写在正文之后；可用的指令以本回合「指令」段为准，名字要照抄上方段落里的。`
+- **系统指令**：内联标签 \`<类型|参数|参数|...>\`，一条一行，写在正文之后；可用的指令以本回合「指令」段为准，名字要照抄上方段落里的。`,
+                en: `# Reply format
+- **Body**: must be fully wrapped in \`<content>\` and \`</content>\`; the system shows only this block as the main content. Nothing other than the body may go inside this block.
+- **Turn summary** (required): see "Turn summary format"; it must include \`<turn_summary>\` and \`</turn_summary>\`.
+- **System commands**: inline tags \`<type|param|param|...>\`, one per line, written after the body; the available commands are those in this turn's "commands" section, and names must be copied exactly from the sections above.
+- **Language**: write the body and the summary in English.`
+            })
         },
         'wg-turn-summary-format': {
-            name: '本轮摘要格式',
-            content: `# 本轮摘要格式（<turn_summary> 内必填）
+            name: I18n.t('本轮摘要格式'),
+            content: I18n.pick({
+                zh: `# 本轮摘要格式（<turn_summary> 内必填）
 每轮回复须包含 \`<turn_summary>\` 和 \`</turn_summary>\`，内**只需填写以下两行**（与主线剧情强相关，非一两句话概括）：
 
 scene: 当前场景，写简要地点或情境
 plot: 总结本次正文剧情。需保留关键信息、记录名词和新出现信息，去除冗余内容，避免升华和评价，**使用流水账形式**
 
-**说明**：serial（序号）与 time（日期时间）由系统根据变量自动填入，你无需填写。以上两行与正文物理隔离，写在 \`<turn_summary>\` 与 \`</turn_summary>\` 之间。摘要用于历史上下文压缩：非最近几条消息只发摘要不发全文。`
+**说明**：serial（序号）与 time（日期时间）由系统根据变量自动填入，你无需填写。以上两行与正文物理隔离，写在 \`<turn_summary>\` 与 \`</turn_summary>\` 之间。摘要用于历史上下文压缩：非最近几条消息只发摘要不发全文。`,
+                en: `# Turn summary format (required inside <turn_summary>)
+Every reply must include \`<turn_summary>\` and \`</turn_summary>\`, containing **only the following two lines** (closely tied to the main storyline, not a one- or two-sentence overview):
+
+scene: the current scene; a brief location or situation
+plot: summarize the plot of this turn's body. Keep key information, record nouns and newly introduced information, remove redundancy, avoid sublimation and commentary, and **write it as a running log**
+
+**Note**: serial (sequence number) and time (date/time) are filled in automatically by the system from variables; you do not need to write them. The two lines above are physically separated from the body and go between \`<turn_summary>\` and \`</turn_summary>\`. The summary is used to compress history context: messages other than the most recent few are sent as summaries only, not in full.`
+            })
         }
     },
 
@@ -57,7 +73,7 @@ plot: 总结本次正文剧情。需保留关键信息、记录名词和新出�
     async _fetchOptional(url) {
         const res = await fetch(url);
         if (res.status === 404) return null;
-        if (!res.ok) throw new Error(`${url} 返回 ${res.status}`);
+        if (!res.ok) throw new Error(I18n.t('{url} 返回 {status}', { url, status: res.status }));
         return res.json();
     },
 
@@ -110,7 +126,7 @@ plot: 总结本次正文剧情。需保留关键信息、记录名词和新出�
         } catch (e) {
             this.loadError = e && e.message ? e.message : String(e);
             console.error('WritingGuide.loadDefault:', e);
-            if (typeof Toast !== 'undefined') Toast.show('内置写作指导读取失败，请刷新页面重试。', 'error');
+            if (typeof Toast !== 'undefined') Toast.show(I18n.t('内置写作指导读取失败，请刷新页面重试。'), 'error');
             return;
         }
         this.loadError = '';
@@ -132,19 +148,19 @@ plot: 总结本次正文剧情。需保留关键信息、记录名词和新出�
      * @returns {Array<{identifier,name,content,enabled}>}
      */
     parseImport(text, fileName) {
-        const base = String(fileName || '').replace(/\.[^.]*$/, '') || '导入的条目';
+        const base = String(fileName || '').replace(/\.[^.]*$/, '') || I18n.t('导入的条目');
         if (/\.json$/i.test(String(fileName || ''))) {
             let data;
-            try { data = JSON.parse(text); } catch { throw new Error('文件格式不正确，无法导入。'); }
+            try { data = JSON.parse(text); } catch { throw new Error(I18n.t('文件格式不正确，无法导入。')); }
             const list = Array.isArray(data) ? data : (data && Array.isArray(data.prompts) ? data.prompts : null);
-            if (!list) throw new Error('文件里没有找到写作指导条目。');
+            if (!list) throw new Error(I18n.t('文件里没有找到写作指导条目。'));
             const out = list.filter(p => p && typeof p === 'object' && String(p.content || '').trim())
                 .map(p => ({ identifier: this.newIdentifier(), name: String(p.name || p.identifier || base), content: String(p.content).trim(), enabled: p.enabled !== false }));
-            if (!out.length) throw new Error('文件里没有找到写作指导条目。');
+            if (!out.length) throw new Error(I18n.t('文件里没有找到写作指导条目。'));
             return out;
         }
         const content = String(text || '').trim();
-        if (!content) throw new Error('文件是空的，无法导入。');
+        if (!content) throw new Error(I18n.t('文件是空的，无法导入。'));
         return [{ identifier: this.newIdentifier(), name: base, content, enabled: true }];
     },
 

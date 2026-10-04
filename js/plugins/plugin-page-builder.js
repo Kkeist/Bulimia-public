@@ -10,13 +10,15 @@
 })(typeof self !== 'undefined' ? self : this, function () {
     'use strict';
 
+    var I18n = (typeof self !== 'undefined' && self.I18n) || { t: function (s) { return s; } };
+
     var TYPES = {
-        title: { label: '标题' },
-        text: { label: '文字' },
-        value: { label: '变量的值' },
-        bar: { label: '进度条' },
-        button: { label: '按钮' },
-        input: { label: '输入框和发送按钮' }
+        title: { label: I18n.t('标题') },
+        text: { label: I18n.t('文字') },
+        value: { label: I18n.t('变量的值') },
+        bar: { label: I18n.t('进度条') },
+        button: { label: I18n.t('按钮') },
+        input: { label: I18n.t('输入框和发送按钮') }
     };
     var ORDER = ['title', 'text', 'value', 'bar', 'button', 'input'];
 
@@ -103,11 +105,11 @@
     function problems(blocks) {
         var out = [];
         (Array.isArray(blocks) ? blocks : []).forEach(function (b, i) {
-            if (!b || !TYPES[b.type]) { out.push({ index: i, text: '这个内容块不认识。' }); return; }
-            if ((b.type === 'title' || b.type === 'text') && !String(b.text || '').trim()) out.push({ index: i, text: '还没有写内容。' });
-            if ((b.type === 'value' || b.type === 'bar') && !b.variableId) out.push({ index: i, text: '还没有选变量。' });
-            if (b.type === 'bar' && !(Number(b.max) > 0)) out.push({ index: i, text: '最大值要大于 0。' });
-            if ((b.type === 'button' || b.type === 'input') && !String(b.label || '').trim()) out.push({ index: i, text: '还没有写按钮上的字。' });
+            if (!b || !TYPES[b.type]) { out.push({ index: i, text: I18n.t('这个内容块不认识。') }); return; }
+            if ((b.type === 'title' || b.type === 'text') && !String(b.text || '').trim()) out.push({ index: i, text: I18n.t('还没有写内容。') });
+            if ((b.type === 'value' || b.type === 'bar') && !b.variableId) out.push({ index: i, text: I18n.t('还没有选变量。') });
+            if (b.type === 'bar' && !(Number(b.max) > 0)) out.push({ index: i, text: I18n.t('最大值要大于 0。') });
+            if ((b.type === 'button' || b.type === 'input') && !String(b.label || '').trim()) out.push({ index: i, text: I18n.t('还没有写按钮上的字。') });
         });
         return out;
     }

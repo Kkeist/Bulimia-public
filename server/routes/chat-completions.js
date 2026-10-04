@@ -84,12 +84,12 @@ function friendlyCliError(stderrText, code) {
 router.post('/', express.json({ limit: '8mb' }), (req, res) => {
     const body = req.body;
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
-        return res.status(400).json({ error: true, message: '请求内容不正确。' });
+        return res.status(400).json({ error: true, code: 'bad-request', message: '请求内容不正确。' });
     }
     let system = typeof body.system === 'string' ? body.system : '';
     let messages = Array.isArray(body.messages) ? body.messages : [];
     if (messages.some(m => !m || typeof m !== 'object')) {
-        return res.status(400).json({ error: true, message: '请求内容不正确。' });
+        return res.status(400).json({ error: true, code: 'bad-request', message: '请求内容不正确。' });
     }
     if (!system) {
         const sys = messages.find((m) => m.role === 'system');
@@ -97,14 +97,14 @@ router.post('/', express.json({ limit: '8mb' }), (req, res) => {
     }
     const model = body.model === undefined || body.model === null ? '' : String(body.model);
     if (model && !MODEL_RE.test(model)) {
-        return res.status(400).json({ error: true, message: '模型名称不正确。' });
+        return res.status(400).json({ error: true, code: 'bad-model', message: '模型名称不正确。' });
     }
     const input = buildInput({ system, messages });
     if (input.length > MAX_INPUT_CHARS) {
-        return res.status(413).json({ error: true, message: '内容太长，本机 Claude 命令行无法处理。' });
+        return res.status(413).json({ error: true, code: 'cli-too-long', message: '内容太长，本机 Claude 命令行无法处理。' });
     }
     if (running >= MAX_CONCURRENT) {
-        return res.status(429).json({ error: true, message: '本机 Claude 命令行正忙，请稍后再试。' });
+        return res.status(429).json({ error: true, code: 'cli-busy', message: '本机 Claude 命令行正忙，请稍后再试。' });
     }
 
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
@@ -132,12 +132,12 @@ router.post('/', express.json({ limit: '8mb' }), (req, res) => {
     try {
         child = spawn(claudeCommand(), cliArgs, { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true, cwd: os.tmpdir() });
     } catch (e) {
-        sse({ type: 'error', error: '无法启动本机的 Claude 命令行，请确认已安装并登录。' });
+        sse({ type: 'error', code: 'cli-start-failed', error: '无法启动本机的 Claude 命令行，请确认已安装并登录。' });
         finish();
         return;
     }
     timer = setTimeout(() => {
-        sse({ type: 'error', error: '本机 Claude 命令行等待太久，已停止。' });
+        sse({ type: 'error', code: 'cli-timeout', error: '本机 Claude 命令行等待太久，已停止。' });
         killTree(child);
     }, RUN_TIMEOUT_MS);
 
@@ -171,12 +171,15 @@ router.post('/', express.json({ limit: '8mb' }), (req, res) => {
     });
     child.on('close', (code) => {
         if (buffer.trim()) processLine(buffer.trim());
-        if (code !== 0 && code !== null) sse({ type: 'error', error: friendlyCliError(stderrText, code) });
+        if (code !== 0 && code !== null) sse({ type: 'error', code: 'cli-exit', error: friendlyCliError(stderrText, code) });
         finish();
     });
     child.on('error', (err) => {
         sse({
             type: 'error',
+            code: err && err.code === 'ENOENT' ? 'cli-missing' : 'cli-start-failed',
+            code: err && err.code === 'ENOENT' ? 'cli-missing' : 'cli-start-failed',
+            code: err && err.code === 'ENOENT' ? 'cli-missing' : 'cli-start-failed',
             error: err && err.code === 'ENOENT'
                 ? '本机没有找到 Claude 命令行，请先安装并登录。'
                 : '无法启动本机的 Claude 命令行，请确认已安装并登录。'

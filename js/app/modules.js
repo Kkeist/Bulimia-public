@@ -9,7 +9,7 @@ Object.assign(App, {
         if (!select) return;
 
         const modules = ModuleManager.getAll();
-        select.innerHTML = '<option value="">未选择</option>' +
+        select.innerHTML = '<option value="">' + I18n.t('未选择') + '</option>' +
             modules.map(m => `<option value="${this._escSave(m.id)}">${this._escSave(m.name)}</option>`).join('');
 
         const current = ModuleManager.getCurrent();
@@ -19,7 +19,7 @@ Object.assign(App, {
         if (!list) return;
         list.textContent = '';
         if (modules.length === 0) {
-            list.innerHTML = '<div class="item-list-empty">没有可用的模组。</div>';
+            list.innerHTML = '<div class="item-list-empty">' + I18n.t('没有可用的模组。') + '</div>';
             return;
         }
         modules.forEach(m => {
@@ -32,7 +32,7 @@ Object.assign(App, {
             title.textContent = m.name;
             const desc = document.createElement('div');
             desc.className = 'item-meta';
-            desc.textContent = m.description || '无描述';
+            desc.textContent = m.description || I18n.t('无描述');
             const when = document.createElement('div');
             when.className = 'item-meta';
             when.textContent = new Date(m.updatedAt).toLocaleString();
@@ -43,7 +43,7 @@ Object.assign(App, {
                 const b = document.createElement('button');
                 b.type = 'button';
                 b.className = 'btn-small' + cls;
-                b.textContent = label;
+                b.textContent = I18n.t(label);
                 b.addEventListener('click', () => {
                     if (act === 'load') this.loadModule(m.id);
                     else if (act === 'export') this.exportModule(m.id);
@@ -72,9 +72,9 @@ Object.assign(App, {
             }
             this.loadCurrentModuleInfo();
             this.loadModuleList();
-            Toast.show('已加载模组。', 'success');
+            Toast.show(I18n.t('已加载模组。'), 'success');
         } else {
-            Toast.show('加载模组失败。', 'error');
+            Toast.show(I18n.t('加载模组失败。'), 'error');
         }
     },
 
@@ -85,7 +85,7 @@ Object.assign(App, {
         if (!window.DebugModuleJump || !window.ModuleManager) return;
         const cur = ModuleManager.currentModule;
         if (!cur) {
-            DebugModuleJump.showError('请在设置中先加载模组');
+            DebugModuleJump.showError(I18n.t('请在设置中先加载模组'));
             return;
         }
         const moduleId = cur.id;
@@ -100,17 +100,17 @@ Object.assign(App, {
         } else {
             try {
                 const res = await fetch(`module/${folderKey}/module.json`);
-                if (!res.ok) throw new Error(res.statusText || '无法加载');
+                if (!res.ok) throw new Error(res.statusText || I18n.t('无法加载'));
                 config = await res.json();
             } catch (e) {
                 console.error('读取模组文件失败', e);
-                DebugModuleJump.showError('无法读取当前模组的文件，请确认模组文件夹仍在原位置。');
+                DebugModuleJump.showError(I18n.t('无法读取当前模组的文件，请确认模组文件夹仍在原位置。'));
                 return;
             }
         }
         if (typeof ModuleSystem === 'undefined' || typeof VariableSystem === 'undefined' || typeof TimeSystem === 'undefined' ||
             typeof ConditionEvaluator === 'undefined' || typeof SummarySystem === 'undefined' || typeof PromptGenerator === 'undefined') {
-            DebugModuleJump.showError('核心模块脚本未加载');
+            DebugModuleJump.showError(I18n.t('核心模块脚本未加载'));
             return;
         }
         const timeSystem = new TimeSystem(config.timeSystem || { displayFormat: '{{year}}-{{month}}-{{day}}', initialValues: { year: 1, month: 1, day: 1 } });
@@ -160,7 +160,7 @@ Object.assign(App, {
                 if (window.DebugModuleJump && DebugModuleJump.renderPluginTab && document.getElementById('debug-panel-plugin-test') && !document.getElementById('debug-panel-plugin-test').classList.contains('hidden')) {
                     DebugModuleJump.renderPluginTab();
                 }
-            }).catch(e => Toast.show('插件的文件没有读到：' + (e && e.message ? e.message : e), 'error', 8000));
+            }).catch(e => Toast.show(I18n.t('插件的文件没有读到：{msg}', { msg: e && e.message ? e.message : e }), 'error', 8000));
             // 注册插件用到的暂存变量（randomizer tempStorage、插件 tempVariables）；否则 executeOperation 会报错
             for (const p of pluginSystem.plugins.values()) {
                 const cfg = p.config || {};
@@ -178,7 +178,7 @@ Object.assign(App, {
         window.__debugBridgeModuleId = moduleId;
         DebugModuleJump.init(bridge);
         try { DebugModuleJump.syncFromState(); }
-        catch (e) { console.error('syncFromState', e); Toast.show('读取游戏进度失败：' + e.message, 'error'); }
+        catch (e) { console.error('syncFromState', e); Toast.show(I18n.t('读取游戏进度失败：{msg}', { msg: e.message }), 'error'); }
         DebugModuleJump.refresh();
     },
 
@@ -198,22 +198,22 @@ Object.assign(App, {
     },
 
     async newModule() {
-        const name = await Modal.prompt('新建模组', '模组名称');
+        const name = await Modal.prompt(I18n.t('新建模组'), I18n.t('模组名称'));
         if (!name || !name.trim()) return;
 
-        const description = await Modal.prompt('模组描述', '模组描述（选填）', '');
+        const description = await Modal.prompt(I18n.t('模组描述'), I18n.t('模组描述（选填）'), '');
 
         const module = ModuleManager.create(name.trim(), description || '');
         this.loadModuleList();
         document.getElementById('current-module-select').value = module.id;
         this.loadModule(module.id);
-        Toast.show('已创建模组。', 'success');
+        Toast.show(I18n.t('已创建模组。'), 'success');
     },
 
     saveModule() {
         const moduleId = document.getElementById('current-module-select')?.value;
         if (!moduleId) {
-            Toast.show('请先选择或新建模组。', 'warning');
+            Toast.show(I18n.t('请先选择或新建模组。'), 'warning');
             return;
         }
 
@@ -221,14 +221,14 @@ Object.assign(App, {
         const description = document.getElementById('module-description-input')?.value?.trim() || '';
 
         if (!name) {
-            Toast.show('模组名称不能为空。', 'error');
+            Toast.show(I18n.t('模组名称不能为空。'), 'error');
             return;
         }
 
         ModuleManager.update(moduleId, { name, description });
         ModuleManager.save(moduleId);
         this.loadModuleList();
-        Toast.show('已保存。', 'success');
+        Toast.show(I18n.t('已保存。'), 'success');
     },
 
     async importModule(file) {
@@ -237,24 +237,24 @@ Object.assign(App, {
         try {
             const module = await ModuleManager.importFromFile(file);
             this.loadModuleList();
-            Toast.show(`已导入模组“${module.name}”。`, 'success');
+            Toast.show(I18n.t('已导入模组“{name}”。', { name: module.name }), 'success');
         } catch (error) {
             console.error('Import module error:', error);
-            Toast.show('导入失败：' + error.message, 'error');
+            Toast.show(I18n.t('导入失败：{msg}', { msg: error.message }), 'error');
         }
     },
 
     exportModule(moduleId = null) {
         const id = moduleId || document.getElementById('current-module-select')?.value;
         if (!id) {
-            Toast.show('请先选择要导出的模组。', 'warning');
+            Toast.show(I18n.t('请先选择要导出的模组。'), 'warning');
             return;
         }
 
         if (ModuleManager.export(id)) {
-            Toast.show('已导出。', 'success');
+            Toast.show(I18n.t('已导出。'), 'success');
         } else {
-            Toast.show('导出失败。', 'error');
+            Toast.show(I18n.t('导出失败。'), 'error');
         }
     },
 
@@ -262,16 +262,16 @@ Object.assign(App, {
         const module = ModuleManager.getAll().find(m => m.id === moduleId);
         if (!module) return;
 
-        const confirmed = await Modal.confirm('删除模组', `确定要删除模组“${this._escSave(module.name)}”吗？`, { danger: true, confirmLabel: '删除' });
+        const confirmed = await Modal.confirm(I18n.t('删除模组'), I18n.t('确定要删除模组“{name}”吗？', { name: this._escSave(module.name) }), { danger: true, confirmLabel: I18n.t('删除') });
         if (!confirmed) return;
 
         const wasCurrent = ModuleManager.currentModule && ModuleManager.currentModule.id === moduleId;
         ModuleManager.delete(moduleId);
         this.loadModuleList();
         this.loadCurrentModuleInfo();
-        Toast.undo('已删除模组。', () => {
+        Toast.undo(I18n.t('已删除模组。'), () => {
             if (!ModuleManager.restore(module, wasCurrent)) {
-                Toast.show('撤销失败，这个模组已经存在。', 'error');
+                Toast.show(I18n.t('撤销失败，这个模组已经存在。'), 'error');
                 return;
             }
             this.loadModuleList();
@@ -288,10 +288,10 @@ Object.assign(App, {
             if (typeof PresetEditor !== 'undefined' && PresetEditor.loadModuleList) {
                 PresetEditor.loadModuleList();
             }
-            Toast.show('已重新读取模组。', 'success');
+            Toast.show(I18n.t('已重新读取模组。'), 'success');
         } catch (e) {
             console.error('Refresh module folder error:', e);
-            Toast.show('重新读取失败：' + (e.message || e), 'error');
+            Toast.show(I18n.t('重新读取失败：{msg}', { msg: e.message || e }), 'error');
         }
     }
 });

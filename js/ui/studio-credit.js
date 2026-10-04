@@ -1,8 +1,8 @@
 // 设置页「显示设置」底部的工作室署名。文案只放在这里。目前界面只有中文，链接指向中文个人站。
 const STUDIO_CREDIT = {
-    by: '哐哐哐況 制作。',
-    same: '全网同名，更多好玩的请前往→',
-    link: '哐哐的个人站。',
+    by: I18n.t('哐哐哐況 制作。'),
+    same: I18n.t('全网同名，更多好玩的请前往→'),
+    link: I18n.t('哐哐的个人站。'),
     url: 'https://kb.kkeist.com/',
     avatar: 'icons/kk-avatar.png'
 };

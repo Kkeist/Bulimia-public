@@ -56,7 +56,7 @@ const Toast = {
 
     /** 删除类操作之后给出的撤销入口 */
     undo(message, onUndo, duration = 8000) {
-        return this.show(message, 'info', duration, { label: '撤销', onClick: onUndo });
+        return this.show(message, 'info', duration, { label: I18n.t('撤销'), onClick: onUndo });
     },
 
     success(message, duration) { return this.show(message, 'success', duration); },

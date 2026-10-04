@@ -71,16 +71,16 @@ const FileDownload = {
         const id = 'file-download-text';
         Modal.show(title, `<textarea id="${id}" readonly style="width:100%;height:50vh;resize:none;box-sizing:border-box;">${esc(text)}</textarea>`, {
             buttons: [
-                { label: '关闭', action: 'close' },
-                { label: '复制', action: 'copy', class: 'btn-primary' }
+                { label: I18n.t('关闭'), action: 'close' },
+                { label: I18n.t('复制'), action: 'copy', class: 'btn-primary' }
             ],
             onAction: async (action) => {
                 if (action === 'close') { Modal.close(); return; }
                 const ta = document.getElementById(id);
                 const ok = await this.copyText(text);
-                if (ok) { Toast.show('已复制', 'success'); return; }
+                if (ok) { Toast.show(I18n.t('已复制'), 'success'); return; }
                 if (ta) { ta.focus(); ta.select(); }
-                Toast.show('这个浏览器不允许自动复制，文字已全选，请长按或按 Ctrl+C 复制。', 'warning', 6000);
+                Toast.show(I18n.t('这个浏览器不允许自动复制，文字已全选，请长按或按 Ctrl+C 复制。'), 'warning', 6000);
             }
         });
         setTimeout(() => { const ta = document.getElementById(id); if (ta) { ta.focus(); ta.select(); } }, 100);

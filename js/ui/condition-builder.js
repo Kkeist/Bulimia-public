@@ -18,12 +18,12 @@ const ConditionBuilder = {
     _ops(type) {
         if (type === 'number') {
             return [
-                { v: '>=', t: '大于等于' }, { v: '<=', t: '小于等于' },
-                { v: '>', t: '大于' }, { v: '<', t: '小于' },
-                { v: '==', t: '等于' }, { v: '!=', t: '不等于' }
+                { v: '>=', t: I18n.t('大于等于') }, { v: '<=', t: I18n.t('小于等于') },
+                { v: '>', t: I18n.t('大于') }, { v: '<', t: I18n.t('小于') },
+                { v: '==', t: I18n.t('等于') }, { v: '!=', t: I18n.t('不等于') }
             ];
         }
-        return [{ v: '==', t: '等于' }, { v: '!=', t: '不等于' }];
+        return [{ v: '==', t: I18n.t('等于') }, { v: '!=', t: I18n.t('不等于') }];
     },
 
     _esc(s) {
@@ -36,7 +36,7 @@ const ConditionBuilder = {
         return (this._vars || []).filter(v => v && ['number', 'string', 'boolean'].includes(v.type));
     },
 
-    _typeLabel(t) { return ({ number: '数值', string: '文字', boolean: '开关' })[t] || t; },
+    _typeLabel(t) { return ({ number: I18n.t('数值'), string: I18n.t('文字'), boolean: I18n.t('开关') })[t] || t; },
 
     /** 一条规则是否填完整、能真正判断；没填完的规则只留在界面上，不写进模组 */
     _itemValid(it) {
@@ -136,7 +136,7 @@ const ConditionBuilder = {
         inst._units = opts.units || null;  // { mph, hpd, dpm, mpy }：时间框的取值范围按它收回
         const flat = this._toDnf(def && Array.isArray(def.groups) ? JSON.parse(JSON.stringify(def)) : null);
         if (flat === null) {
-            container.innerHTML = '<div class="cbx-empty">这组条件的组合太复杂，不在这里编辑。</div>';
+            container.innerHTML = `<div class="cbx-empty">${I18n.t('这组条件的组合太复杂，不在这里编辑。')}</div>`;
             return { getValue: () => (def && Array.isArray(def.groups) ? def : null), destroy: () => { container.innerHTML = ''; } };
         }
         inst._def = flat;
@@ -166,7 +166,7 @@ const ConditionBuilder = {
             if (!ok && !hint) {
                 const h = document.createElement('div');
                 h.className = 'cbx-hint';
-                h.textContent = '还没填完，暂时不会生效。';
+                h.textContent = I18n.t('还没填完，暂时不会生效。');
                 el.appendChild(h);
             } else if (ok && hint) hint.remove();
         });
@@ -176,20 +176,20 @@ const ConditionBuilder = {
         const esc = this._esc.bind(this);
         const def = this._def;
         const parts = ['<div class="cbx">'];
-        if (!def.groups.length) parts.push('<div class="cbx-empty">无条件，始终满足。</div>');
+        if (!def.groups.length) parts.push(`<div class="cbx-empty">${I18n.t('无条件，始终满足。')}</div>`);
         def.groups.forEach((g, gi) => {
-            if (gi > 0) parts.push('<div class="cbx-or">或者</div>');
+            if (gi > 0) parts.push(`<div class="cbx-or">${I18n.t('或者')}</div>`);
             parts.push(`<div class="cbx-group" data-g="${gi}">`);
-            parts.push(`<div class="cbx-ghead"><span class="cbx-gtitle">条件组 ${gi + 1}（组内全部满足）</span>` +
-                `<button type="button" class="cbx-btn cbx-del" data-delg="${gi}">删除本组</button></div>`);
+            parts.push(`<div class="cbx-ghead"><span class="cbx-gtitle">${I18n.t('条件组 {n}（组内全部满足）', { n: gi + 1 })}</span>` +
+                `<button type="button" class="cbx-btn cbx-del" data-delg="${gi}">${I18n.t('删除本组')}</button></div>`);
             (g.items || []).forEach((it, ri) => {
-                if (ri > 0) parts.push('<div class="cbx-and">并且</div>');
+                if (ri > 0) parts.push(`<div class="cbx-and">${I18n.t('并且')}</div>`);
                 parts.push(this._ruleHtml(it.condition || {}, gi, ri));
             });
-            parts.push(`<button type="button" class="cbx-btn cbx-add" data-addrule="${gi}">+ 并且（加一条规则）</button>`);
+            parts.push(`<button type="button" class="cbx-btn cbx-add" data-addrule="${gi}">${I18n.t('+ 并且（加一条规则）')}</button>`);
             parts.push('</div>');
         });
-        parts.push('<button type="button" class="cbx-btn cbx-addg">+ 或者（加一个条件组）</button>');
+        parts.push(`<button type="button" class="cbx-btn cbx-addg">${I18n.t('+ 或者（加一个条件组）')}</button>`);
         parts.push('</div>');
         this._container.innerHTML = parts.join('');
         this._bind();
@@ -206,17 +206,17 @@ const ConditionBuilder = {
      */
     _typeOpts() {
         return [
-            { v: 'variable', t: '变量' },
-            { v: 'variable_compare', t: '变量对比' },
-            { v: 'module', t: '模块状态' },
-            { v: 'stage_completed', t: '阶段已完成（多模块批量）' },
-            { v: 'event_completed', t: '时间线事件已触发' },
-            { v: 'time', t: '时间到达' },
-            { v: 'time_range', t: '时间区间' },
-            { v: 'tag', t: '标签' }
+            { v: 'variable', t: I18n.t('变量') },
+            { v: 'variable_compare', t: I18n.t('变量对比') },
+            { v: 'module', t: I18n.t('模块状态') },
+            { v: 'stage_completed', t: I18n.t('阶段已完成（多模块批量）') },
+            { v: 'event_completed', t: I18n.t('时间线事件已触发') },
+            { v: 'time', t: I18n.t('时间到达') },
+            { v: 'time_range', t: I18n.t('时间区间') },
+            { v: 'tag', t: I18n.t('标签') }
         ];
     },
-    _typeLabelOf(type) { return (this._typeOpts().find(o => o.v === type) || { t: '变量' }).t; },
+    _typeLabelOf(type) { return (this._typeOpts().find(o => o.v === type) || { t: I18n.t('变量') }).t; },
 
     _ruleHtml(c, gi, ri) {
         const esc = this._esc.bind(this);
@@ -228,48 +228,48 @@ const ConditionBuilder = {
             const sel = this._selectableVars();
             const vDef = this._varDef(c.variableId);
             const vType = vDef ? vDef.type : 'number';
-            const varDD = this._ddHtml(`v|${gi}|${ri}`, vDef ? vDef.name : '（选择变量）', sel.map(v => ({ val: v.id, label: `${v.name}（${this._typeLabel(v.type)}）` })));
+            const varDD = this._ddHtml(`v|${gi}|${ri}`, vDef ? vDef.name : I18n.t('（选择变量）'), sel.map(v => ({ val: v.id, label: `${v.name}${I18n.t('（{type}）', { type: this._typeLabel(v.type) })}` })));
             const ops = this._ops(vType);
             const curOp = ops.find(o => o.v === c.operator) || ops[0];
-            const opDD = this._ddHtml(`o|${gi}|${ri}`, curOp ? curOp.t : '运算符', ops.map(o => ({ val: o.v, label: o.t })));
+            const opDD = this._ddHtml(`o|${gi}|${ri}`, curOp ? curOp.t : I18n.t('运算符'), ops.map(o => ({ val: o.v, label: o.t })));
             const cmpKind = c.compareKind === 'variable' ? 'variable' : 'value';
-            const cmpKindDD = this._ddHtml(`ck|${gi}|${ri}`, cmpKind === 'variable' ? '变量' : '值', [{ val: 'value', label: '值' }, { val: 'variable', label: '变量' }]);
+            const cmpKindDD = this._ddHtml(`ck|${gi}|${ri}`, cmpKind === 'variable' ? I18n.t('变量') : I18n.t('值'), [{ val: 'value', label: I18n.t('值') }, { val: 'variable', label: I18n.t('变量') }]);
             let valHtml;
             if (cmpKind === 'variable') {
                 // 对比变量只列与主变量类型相同的，类型不同的比较没有意义
                 const sameType = sel.filter(v => v.type === vType);
                 const cmpDef = this._varDef(c.compareVariableId);
-                valHtml = this._ddHtml(`cv|${gi}|${ri}`, cmpDef ? cmpDef.name : '（选择同类型变量）', sameType.map(v => ({ val: v.id, label: v.name })));
+                valHtml = this._ddHtml(`cv|${gi}|${ri}`, cmpDef ? cmpDef.name : I18n.t('（选择同类型变量）'), sameType.map(v => ({ val: v.id, label: v.name })));
             } else if (vType === 'boolean') {
-                valHtml = this._ddHtml(`b|${gi}|${ri}`, (c.value === true || c.value === 'true') ? '是' : '否', [{ val: 'true', label: '是' }, { val: 'false', label: '否' }]);
+                valHtml = this._ddHtml(`b|${gi}|${ri}`, (c.value === true || c.value === 'true') ? I18n.t('是') : I18n.t('否'), [{ val: 'true', label: I18n.t('是') }, { val: 'false', label: I18n.t('否') }]);
             } else {
                 const kind = vType === 'number' ? 'type="text" inputmode="decimal" data-numonly="decimal"' : 'type="text"';
-                valHtml = `<input ${kind} class="cbx-val" data-val="${gi}|${ri}" value="${esc(c.value == null ? '' : c.value)}" placeholder="${vType === 'number' ? '数值' : '文字'}">`;
+                valHtml = `<input ${kind} class="cbx-val" data-val="${gi}|${ri}" value="${esc(c.value == null ? '' : c.value)}" placeholder="${vType === 'number' ? I18n.t('数值') : I18n.t('文字')}">`;
             }
             fields = `${varDD}${opDD}${cmpKindDD}${valHtml}`;
         } else if (c.type === 'variable_compare') {
             const sel = this._selectableVars();
             const vDef = this._varDef(c.variableId);
             const vType = vDef ? vDef.type : 'number';
-            const varDD = this._ddHtml(`v|${gi}|${ri}`, vDef ? vDef.name : '（选择变量）', sel.map(v => ({ val: v.id, label: `${v.name}（${this._typeLabel(v.type)}）` })));
+            const varDD = this._ddHtml(`v|${gi}|${ri}`, vDef ? vDef.name : I18n.t('（选择变量）'), sel.map(v => ({ val: v.id, label: `${v.name}${I18n.t('（{type}）', { type: this._typeLabel(v.type) })}` })));
             const ops = this._ops(vType);
             const curOp = ops.find(o => o.v === c.operator) || ops[0];
-            const opDD = this._ddHtml(`o|${gi}|${ri}`, curOp ? curOp.t : '运算符', ops.map(o => ({ val: o.v, label: o.t })));
+            const opDD = this._ddHtml(`o|${gi}|${ri}`, curOp ? curOp.t : I18n.t('运算符'), ops.map(o => ({ val: o.v, label: o.t })));
             // 对比变量只列与主变量同类型
             const sameType = sel.filter(v => v.type === vType);
             const cmpDef = this._varDef(c.compareVariableId);
-            const cmpDD = this._ddHtml(`cv|${gi}|${ri}`, cmpDef ? cmpDef.name : '（选择同类型变量）', sameType.map(v => ({ val: v.id, label: v.name })));
+            const cmpDD = this._ddHtml(`cv|${gi}|${ri}`, cmpDef ? cmpDef.name : I18n.t('（选择同类型变量）'), sameType.map(v => ({ val: v.id, label: v.name })));
             fields = `${varDD}${opDD}${cmpDD}`;
         } else if (c.type === 'module') {
             const mods = this._modules || [];
             const mDef = mods.find(m => m.id === c.moduleId);
-            const modDD = this._ddHtml(`m|${gi}|${ri}`, mDef ? mDef.name : '（选择模块）', mods.map(m => ({ val: m.id, label: m.name || m.id })));
+            const modDD = this._ddHtml(`m|${gi}|${ri}`, mDef ? mDef.name : I18n.t('（选择模块）'), mods.map(m => ({ val: m.id, label: m.name || m.id })));
             // 状态下拉：已进入 / 已完成 / 未触发
-            const stateLabel = c.state === 'completed' ? '已完成' : (c.state === 'untriggered' ? '未触发' : '已进入');
+            const stateLabel = c.state === 'completed' ? I18n.t('已完成') : (c.state === 'untriggered' ? I18n.t('未触发') : I18n.t('已进入'));
             const stateDD = this._ddHtml(`ms|${gi}|${ri}`, stateLabel, [
-                { val: 'entered', label: '已进入' },
-                { val: 'completed', label: '已完成' },
-                { val: 'untriggered', label: '未触发' }
+                { val: 'entered', label: I18n.t('已进入') },
+                { val: 'completed', label: I18n.t('已完成') },
+                { val: 'untriggered', label: I18n.t('未触发') }
             ]);
             fields = `${modDD}${stateDD}`;
         } else if (c.type === 'stage_completed') {
@@ -278,44 +278,44 @@ const ConditionBuilder = {
             const cur = Array.isArray(c.pathIds) ? c.pathIds : [];
             const curNames = cur.map(id => { const m = mods.find(mm => mm.id === id); return m ? (m.name || m.id) : id; }).join('，');
             // 列所有模块作为可选项；点哪个就加/移
-            const opts = mods.map(m => ({ val: m.id, label: `${m.name || m.id}${cur.indexOf(m.id) >= 0 ? '（已选）' : ''}` }));
-            const pickDD = this._ddHtml(`sc|${gi}|${ri}`, cur.length ? `已选 ${cur.length} 个` : '（点击逐个加）', opts);
-            fields = `${pickDD}<input type="text" class="cbx-val cbx-tagin" data-stagelist="${gi}|${ri}" value="${esc(curNames)}" placeholder="从上面下拉里逐个加" readonly>`;
+            const opts = mods.map(m => ({ val: m.id, label: `${m.name || m.id}${cur.indexOf(m.id) >= 0 ? I18n.t('（已选）') : ''}` }));
+            const pickDD = this._ddHtml(`sc|${gi}|${ri}`, cur.length ? I18n.t('已选 {n} 个', { n: cur.length }) : I18n.t('（点击逐个加）'), opts);
+            fields = `${pickDD}<input type="text" class="cbx-val cbx-tagin" data-stagelist="${gi}|${ri}" value="${esc(curNames)}" placeholder="${I18n.t('从上面下拉里逐个加')}" readonly>`;
         } else if (c.type === 'event_completed') {
             // 时间线事件已触发——单模块的语义化别名（与 module + state=completed 等价但表达更清晰）
             const mods = this._modules || [];
             const mDef = mods.find(m => m.id === c.eventId);
-            const evDD = this._ddHtml(`ev|${gi}|${ri}`, mDef ? mDef.name : '（选择时间线事件）', mods.map(m => ({ val: m.id, label: m.name || m.id })));
-            fields = `${evDD}<span class="cbx-tlab">已触发</span>`;
+            const evDD = this._ddHtml(`ev|${gi}|${ri}`, mDef ? mDef.name : I18n.t('（选择时间线事件）'), mods.map(m => ({ val: m.id, label: m.name || m.id })));
+            fields = `${evDD}<span class="cbx-tlab">${I18n.t('已触发')}</span>`;
         } else if (c.type === 'time') {
             // time 4 变体：absolute（精确日期）/ relative（相对模块偏移，含相对路径后 N 天 + 相对锚点）/ variable_compare（日期变量比较）
             const mode = c.mode || c.timeType || 'absolute';
             const modeOpts = [
-                { val: 'absolute', label: '精确日期' },
-                { val: 'relative', label: '相对模块进入/完成后偏移' },
-                { val: 'variable_compare', label: '比较日期变量' }
+                { val: 'absolute', label: I18n.t('精确日期') },
+                { val: 'relative', label: I18n.t('相对模块进入/完成后偏移') },
+                { val: 'variable_compare', label: I18n.t('比较日期变量') }
             ];
             const curModeLabel = (modeOpts.find(o => o.val === mode) || modeOpts[0]).label;
             const ttDD = this._ddHtml(`tt|${gi}|${ri}`, curModeLabel, modeOpts);
             if (mode === 'absolute') {
                 const tm = c.time || {};
                 const f = (k, lab) => `<span class="cbx-tu"><label>${lab}</label><input type="text" inputmode="numeric" class="cbx-val cbx-tin" data-tabs="${gi}|${ri}|${k}" value="${esc(tm[k] != null ? tm[k] : '')}"></span>`;
-                fields = `${ttDD}${f('year', '年')}${f('month', '月')}${f('day', '日')}${f('hour', '时')}${f('minute', '分')}`;
+                fields = `${ttDD}${f('year', I18n.t('年'))}${f('month', I18n.t('月'))}${f('day', I18n.t('日'))}${f('hour', I18n.t('时'))}${f('minute', I18n.t('分'))}`;
             } else if (mode === 'relative') {
                 const rel = c.relative || {};
                 const mods = this._modules || [];
                 const mDef = mods.find(m => m.id === rel.moduleId);
-                const modDD = this._ddHtml(`tr-m|${gi}|${ri}`, mDef ? mDef.name : '（锚点模块）', mods.map(m => ({ val: m.id, label: m.name || m.id })));
-                const stateDD = this._ddHtml(`tr-s|${gi}|${ri}`, rel.state === 'completed' ? '完成后' : '进入后', [{ val: 'entered', label: '进入后' }, { val: 'completed', label: '完成后' }]);
+                const modDD = this._ddHtml(`tr-m|${gi}|${ri}`, mDef ? mDef.name : I18n.t('（锚点模块）'), mods.map(m => ({ val: m.id, label: m.name || m.id })));
+                const stateDD = this._ddHtml(`tr-s|${gi}|${ri}`, rel.state === 'completed' ? I18n.t('完成后') : I18n.t('进入后'), [{ val: 'entered', label: I18n.t('进入后') }, { val: 'completed', label: I18n.t('完成后') }]);
                 const off = rel.offset || {};
                 const f = (k, lab) => `<span class="cbx-tu"><label>${lab}</label><input type="text" inputmode="numeric" class="cbx-val cbx-tin" data-trel="${gi}|${ri}|${k}" value="${esc(off[k] != null ? off[k] : '')}"></span>`;
-                fields = `${ttDD}${modDD}${stateDD}${f('year', '+年')}${f('month', '+月')}${f('day', '+日')}${f('hour', '+时')}${f('minute', '+分')}`;
+                fields = `${ttDD}${modDD}${stateDD}${f('year', I18n.t('+年'))}${f('month', I18n.t('+月'))}${f('day', I18n.t('+日'))}${f('hour', I18n.t('+时'))}${f('minute', I18n.t('+分'))}`;
             } else {
                 // variable_compare：日期变量比较——选一个变量，比它当时记录的时间值是否 ≤/≥ 当前
                 const sel = this._selectableVars();
                 const vDef = this._varDef(c.variableId);
-                const varDD = this._ddHtml(`tv|${gi}|${ri}`, vDef ? vDef.name : '（选择日期变量）', sel.map(v => ({ val: v.id, label: v.name || v.id })));
-                const ops = [{ v: '>=', t: '≥（当前不早于变量值）' }, { v: '<=', t: '≤（当前不晚于变量值）' }];
+                const varDD = this._ddHtml(`tv|${gi}|${ri}`, vDef ? vDef.name : I18n.t('（选择日期变量）'), sel.map(v => ({ val: v.id, label: v.name || v.id })));
+                const ops = [{ v: '>=', t: I18n.t('≥（当前不早于变量值）') }, { v: '<=', t: I18n.t('≤（当前不晚于变量值）') }];
                 const curOp = ops.find(o => o.v === c.operator) || ops[0];
                 const opDD = this._ddHtml(`tvop|${gi}|${ri}`, curOp.t, ops.map(o => ({ val: o.v, label: o.t })));
                 fields = `${ttDD}${varDD}${opDD}`;
@@ -327,22 +327,22 @@ const ConditionBuilder = {
             const repIntKey = rep.interval && typeof rep.interval === 'object' ? Object.keys(rep.interval)[0] : '';
             const firstDay = !!c.firstDayOnly;
             const f = (k, lab, obj, dataKey) => `<span class="cbx-tu"><label>${lab}</label><input type="text" inputmode="numeric" class="cbx-val cbx-tin" data-${dataKey}="${gi}|${ri}|${k}" value="${esc(obj[k] != null ? obj[k] : '')}"></span>`;
-            const repDD = this._ddHtml(`rep|${gi}|${ri}`, repIntKey === 'year' ? '每年' : (repIntKey === 'month' ? '每月' : (repIntKey === 'day' ? '每天' : '不重复')),
-                [{ val: '', label: '不重复' }, { val: 'year', label: '每年' }, { val: 'month', label: '每月' }, { val: 'day', label: '每天' }]);
-            const firstDayBtn = `<button type="button" class="cbx-mini${firstDay ? ' on' : ''}" data-firstday="${gi}|${ri}" title="只在每个周期的第一天触发">${firstDay ? '仅周期首日' : '整个周期'}</button>`;
-            fields = `<span class="cbx-tlab">从</span>${f('year', '年', s, 'trs')}${f('month', '月', s, 'trs')}${f('day', '日', s, 'trs')}` +
-                `<span class="cbx-tlab">到</span>${f('year', '年', e2, 'tre')}${f('month', '月', e2, 'tre')}${f('day', '日', e2, 'tre')}${repDD}${firstDayBtn}`;
+            const repDD = this._ddHtml(`rep|${gi}|${ri}`, repIntKey === 'year' ? I18n.t('每年') : (repIntKey === 'month' ? I18n.t('每月') : (repIntKey === 'day' ? I18n.t('每天') : I18n.t('不重复'))),
+                [{ val: '', label: I18n.t('不重复') }, { val: 'year', label: I18n.t('每年') }, { val: 'month', label: I18n.t('每月') }, { val: 'day', label: I18n.t('每天') }]);
+            const firstDayBtn = `<button type="button" class="cbx-mini${firstDay ? ' on' : ''}" data-firstday="${gi}|${ri}" title="${I18n.t('只在每个周期的第一天触发')}">${firstDay ? I18n.t('仅周期首日') : I18n.t('整个周期')}</button>`;
+            fields = `<span class="cbx-tlab">${I18n.t('从')}</span>${f('year', I18n.t('年'), s, 'trs')}${f('month', I18n.t('月'), s, 'trs')}${f('day', I18n.t('日'), s, 'trs')}` +
+                `<span class="cbx-tlab">${I18n.t('到')}</span>${f('year', I18n.t('年'), e2, 'tre')}${f('month', I18n.t('月'), e2, 'tre')}${f('day', I18n.t('日'), e2, 'tre')}${repDD}${firstDayBtn}`;
         } else if (c.type === 'tag') {
             const tagsStr = Array.isArray(c.tags) ? c.tags.join('，') : '';
             const mt = c.matchType || 'any';
-            const mtDD = this._ddHtml(`mt|${gi}|${ri}`, mt === 'all' ? '全部满足' : '任一满足', [{ val: 'any', label: '任一满足' }, { val: 'all', label: '全部满足' }]);
-            fields = `<input type="text" class="cbx-val cbx-tagin" data-tags="${gi}|${ri}" value="${esc(tagsStr)}" placeholder="逗号分隔多个标签">${mtDD}`;
+            const mtDD = this._ddHtml(`mt|${gi}|${ri}`, mt === 'all' ? I18n.t('全部满足') : I18n.t('任一满足'), [{ val: 'any', label: I18n.t('任一满足') }, { val: 'all', label: I18n.t('全部满足') }]);
+            fields = `<input type="text" class="cbx-val cbx-tagin" data-tags="${gi}|${ri}" value="${esc(tagsStr)}" placeholder="${I18n.t('逗号分隔多个标签')}">${mtDD}`;
         }
         const complete = this._itemValid({ itemType: 'condition', condition: c });
         return `<div class="cbx-rule${complete ? '' : ' cbx-incomplete'}" data-r="${gi}|${ri}">` +
             `<div class="cbx-rfields">${typeDD}${fields}</div>` +
-            `<button type="button" class="cbx-btn cbx-del" data-delr="${gi}|${ri}" aria-label="删除这条规则">×</button>` +
-            (complete ? '' : '<div class="cbx-hint">还没填完，暂时不会生效。</div>') + '</div>';
+            `<button type="button" class="cbx-btn cbx-del" data-delr="${gi}|${ri}" aria-label="${I18n.t('删除这条规则')}">×</button>` +
+            (complete ? '' : `<div class="cbx-hint">${I18n.t('还没填完，暂时不会生效。')}</div>`) + '</div>';
     },
 
     /**
@@ -356,7 +356,7 @@ const ConditionBuilder = {
         if (!this._ddOptions) this._ddOptions = {};
         this._ddOptions[key] = options;
         const searchBox = (options.length >= 5)
-            ? `<input type="text" class="cbx-ddsearch" placeholder="搜索" data-ddsearch="${esc(key)}">`
+            ? `<input type="text" class="cbx-ddsearch" placeholder="${I18n.t('搜索')}" data-ddsearch="${esc(key)}">`
             : '';
         return `<div class="cbx-dd" data-dd="${esc(key)}">` +
             `<button type="button" class="cbx-ddbtn" data-ddtoggle="${esc(key)}">` +
@@ -374,7 +374,7 @@ const ConditionBuilder = {
         const options = (this._ddOptions && this._ddOptions[key]) || [];
         holder.innerHTML = options.map(o =>
             `<button type="button" class="cbx-ddopt" data-ddpick="${esc(key)}" data-ddval="${esc(o.val)}">${esc(o.label)}</button>`
-        ).join('') || '<div class="cbx-ddempty">无可选项</div>';
+        ).join('') || `<div class="cbx-ddempty">${I18n.t('无可选项')}</div>`;
         holder.addEventListener('click', (e) => {
             const b = e.target.closest('[data-ddpick]');
             if (!b || !holder.contains(b)) return;
@@ -491,12 +491,12 @@ const ConditionBuilder = {
             const removed = this._def.groups[gi].items.splice(ri, 1)[0];
             if (!this._def.groups[gi].items.length) this._def.groups.splice(gi, 1);
             this._render(); this._emit();
-            if (this._onRemoved && this._itemValid(removed)) this._onRemoved('已删除一条规则。');
+            if (this._onRemoved && this._itemValid(removed)) this._onRemoved(I18n.t('已删除一条规则。'));
         }));
         root.querySelectorAll('[data-delg]').forEach(b => b.addEventListener('click', () => {
             const removed = this._def.groups.splice(Number(b.getAttribute('data-delg')), 1)[0];
             this._render(); this._emit();
-            if (this._onRemoved && removed && (removed.items || []).some(it => this._itemValid(it))) this._onRemoved('已删除一个条件组。');
+            if (this._onRemoved && removed && (removed.items || []).some(it => this._itemValid(it))) this._onRemoved(I18n.t('已删除一个条件组。'));
         }));
         root.querySelectorAll('[data-addrule]').forEach(b => b.addEventListener('click', () => {
             this._def.groups[Number(b.getAttribute('data-addrule'))].items.push(this._blankRule());
@@ -523,7 +523,7 @@ const ConditionBuilder = {
         if (inp.value === '') return;
         const n = parseInt(inp.value, 10);
         if (isNaN(n)) return;
-        const labels = { year: '年', month: '月', day: '日', hour: '时', minute: '分' };
+        const labels = { year: I18n.t('年'), month: I18n.t('月'), day: I18n.t('日'), hour: I18n.t('时'), minute: I18n.t('分') };
         let fixed = n;
         const max = this._timeMax(key);
         if (key === 'month' || key === 'day') fixed = Math.max(1, fixed);
@@ -531,7 +531,7 @@ const ConditionBuilder = {
         if (fixed === n) return;
         inp.value = String(fixed);
         inp.dispatchEvent(new Event('input', { bubbles: true }));
-        if (typeof Toast !== 'undefined' && Toast.show) Toast.show(`${labels[key]}要在 ${key === 'month' || key === 'day' ? 1 : 0} 到 ${max != null ? max : fixed} 之间，已改为 ${fixed}。`, 'warning');
+        if (typeof Toast !== 'undefined' && Toast.show) Toast.show(I18n.t('{label}要在 {min} 到 {max} 之间，已改为 {fixed}。', { label: labels[key], min: key === 'month' || key === 'day' ? 1 : 0, max: max != null ? max : fixed, fixed }), 'warning');
     },
 
     _blankRule() {

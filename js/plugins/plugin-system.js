@@ -29,16 +29,16 @@ var PLUGIN_CONDITION_TYPES = {
 
     function readFile(url, kind) {
         return fetch(url).then(function (r) {
-            if (r.status === 404) return { error: '文件没找到（' + url + '）', notFound: true };
-            if (!r.ok) return { error: '文件读取失败（' + r.status + '）：' + url, notFound: false };
+            if (r.status === 404) return { error: I18n.t('文件没找到（{url}）', { url: url }), notFound: true };
+            if (!r.ok) return { error: I18n.t('文件读取失败（{status}）：{url}', { status: r.status, url: url }), notFound: false };
             if (kind === 'json') {
                 return r.text().then(function (t) {
-                    try { return { value: JSON.parse(t) }; } catch (e) { return { error: '文件内容格式不对（不是正确的 JSON）：' + url, notFound: false }; }
+                    try { return { value: JSON.parse(t) }; } catch (e) { return { error: I18n.t('文件内容格式不对（不是正确的 JSON）：{url}', { url: url }), notFound: false }; }
                 });
             }
             return r.text().then(function (t) { return { value: t }; });
         }, function () {
-            return { error: '文件读取失败（网络或服务不可用）：' + url, notFound: false };
+            return { error: I18n.t('文件读取失败（网络或服务不可用）：{url}', { url: url }), notFound: false };
         });
     }
 
@@ -82,14 +82,14 @@ var PLUGIN_CONDITION_TYPES = {
             var self = this;
             var base = String(baseModulePath || '').replace(/\/+$/, '');
             var jobs = [];
-            var plan = [['logic', 'text', '脚本文件'], ['display', 'text', '显示文件'], ['style', 'text', '样式文件'], ['pool', 'json', '随机池文件']];
+            var plan = [['logic', 'text', I18n.t('脚本文件')], ['display', 'text', I18n.t('显示文件')], ['style', 'text', I18n.t('样式文件')], ['pool', 'json', I18n.t('随机池文件')]];
             plan.forEach(function (p) {
                 var f = self.files[p[0]];
                 if (!f) return;
                 jobs.push(readFile(base ? base + '/' + f : f, p[1]).then(function (r) {
                     if (r.error) {
                         self.loadedFiles[p[0]] = null;
-                        self.loadErrors[p[0]] = { error: p[2] + '：' + r.error, notFound: !!r.notFound };
+                        self.loadErrors[p[0]] = { error: I18n.t('{file}：{error}', { file: p[2], error: r.error }), notFound: !!r.notFound };
                     } else {
                         self.loadedFiles[p[0]] = r.value;
                         delete self.loadErrors[p[0]];
@@ -120,7 +120,7 @@ var PLUGIN_CONDITION_TYPES = {
         }
 
         execute(context) {
-            throw new Error('这种插件没有可运行的内容');
+            throw new Error(I18n.t('这种插件没有可运行的内容'));
         }
     }
 
@@ -134,7 +134,7 @@ var PLUGIN_CONDITION_TYPES = {
     }
 
     function storeOf(context) {
-        if (!context || !context.variableSystem) throw new Error('没有可用的变量系统');
+        if (!context || !context.variableSystem) throw new Error(I18n.t('没有可用的变量系统'));
         return RT.storeFromVariableSystem(context.variableSystem);
     }
 
@@ -150,7 +150,7 @@ var PLUGIN_CONDITION_TYPES = {
         execute(context) {
             if (!this.config.pool && this.loadErrors.pool) throw new Error(this.loadErrors.pool.error);
             var pool = this.config.pool || this.loadedFiles.pool || null;
-            if (!pool) throw new Error('随机池还没有载入，或没有设置随机池。');
+            if (!pool) throw new Error(I18n.t('随机池还没有载入，或没有设置随机池。'));
             var Picker = (typeof window !== 'undefined' && window.RandomPoolPicker) || null;
             var isNewFormat = pool && typeof pool === 'object' && (pool.poolType || pool.sections || (Array.isArray(pool.entries) && !pool.items && !pool.events));
             var selected;
@@ -165,7 +165,7 @@ var PLUGIN_CONDITION_TYPES = {
                 selected = Picker.pick(pool, condCtx);
             } else {
                 var list = Array.isArray(pool) ? pool : (pool.items || pool.events || pool.entries || null);
-                if (!Array.isArray(list) || list.length === 0) throw new Error('随机池是空的。');
+                if (!Array.isArray(list) || list.length === 0) throw new Error(I18n.t('随机池是空的。'));
                 var weights = pool && !Array.isArray(pool) ? pool.weights : null;
                 var w = function (e) { return weights ? (weights[e && e.id] != null ? weights[e.id] : (weights[e] != null ? weights[e] : 0)) : 1; };
                 var total = list.reduce(function (s, e) { return s + w(e); }, 0);
@@ -177,11 +177,11 @@ var PLUGIN_CONDITION_TYPES = {
                     if (selected === undefined) selected = list[list.length - 1];
                 }
             }
-            if (selected === undefined || selected === null) throw new Error('这次没有抽到东西（池子为空，或条件都没有满足）。');
+            if (selected === undefined || selected === null) throw new Error(I18n.t('这次没有抽到东西（池子为空，或条件都没有满足）。'));
             this.output = selected;
             if (this.tempStorage && context && context.variableSystem) {
                 var ok = context.variableSystem.executeOperation(this.tempStorage, 'set', { value: selected });
-                if (ok === false) throw new Error('抽到的结果没能存进变量「' + this.tempStorage + '」（变量不存在或类型不是对象）。');
+                if (ok === false) throw new Error(I18n.t('抽到的结果没能存进变量「{name}」（变量不存在或类型不是对象）。', { name: this.tempStorage }));
             }
             return selected;
         }
@@ -199,21 +199,21 @@ var PLUGIN_CONDITION_TYPES = {
 
         execute(context) {
             var src = context.pluginSystem && context.pluginSystem.getPlugin(this.inputSource, this.ownerModuleId);
-            if (!src) throw new Error('要读取的插件「' + this.inputSource + '」不存在。');
-            if (src.output === null || src.output === undefined) throw new Error('上游插件「' + (src.name || src.id) + '」还没有结果，先让它运行一次。');
+            if (!src) throw new Error(I18n.t('要读取的插件「{name}」不存在。', { name: this.inputSource }));
+            if (src.output === null || src.output === undefined) throw new Error(I18n.t('上游插件「{name}」还没有结果，先让它运行一次。', { name: src.name || src.id }));
             var store = storeOf(context);
             var written = [], skipped = [];
             var self = this;
             this.targetVariables.forEach(function (t) {
                 var id = t && t.variableId;
-                if (!id) { skipped.push('有一条写入没有选变量'); return; }
+                if (!id) { skipped.push(I18n.t('有一条写入没有选变量')); return; }
                 var value = self.extractValue(src.output, t.mapping);
-                if (value === undefined) { skipped.push('上游结果里没有「' + t.mapping + '」，变量「' + store.nameOf(id) + '」没有改动'); return; }
-                if (!store.has(id)) { skipped.push('变量「' + id + '」不存在'); return; }
-                if (!store.set(id, value)) { skipped.push('变量「' + store.nameOf(id) + '」不能写入这个值'); return; }
+                if (value === undefined) { skipped.push(I18n.t('上游结果里没有「{field}」，变量「{name}」没有改动', { field: t.mapping, name: store.nameOf(id) })); return; }
+                if (!store.has(id)) { skipped.push(I18n.t('变量「{id}」不存在', { id: id })); return; }
+                if (!store.set(id, value)) { skipped.push(I18n.t('变量「{name}」不能写入这个值', { name: store.nameOf(id) })); return; }
                 written.push(id);
             });
-            if (!written.length && skipped.length) throw new Error(skipped.join('；'));
+            if (!written.length && skipped.length) throw new Error(skipped.join(I18n.t('；')));
             return { written: written, skipped: skipped };
         }
 
@@ -235,7 +235,7 @@ var PLUGIN_CONDITION_TYPES = {
     class VariableOpPlugin extends Plugin {
         execute(context) {
             var res = RT.applyOps(this.config.operations, storeOf(context), {});
-            if (res.errors.length && !res.changes.length) throw new Error(res.errors.join('；'));
+            if (res.errors.length && !res.changes.length) throw new Error(res.errors.join(I18n.t('；')));
             return res;
         }
     }
@@ -268,22 +268,22 @@ var PLUGIN_CONDITION_TYPES = {
         }
 
         execute(context) {
-            if (!this.moduleTemplate || !this.moduleTemplate.id) throw new Error('没有设置要生成的模块。');
-            if (!this.outputFlow) throw new Error('没有设置生成的模块放到哪条流程。');
+            if (!this.moduleTemplate || !this.moduleTemplate.id) throw new Error(I18n.t('没有设置要生成的模块。'));
+            if (!this.outputFlow) throw new Error(I18n.t('没有设置生成的模块放到哪条流程。'));
             var data;
             if (!this.inputSource || this.inputSource === 'builtin') {
                 data = (context && context.builtinData) || {};
             } else {
                 var src = context.pluginSystem && context.pluginSystem.getPlugin(this.inputSource, this.ownerModuleId);
-                if (!src) throw new Error('要读取的插件「' + this.inputSource + '」不存在。');
-                if (src.output === null || src.output === undefined) throw new Error('上游插件「' + (src.name || src.id) + '」还没有结果，先让它运行一次。');
+                if (!src) throw new Error(I18n.t('要读取的插件「{name}」不存在。', { name: this.inputSource }));
+                if (src.output === null || src.output === undefined) throw new Error(I18n.t('上游插件「{name}」还没有结果，先让它运行一次。', { name: src.name || src.id }));
                 data = src.output && typeof src.output === 'object' ? src.output : { value: src.output };
             }
             var newModule = this.generateModule(this.moduleTemplate, data);
             this.lastAdd = null;
             if (context.moduleSystem) {
                 var added = context.moduleSystem.addDynamicModule(newModule, this.ownerModuleId, this.outputFlow);
-                this.lastAdd = added ? { added: true } : { added: false, reason: '已经有同编号的模块，没有重复添加；或放置的位置不存在。' };
+                this.lastAdd = added ? { added: true } : { added: false, reason: I18n.t('已经有同编号的模块，没有重复添加；或放置的位置不存在。') };
             }
             return newModule;
         }
@@ -410,15 +410,15 @@ var PLUGIN_CONDITION_TYPES = {
          */
         registerPlugin(pluginConfig, ownerModuleId) {
             var def = RT.normalize(pluginConfig);
-            var label = def.name || def.id || '未命名插件';
-            if (!def.id) { this.registerIssues.push({ level: 'error', code: 'ID_MISSING', plugin: label, text: '有一个插件没有编号，无法使用。', hint: '重新添加这个插件。' }); return null; }
+            var label = def.name || def.id || I18n.t('未命名插件');
+            if (!def.id) { this.registerIssues.push({ level: 'error', code: 'ID_MISSING', plugin: label, text: I18n.t('有一个插件没有编号，无法使用。'), hint: I18n.t('重新添加这个插件。') }); return null; }
             if (!def.type) {
-                if (!RT.LEGACY_TYPES[def.rawType]) this.registerIssues.push({ level: 'error', code: 'TYPE_UNKNOWN', plugin: label, text: '插件类型「' + (def.rawType == null || def.rawType === '' ? '空' : def.rawType) + '」不认识。', hint: '在类型里选一个已有的类型。' });
+                if (!RT.LEGACY_TYPES[def.rawType]) this.registerIssues.push({ level: 'error', code: 'TYPE_UNKNOWN', plugin: label, text: I18n.t('插件类型「{type}」不认识。', { type: def.rawType == null || def.rawType === '' ? I18n.t('空') : def.rawType }), hint: I18n.t('在类型里选一个已有的类型。') });
                 return null;
             }
             var key = ownerModuleId + '|' + def.id;
             if (this.plugins.has(key)) {
-                this.registerIssues.push({ level: 'error', code: 'ID_DUPLICATE', plugin: label, text: '同一个模块下有两个编号相同的插件，后面这个没有生效。', hint: '删掉其中一个，或给它换个编号。' });
+                this.registerIssues.push({ level: 'error', code: 'ID_DUPLICATE', plugin: label, text: I18n.t('同一个模块下有两个编号相同的插件，后面这个没有生效。'), hint: I18n.t('删掉其中一个，或给它换个编号。') });
                 return null;
             }
             var Cls = CLASS_BY_TYPE[def.type];
@@ -490,8 +490,8 @@ var PLUGIN_CONDITION_TYPES = {
 
         executePlugin(pluginId, context, ownerModuleId) {
             var plugin = this.getPlugin(pluginId, ownerModuleId);
-            if (!plugin) throw new Error('插件「' + pluginId + '」不存在。');
-            if (!plugin.shouldBeActive(this.conditionEvaluator)) throw new Error('插件「' + plugin.name + '」当前没有启用。');
+            if (!plugin) throw new Error(I18n.t('插件「{name}」不存在。', { name: pluginId }));
+            if (!plugin.shouldBeActive(this.conditionEvaluator)) throw new Error(I18n.t('插件「{name}」当前没有启用。', { name: plugin.name }));
             context.pluginSystem = this;
             return plugin.execute(context);
         }

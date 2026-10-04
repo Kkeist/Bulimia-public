@@ -94,8 +94,8 @@ const RegexProcessor = {
             new RegExp(pattern, flags || 'gi');
             return { ok: true };
         } catch (e) {
-            const name = scriptName || '此脚本';
-            const msg = `正则脚本「${name}」语法错误，无法保存：${e.message}`;
+            const name = scriptName || I18n.t('此脚本');
+            const msg = I18n.t('正则脚本「{name}」语法错误，无法保存：{msg}', { name, msg: e.message });
             console.error('[RegexProcessor] _validatePattern:', msg);
             if (typeof Toast !== 'undefined' && Toast.show) Toast.show(msg, 'error', 6000);
             return { ok: false, error: e.message };
@@ -325,10 +325,10 @@ const RegexProcessor = {
             if (!RegexProcessor._invalidPatternWarned) RegexProcessor._invalidPatternWarned = new Set();
             if (!RegexProcessor._invalidPatternWarned.has(key)) {
                 RegexProcessor._invalidPatternWarned.add(key);
-                const name = script.name || script.id || '未命名脚本';
+                const name = script.name || script.id || I18n.t('未命名脚本');
                 console.error(`[RegexProcessor] 脚本「${name}」pattern 无效，已跳过：${e.message}`);
                 if (typeof Toast !== 'undefined' && Toast.show) {
-                    Toast.show(`正则脚本「${name}」语法错误已跳过：${e.message}`, 'error', 6000);
+                    Toast.show(I18n.t('正则脚本「{name}」语法错误已跳过：{msg}', { name, msg: e.message }), 'error', 6000);
                 }
             }
             return text;

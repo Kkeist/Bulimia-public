@@ -302,27 +302,27 @@ const ChatDisplay = {
 
             // 添加或更新thinking部分（如果存在）
             if (msg.thinking) {
-                this._renderDetailsSection(msgEl, 'thinking-details', '思考过程', msg.thinking);
+                this._renderDetailsSection(msgEl, 'thinking-details', I18n.t('思考过程'), msg.thinking);
             }
 
             // 添加或更新e-cot部分（如果存在）
             if (msg.ecot) {
-                this._renderDetailsSection(msgEl, 'ecot-details', '思维链', msg.ecot);
+                this._renderDetailsSection(msgEl, 'ecot-details', I18n.t('思维链'), msg.ecot);
             }
 
             // 添加或更新问答区部分（如果存在）
             if (msg.qa) {
-                this._renderDetailsSection(msgEl, 'qa-details', '问答区', msg.qa);
+                this._renderDetailsSection(msgEl, 'qa-details', I18n.t('问答区'), msg.qa);
             }
 
             // 添加或更新预测区部分（如果存在）
             if (msg.prediction) {
-                this._renderDetailsSection(msgEl, 'prediction-details', '预测区', msg.prediction);
+                this._renderDetailsSection(msgEl, 'prediction-details', I18n.t('预测区'), msg.prediction);
             }
 
             // 添加或更新本轮摘要部分（如果存在，用于历史压缩时「非最近几条只发摘要」）
             if (msg.turnSummary) {
-                this._renderDetailsSection(msgEl, 'turn-summary-details', '本轮摘要', msg.turnSummary);
+                this._renderDetailsSection(msgEl, 'turn-summary-details', I18n.t('本轮摘要'), msg.turnSummary);
             }
 
             // seeds：不在聊天界面强制展示（避免污染正文），但要同步进State，便于调试/后续用
@@ -449,16 +449,16 @@ const ChatDisplay = {
         const htmlContent = this._parseMarkdown(message.content || '', message.role, messageId);
 
         const settings = Storage.getSettings() || {};
-        const userName = PersonaManager.current?.name || State.gameState?.playerName || '玩家';
-        const aiName = settings.aiName || '故事之声';
-        const roleLabel = ({ 'user': userName, 'assistant': aiName, 'system': '系统' }[message.role] || message.role);
+        const userName = PersonaManager.current?.name || State.gameState?.playerName || I18n.t('玩家');
+        const aiName = settings.aiName || I18n.t('故事之声');
+        const roleLabel = ({ 'user': userName, 'assistant': aiName, 'system': I18n.t('系统') }[message.role] || message.role);
         const time = new Date(message.timestamp).toLocaleTimeString();
         const streamingIndicator = message.streaming ? '<span class="streaming-indicator" aria-hidden="true"></span>' : '';
 
         const thinkingContent = (message.thinking && message.role === 'assistant') ? `
             <details class="thinking-details">
                 <summary class="thinking-summary">
-                    <span class="thinking-title">思考过程</span>
+                    <span class="thinking-title">${I18n.t('思考过程')}</span>
                     <span class="thinking-toggle chev" aria-hidden="true"></span>
                 </summary>
                 <div class="thinking-content">${this._parseMarkdown(message.thinking, 'assistant', index)}</div>
@@ -466,13 +466,13 @@ const ChatDisplay = {
         ` : '';
 
         const multiSelectCheckbox = this.multiSelectMode ? `
-            <input type="checkbox" class="message-select-checkbox" data-index="${index}" aria-label="选择这条消息"
+            <input type="checkbox" class="message-select-checkbox" data-index="${index}" aria-label="${I18n.t('选择这条消息')}"
                    ${this.selectedMessageIds.has(index) ? 'checked' : ''}>
         ` : '';
 
         const metaBox = (message.role === 'user' && hasMetaBlockBefore && prevMsg) ? (() => {
             const metaText = (prevMsg.metaContent || prevMsg.content || '').replace(/<[^>]*>/g, '').trim();
-            const label = metaText ? ('场外：' + metaText) : '场外';
+            const label = metaText ? (I18n.t('场外：') + metaText) : I18n.t('场外');
             return '<div class="user-meta-inline">' + this._escapeHtml(label) + '</div>';
         })() : '';
 
@@ -480,12 +480,12 @@ const ChatDisplay = {
             const swipes = (message.swipes && Array.isArray(message.swipes)) ? message.swipes : [message.content || ''];
             const swipeId = (typeof message.swipeId === 'number') ? message.swipeId : 0;
             const leftDisabled = swipes.length <= 1 || swipeId <= 0 ? 'disabled' : '';
-            const rightLabel = (swipeId < swipes.length - 1) ? '下一个版本' : '生成新版本';
-            const streamingLine = message.streaming ? '<div class="streaming-status-above-swipes">正在生成</div>' : '';
+            const rightLabel = (swipeId < swipes.length - 1) ? I18n.t('下一个版本') : I18n.t('生成新版本');
+            const streamingLine = message.streaming ? `<div class="streaming-status-above-swipes">${I18n.t('正在生成')}</div>` : '';
             return `
                 ${streamingLine}
                 <div class="swipes-container">
-                    <button type="button" class="swipe-btn swipe-left" data-act="swipe-left" aria-label="上一个版本" ${leftDisabled}><span class="chev is-left" aria-hidden="true"></span></button>
+                    <button type="button" class="swipe-btn swipe-left" data-act="swipe-left" aria-label="${I18n.t('上一个版本')}" ${leftDisabled}><span class="chev is-left" aria-hidden="true"></span></button>
                     <span class="swipes-counter">${swipes.length ? (swipeId + 1) : 1}/${Math.max(swipes.length, 1)}</span>
                     <button type="button" class="swipe-btn swipe-right" data-act="swipe-right" aria-label="${rightLabel}" title="${rightLabel}"><span class="chev is-right" aria-hidden="true"></span></button>
                 </div>
@@ -502,23 +502,23 @@ const ChatDisplay = {
             <div class="message-content">${metaBox}${htmlContent}</div>
             ${swipesHtml}
             <div class="message-edit-area">
-                <textarea class="message-edit-textarea" aria-label="消息内容"></textarea>
+                <textarea class="message-edit-textarea" aria-label="${I18n.t('消息内容')}"></textarea>
                 ${message.role === 'user' ? `
                 <div class="message-edit-meta-row">
-                    <label class="message-edit-label">场外指令</label>
-                    <textarea class="message-edit-meta" rows="2" aria-label="场外指令"></textarea>
+                    <label class="message-edit-label">${I18n.t('场外指令')}</label>
+                    <textarea class="message-edit-meta" rows="2" aria-label="${I18n.t('场外指令')}"></textarea>
                 </div>
                 ` : ''}
                 <div class="message-edit-actions">
-                    <button type="button" class="msg-action-btn" data-act="save-edit">保存</button>
-                    <button type="button" class="msg-action-btn" data-act="cancel-edit">取消</button>
+                    <button type="button" class="msg-action-btn" data-act="save-edit">${I18n.t('保存')}</button>
+                    <button type="button" class="msg-action-btn" data-act="cancel-edit">${I18n.t('取消')}</button>
                 </div>
             </div>
             <div class="message-actions">
-                ${message.role === 'assistant' ? '<button type="button" class="msg-action-btn" data-act="reroll">重新生成</button>' : ''}
-                <button type="button" class="msg-action-btn" data-act="edit">编辑</button>
-                <button type="button" class="msg-action-btn" data-act="copy">复制</button>
-                <button type="button" class="msg-action-btn danger" data-act="delete">删除</button>
+                ${message.role === 'assistant' ? `<button type="button" class="msg-action-btn" data-act="reroll">${I18n.t('重新生成')}</button>` : ''}
+                <button type="button" class="msg-action-btn" data-act="edit">${I18n.t('编辑')}</button>
+                <button type="button" class="msg-action-btn" data-act="copy">${I18n.t('复制')}</button>
+                <button type="button" class="msg-action-btn danger" data-act="delete">${I18n.t('删除')}</button>
             </div>
         `;
 
@@ -721,12 +721,12 @@ const ChatDisplay = {
      */
     async deleteSelectedMessages() {
         if (this.selectedMessageIds.size === 0) {
-            Toast.show('请先选择要删除的消息。', 'warning');
+            Toast.show(I18n.t('请先选择要删除的消息。'), 'warning');
             return;
         }
 
         const count = this.selectedMessageIds.size;
-        const confirmed = await Modal.confirm('删除消息', `确定要删除选中的 ${count} 条消息吗？`, { danger: true, confirmLabel: '删除' });
+        const confirmed = await Modal.confirm(I18n.t('删除消息'), I18n.t('确定要删除选中的 {count} 条消息吗？', { count }), { danger: true, confirmLabel: I18n.t('删除') });
         if (!confirmed) return;
 
         const before = this.messages.slice();
@@ -749,7 +749,7 @@ const ChatDisplay = {
         this._updateMultiSelectToolbar();
         this._rerenderAll();
         await this._autoSaveChatHistory();
-        this._offerUndo(`已删除 ${count} 条消息。`, before);
+        this._offerUndo(I18n.t('已删除 {count} 条消息。', { count }), before);
     },
 
     /** 删除之后给出撤销入口：恢复删除前的整份消息列表 */
@@ -799,11 +799,11 @@ const ChatDisplay = {
         const hint = document.createElement('div');
         hint.className = 'reroll-hint';
         hint.innerHTML = `
-            <div class="reroll-hint-title">回复需要重新生成</div>
+            <div class="reroll-hint-title">${I18n.t('回复需要重新生成')}</div>
             <div class="reroll-hint-reason">${this._escapeHtml(reason)}</div>
             <div class="reroll-hint-actions">
-                <button type="button" class="action-btn" data-act="hint-reroll">重新生成</button>
-                <button type="button" class="action-btn" data-act="hint-dismiss">忽略</button>
+                <button type="button" class="action-btn" data-act="hint-reroll">${I18n.t('重新生成')}</button>
+                <button type="button" class="action-btn" data-act="hint-dismiss">${I18n.t('忽略')}</button>
             </div>
         `;
         this.container.appendChild(hint);
@@ -816,7 +816,7 @@ const ChatDisplay = {
     async rerollMessage(index) {
         const message = this.messages[index];
         if (!message || message.role !== 'assistant') {
-            Toast.show('只能重新生成 AI 的消息。', 'warning');
+            Toast.show(I18n.t('只能重新生成 AI 的消息。'), 'warning');
             return;
         }
 
@@ -830,7 +830,7 @@ const ChatDisplay = {
         }
 
         if (!userMessage) {
-            Toast.show('找不到对应的玩家消息。', 'error');
+            Toast.show(I18n.t('找不到对应的玩家消息。'), 'error');
             return;
         }
 
@@ -842,7 +842,7 @@ const ChatDisplay = {
                 await App.getAIResponseForSwipe(userMessage, index);
             } catch (error) {
                 console.error('Reroll error:', error);
-                Toast.show('重新生成失败：' + error.message, 'error');
+                Toast.show(I18n.t('重新生成失败：{msg}', { msg: error.message }), 'error');
                 // 失败时恢复当前显示为当前swipe版本
                 message.content = message.swipes?.[message.swipeId || 0] || message.content;
                 message.streaming = false;
@@ -851,7 +851,7 @@ const ChatDisplay = {
             return;
         }
 
-        Toast.show('暂时无法重新生成。', 'error');
+        Toast.show(I18n.t('暂时无法重新生成。'), 'error');
     },
 
     /**
@@ -899,12 +899,12 @@ const ChatDisplay = {
     swipeLeft(index) {
         const message = this.messages[index];
         if (!message?.swipes || message.swipes.length <= 1) {
-            Toast.show('没有其他版本。', 'info');
+            Toast.show(I18n.t('没有其他版本。'), 'info');
             return;
         }
 
         if ((message.swipeId || 0) <= 0) {
-            Toast.show('已经是第一个版本。', 'info');
+            Toast.show(I18n.t('已经是第一个版本。'), 'info');
             return;
         }
 
@@ -972,9 +972,9 @@ const ChatDisplay = {
             const swipesDiv = document.createElement('div');
             swipesDiv.className = 'swipes-container';
             swipesDiv.innerHTML = `
-                <button type="button" class="swipe-btn swipe-left" data-act="swipe-left" aria-label="上一个版本"><span class="chev is-left" aria-hidden="true"></span></button>
+                <button type="button" class="swipe-btn swipe-left" data-act="swipe-left" aria-label="${I18n.t('上一个版本')}"><span class="chev is-left" aria-hidden="true"></span></button>
                 <span class="swipes-counter">${(message.swipeId || 0) + 1}/${message.swipes.length}</span>
-                <button type="button" class="swipe-btn swipe-right" data-act="swipe-right" aria-label="下一个版本"><span class="chev is-right" aria-hidden="true"></span></button>
+                <button type="button" class="swipe-btn swipe-right" data-act="swipe-right" aria-label="${I18n.t('下一个版本')}"><span class="chev is-right" aria-hidden="true"></span></button>
             `;
             if (actionsEl && actionsEl.parentElement) {
                 actionsEl.parentElement.insertBefore(swipesDiv, actionsEl);
@@ -1000,7 +1000,7 @@ const ChatDisplay = {
         }
         if (rightBtn && message.swipes) {
             const atLast = (message.swipeId || 0) >= message.swipes.length - 1;
-            rightBtn.title = atLast ? '生成新版本' : '下一个版本';
+            rightBtn.title = atLast ? I18n.t('生成新版本') : I18n.t('下一个版本');
             rightBtn.setAttribute('aria-label', rightBtn.title);
         }
 
@@ -1062,14 +1062,14 @@ const ChatDisplay = {
             const messageEl = this.container.querySelector(`[data-index="${index}"]`);
             if (!messageEl) {
                 console.error('Message element not found for index:', index);
-                Toast.show('找不到这条消息。', 'error');
+                Toast.show(I18n.t('找不到这条消息。'), 'error');
                 return;
             }
 
             const textarea = messageEl.querySelector('.message-edit-textarea');
             if (!textarea) {
                 console.error('Textarea not found for index:', index);
-                Toast.show('找不到编辑框。', 'error');
+                Toast.show(I18n.t('找不到编辑框。'), 'error');
                 return;
             }
 
@@ -1077,7 +1077,7 @@ const ChatDisplay = {
             const msg = this.messages[index];
             if (!msg) {
                 console.error('Message not found at index:', index);
-                Toast.show('找不到这条消息。', 'error');
+                Toast.show(I18n.t('找不到这条消息。'), 'error');
                 return;
             }
 
@@ -1099,7 +1099,7 @@ const ChatDisplay = {
             if (msg.role === 'user') {
                 const prev = this.messages[index - 1];
                 const hasBlock = prev?.identifier === 'user-meta-block';
-                const metaInstruction = (typeof App !== 'undefined' && App.META_INSTRUCTION) || '请将以下场外要求自然融入回应，不要生硬复读。';
+                const metaInstruction = (typeof App !== 'undefined' && App.META_INSTRUCTION) || I18n.t('请将以下场外要求自然融入回应，不要生硬复读。');
 
                 if (hasBlock && newMeta === '') {
                     // 清空场外：删除 block
@@ -1156,7 +1156,7 @@ const ChatDisplay = {
                     const metaBox = (msg.role === 'user' && hasMetaBlockBefore && prevMsg) ? (() => {
                         const metaText = (prevMsg.metaContent || prevMsg.content || '').replace(/<[^>]*>/g, '').trim();
                         const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-                        const label = metaText ? ('场外：' + metaText) : '场外';
+                        const label = metaText ? (I18n.t('场外：') + metaText) : I18n.t('场外');
                         return '<div class="user-meta-inline">' + esc(label) + '</div>';
                     })() : '';
                     contentEl.innerHTML = metaBox + this._parseMarkdown(newContent, role, idx);
@@ -1173,14 +1173,14 @@ const ChatDisplay = {
             }
 
             await this._autoSaveChatHistory();
-            Toast.show('已保存。', 'success');
+            Toast.show(I18n.t('已保存。'), 'success');
 
             if (msg.role === 'user') {
                 const hasLaterMessages = userMessageIndex < this.messages.length - 1;
                 if (hasLaterMessages) {
                     const confirmReroll = await Modal.confirm(
-                        '重新生成后续回复',
-                        '已修改玩家消息，是否重新生成之后的 AI 回复？'
+                        I18n.t('重新生成后续回复'),
+                        I18n.t('已修改玩家消息，是否重新生成之后的 AI 回复？')
                     );
                     if (confirmReroll) {
                         this.messages.splice(userMessageIndex + 1);
@@ -1192,7 +1192,7 @@ const ChatDisplay = {
                                 await App.getAIResponse(newContent, this.messages[userMessageIndex - 1]?.identifier === 'user-meta-block' ? this._getMetaFromBlock(this.messages[userMessageIndex - 1]) : '');
                             } catch (error) {
                                 console.error('Regenerate error:', error);
-                                Toast.show('重新生成失败。', 'error');
+                                Toast.show(I18n.t('重新生成失败。'), 'error');
                             } finally {
                                 this.hideLoading();
                             }
@@ -1202,7 +1202,7 @@ const ChatDisplay = {
             }
         } catch (error) {
             console.error('Save edit error:', error);
-            Toast.show('保存失败：' + error.message, 'error');
+            Toast.show(I18n.t('保存失败：{msg}', { msg: error.message }), 'error');
         }
     },
 
@@ -1240,7 +1240,7 @@ const ChatDisplay = {
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(textToCopy)
-                .then(() => Toast.show('已复制。', 'success'))
+                .then(() => Toast.show(I18n.t('已复制。'), 'success'))
                 .catch((err) => {
                     console.error('Copy error:', err);
                     // 回退方案：使用传统方法
@@ -1268,13 +1268,13 @@ const ChatDisplay = {
         try {
             const successful = document.execCommand('copy');
             if (successful) {
-                Toast.show('已复制。', 'success');
+                Toast.show(I18n.t('已复制。'), 'success');
             } else {
-                Toast.show('复制失败。', 'error');
+                Toast.show(I18n.t('复制失败。'), 'error');
             }
         } catch (err) {
             console.error('Fallback copy error:', err);
-            Toast.show('复制失败。', 'error');
+            Toast.show(I18n.t('复制失败。'), 'error');
         } finally {
             document.body.removeChild(textArea);
         }
@@ -1302,7 +1302,7 @@ const ChatDisplay = {
         }
 
         try {
-            const confirmed = await Modal.confirm('删除消息', '确定要删除这条消息吗？', { danger: true, confirmLabel: '删除' });
+            const confirmed = await Modal.confirm(I18n.t('删除消息'), I18n.t('确定要删除这条消息吗？'), { danger: true, confirmLabel: I18n.t('删除') });
             if (!confirmed) return;
 
             const before = this.messages.slice();
@@ -1315,10 +1315,10 @@ const ChatDisplay = {
             this.messages.forEach((m, i) => { if (!m.id) m.id = this._genMessageId(); });
             this._rerenderAll();
             this._autoSaveChatHistory();
-            this._offerUndo('已删除消息。', before);
+            this._offerUndo(I18n.t('已删除消息。'), before);
         } catch (error) {
             console.error('Delete message error:', error);
-            Toast.show('删除失败：' + error.message, 'error');
+            Toast.show(I18n.t('删除失败：{msg}', { msg: error.message }), 'error');
         }
     },
 
@@ -1342,14 +1342,14 @@ const ChatDisplay = {
         if (!this.container || this.messages.length > 0) return;
         if (typeof State !== 'undefined' && !State.currentSaveId) return;
         const cur = typeof ModuleManager !== 'undefined' ? ModuleManager.getCurrent() : null;
-        const firstMsg = (cur?.content?.firstMessage || '开始游戏').trim();
+        const firstMsg = (cur?.content?.firstMessage || I18n.t('开始游戏')).trim();
         const card = document.createElement('div');
         card.id = 'start-game-card';
         card.className = 'message start-game-card';
         card.innerHTML = `
             <div class="message-header">
-                <span class="message-role system">系统</span>
-                <button type="button" class="btn-start-game-delete">移除</button>
+                <span class="message-role system">${I18n.t('系统')}</span>
+                <button type="button" class="btn-start-game-delete">${I18n.t('移除')}</button>
             </div>
             <div class="start-game-card-body">
                 <button type="button" class="btn-start-game-send"></button>

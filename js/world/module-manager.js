@@ -89,7 +89,7 @@ const ModuleManager = {
             console.warn('Module list not found (若用 file:// 打开请改用本地服务器):', e.message);
         }
         if (listFetchError && typeof Toast !== 'undefined' && Toast.show) {
-            Toast.show(`模组列表加载失败（${listFetchError}）。若用 file:// 打开请改用本地服务器，例如 npm start`, 'error', 8000);
+            Toast.show(I18n.t('模组列表加载失败（{err}）。若用 file:// 打开请改用本地服务器，例如 npm start', { err: listFetchError }), 'error', 8000);
         }
         // list.json 两种历史格式都支持：
         //  - 旧：字符串数组（故事文件夹名）   ["canglan-sect"]
@@ -113,7 +113,7 @@ const ModuleManager = {
             const key = folderKeyOf(entry);
             if (!key) continue;
             try {
-                const res = await fetch(`${MODULE_FOLDER}/${key}/module.json`);
+                const res = await this._fetchModuleJson(key);
                 if (!res.ok) {
                     moduleErrors.push({ key, error: `HTTP ${res.status}` });
                     console.error(`Story "${key}" module.json HTTP ${res.status}`);
@@ -122,6 +122,7 @@ const ModuleManager = {
 
                 const data = await res.json();
                 const module = this._normalizeModule(data, key);
+                this._applyListI18n(module, entry);
 
                 const existing = this.modules.find(m => m.id === module.id);
                 if (existing) {
@@ -143,12 +144,12 @@ const ModuleManager = {
         if (list.length > 0 && loadedIds.length === 0) {
             console.error('loadFromModuleFolder: list.json 非空但无任何故事加载成功，请检查 list.json 格式与 module/<id>/module.json 可访问性');
             if (typeof Toast !== 'undefined' && Toast.show) {
-                Toast.show(`list.json 列了 ${list.length} 个模组但全部加载失败，请检查 console 详情`, 'error', 8000);
+                Toast.show(I18n.t('list.json 列了 {n} 个模组但全部加载失败，请检查 console 详情', { n: list.length }), 'error', 8000);
             }
         } else if (moduleErrors.length > 0 && typeof Toast !== 'undefined' && Toast.show) {
             // 部分成功：汇总一次 toast，不一个个刷屏
-            const all = moduleErrors.map(e => `${e.key}(${e.error})`).join('、');
-            Toast.show(`${moduleErrors.length} 个模组加载失败：${all}（成功 ${loadedIds.length} 个）`, 'warning', 7000);
+            const all = moduleErrors.map(e => `${e.key}(${e.error})`).join(I18n.t('、'));
+            Toast.show(I18n.t('{n} 个模组加载失败：{all}（成功 {ok} 个）', { n: moduleErrors.length, all, ok: loadedIds.length }), 'warning', 7000);
         }
 
         // 若当前选中的模块不在本次从 list 实际加载到的故事里，则切换到其中第一个
@@ -162,6 +163,30 @@ const ModuleManager = {
     },
 
     /**
+     * 读取故事文件夹里的 module.json；界面语言非源语言时先试 module.<lang>.json（完整译本，结构与 id 相同），404 则回退 module.json
+     * @returns {Promise<Response>} 可用的响应（可能 !ok）
+     */
+    async _fetchModuleJson(key) {
+        if (typeof I18n !== 'undefined' && I18n.lang !== I18n.SOURCE) {
+            try {
+                const localized = await fetch(`${MODULE_FOLDER}/${key}/module.${I18n.lang}.json`);
+                if (localized.ok) return localized;
+            } catch (e) { /* 没有译本就用原文 */ }
+        }
+        return fetch(`${MODULE_FOLDER}/${key}/module.json`);
+    },
+
+    /** list.json 条目的 i18n 覆盖（name/description/author），仅作用于显示 */
+    _applyListI18n(module, entry) {
+        if (!entry || typeof entry !== 'object' || typeof I18n === 'undefined' || I18n.lang === I18n.SOURCE) return;
+        const o = entry.i18n && entry.i18n[I18n.lang];
+        if (!o || typeof o !== 'object') return;
+        if (o.name) module.name = o.name;
+        if (o.description) module.description = o.description;
+        if (o.author) module.author = o.author;
+    },
+
+    /**
      * 从本地 module.json 重新加载当前模组，放弃内存中的临时编辑（flowNodeOverrides 等仍由调用方或 State 管理）
      * @returns {Promise<Object|null>} 重新加载后的当前模组，失败返回 null
      */
@@ -169,10 +194,19 @@ const ModuleManager = {
         const cur = this.currentModule;
         if (!cur || !cur.folderKey) return null;
         try {
-            const res = await fetch(`${MODULE_FOLDER}/${cur.folderKey}/module.json`);
+            const res = await this._fetchModuleJson(cur.folderKey);
             if (!res.ok) return null;
             const data = await res.json();
             const module = this._normalizeModule(data, cur.folderKey);
+            if (typeof I18n !== 'undefined' && I18n.lang !== I18n.SOURCE) {
+                // 重载后保持 list.json 的显示覆盖
+                try {
+                    const lr = await fetch(`${MODULE_FOLDER}/list.json`);
+                    const lraw = lr.ok ? await lr.json() : [];
+                    const ent = (Array.isArray(lraw) ? lraw : []).find(e => e && typeof e === 'object' && (e.id === module.id || String(e.path || '').replace(/\/+$/, '').split('/').pop() === cur.folderKey));
+                    this._applyListI18n(module, ent);
+                } catch (e) { /* 忽略 */ }
+            }
             const existing = this.modules.find(m => m.id === module.id);
             if (existing) this.modules[this.modules.indexOf(existing)] = module;
             else this.modules.push(module);
@@ -408,10 +442,10 @@ const ModuleManager = {
      */
     _normalizeSubModuleNode(node) {
         if (!node || typeof node !== 'object') {
-            return { id: '', name: '未命名', type: 'normal', content: '', variables: [], plugins: [], subModules: [] };
+            return { id: '', name: I18n.t('未命名'), type: 'normal', content: '', variables: [], plugins: [], subModules: [] };
         }
         if (node._timelineEvent) {
-            return { type: 'timeline', id: node.id || '', name: node.name || '未命名', subModules: [], _timelineEvent: true };
+            return { type: 'timeline', id: node.id || '', name: node.name || I18n.t('未命名'), subModules: [], _timelineEvent: true };
         }
         const rawContent = node.content && typeof node.content === 'object' ? node.content : {};
         const rawSub = node.moduleGroup ?? node.subModules ?? rawContent.moduleGroup ?? rawContent.subModules;
@@ -420,7 +454,7 @@ const ModuleManager = {
         const freeTrigger = node.free_trigger ?? rawContent.free_trigger ?? [];
         const parallel = node.parallel || rawContent.parallel || [];
         const timeline = node.timeline || rawContent.timeline || [];
-        const timelineAsNodes = Array.isArray(timeline) ? timeline.map((ev) => ({ _timelineEvent: true, type: 'timeline', id: ev.id || ev.name, name: ev.name || ev.id || '未命名' })) : [];
+        const timelineAsNodes = Array.isArray(timeline) ? timeline.map((ev) => ({ _timelineEvent: true, type: 'timeline', id: ev.id || ev.name, name: ev.name || ev.id || I18n.t('未命名') })) : [];
         const merged = Array.isArray(rawSub) && rawSub.length > 0
             ? rawSub
             : this.getSubModulesInTypeOrder([].concat(
@@ -438,7 +472,7 @@ const ModuleManager = {
         const flowName = node.flowName ?? rawContent.flowName ?? (flowRole === 'main' ? '主线' : (flowRole === 'parallel' ? (node.name || node.id || '') : ''));
         return {
             id: node.id || `n_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-            name: node.name || '未命名',
+            name: node.name || I18n.t('未命名'),
             type,
             flowRole: flowRole || undefined,
             flowName: flowName || undefined,
@@ -514,7 +548,7 @@ const ModuleManager = {
     create(name, description = '') {
         const module = {
             id: `module_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            name: name || '新模块',
+            name: name || I18n.t('新模块'),
             description: description || '',
             createdAt: Date.now(),
             updatedAt: Date.now(),
@@ -585,7 +619,7 @@ const ModuleManager = {
             : this.currentModule;
 
         if (!module) {
-            Toast.show('没有可保存的模块', 'warning');
+            Toast.show(I18n.t('没有可保存的模块'), 'warning');
             return false;
         }
 
@@ -598,7 +632,7 @@ const ModuleManager = {
         // ModuleSystem 已移除，子模块由模块管理器直接管理
 
         this._saveModules();
-        Toast.show('模块已保存', 'success');
+        Toast.show(I18n.t('模块已保存'), 'success');
         return true;
     },
 
@@ -664,12 +698,12 @@ const ModuleManager = {
         const text = await new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(String(reader.result));
-            reader.onerror = () => reject(new Error('文件读取失败，请确认文件没有被占用。'));
+            reader.onerror = () => reject(new Error(I18n.t('文件读取失败，请确认文件没有被占用。')));
             reader.readAsText(file);
         });
         let data;
         try { data = JSON.parse(text); }
-        catch (e) { throw new Error('文件内容不是有效的模组：格式有误，请确认导入的是导出的模组文件。'); }
+        catch (e) { throw new Error(I18n.t('文件内容不是有效的模组：格式有误，请确认导入的是导出的模组文件。')); }
         return this.importFromData(data);
     },
 
@@ -682,12 +716,12 @@ const ModuleManager = {
         if (data && typeof data === 'object' && !data.content && typeof ModuleSystem !== 'undefined') {
             const check = ModuleSystem.validateConfig(data);
             if (check.errors.length) {
-                const e = new Error(check.errors.slice(0, 3).map(x => x.message).join(' ') + (check.errors.length > 3 ? `另有 ${check.errors.length - 3} 处问题。` : ''));
+                const e = new Error(check.errors.slice(0, 3).map(x => x.message).join(' ') + (check.errors.length > 3 ? I18n.t('另有 {n} 处问题。', { n: check.errors.length - 3 }) : ''));
                 e.problems = check;
                 throw e;
             }
             if (check.warnings.length && opts.allowWarnings === false) {
-                const e = new Error('模组有需要确认的问题。');
+                const e = new Error(I18n.t('模组有需要确认的问题。'));
                 e.problems = check;
                 e.needConfirm = true;
                 throw e;
@@ -696,7 +730,7 @@ const ModuleManager = {
             module.importWarnings = check.warnings;
             return module;
         }
-        if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('文件内容不是有效的模组。');
+        if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error(I18n.t('文件内容不是有效的模组。'));
         const module = data;
         module.id = `module_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         module.createdAt = module.createdAt || Date.now();
@@ -825,11 +859,11 @@ const ModuleManager = {
      */
     getModuleNodeByPath(module, pathIds) {
         if (!module || !module.content || !Array.isArray(pathIds) || pathIds.length === 0) {
-            return { node: module?.content, name: module?.name || '根', parent: null };
+            return { node: module?.content, name: module?.name || I18n.t('根'), parent: null };
         }
         let parent = null;
         let node = module.content;
-        let name = module.name || '根';
+        let name = module.name || I18n.t('根');
         for (const id of pathIds) {
             const sub = Array.isArray(node.subModules) ? node.subModules : [];
             const found = sub.find((n) => (n.id || n.name) === id);
@@ -1259,14 +1293,14 @@ const ModuleManager = {
                     const unmetParts = this._getUnmetConditionParts(conditionToUse, variables, module, simulatedCompleted);
                     if (topLevelEnterCond != null && !passTopLevel) {
                         const topUnmet = this._getUnmetConditionParts(topLevelEnterCond, variables, module, simulatedCompleted);
-                        if (topUnmet.length) unmetParts.push('大模块进入：' + topUnmet.join('；'));
+                        if (topUnmet.length) unmetParts.push(I18n.t('大模块进入：') + topUnmet.join(I18n.t('；')));
                     }
                     mainExpected.push({
                         type: 'module',
                         pathIds: next.pathIds,
                         name: next.node && (next.node.name || next.pathIds[next.pathIds.length - 1]),
                         source: 'main',
-                        unmetConditionLabel: unmetParts.length ? unmetParts.join('；') : '条件未满足'
+                        unmetConditionLabel: unmetParts.length ? unmetParts.join(I18n.t('；')) : I18n.t('条件未满足')
                     });
                     break;
                 }
@@ -1301,7 +1335,7 @@ const ModuleManager = {
                     const getVal = (v, k) => (typeof getVariableValue === 'function' ? getVariableValue(v, k, timeVarId) : v[k]);
                     for (const [key, want] of Object.entries(firstUnmet.condition)) {
                         const got = getVal(variables, key);
-                        if (got !== want && got != want) timelineUnmet.push('变量「' + key + '」需 = ' + want + '（当前 ' + got + '）');
+                        if (got !== want && got != want) timelineUnmet.push(I18n.t('变量「{key}」需 = {want}（当前 {got}）', { key, want, got }));
                     }
                 }
                 mainExpected.push({
@@ -1310,7 +1344,7 @@ const ModuleManager = {
                     name: firstUnmet.name || eid,
                     content: firstUnmet.content || '',
                     source: 'main',
-                    unmetConditionLabel: timelineUnmet.length ? timelineUnmet.join('；') : '时间线条件未满足'
+                    unmetConditionLabel: timelineUnmet.length ? timelineUnmet.join(I18n.t('；')) : I18n.t('时间线条件未满足')
                 });
             }
         }
@@ -1346,7 +1380,7 @@ const ModuleManager = {
                         name: next.node && (next.node.name || next.pathIds[next.pathIds.length - 1]),
                         source: 'parallel',
                         parallelPathKey: pathKey,
-                        unmetConditionLabel: unmetParts.length ? unmetParts.join('；') : '条件未满足'
+                        unmetConditionLabel: unmetParts.length ? unmetParts.join(I18n.t('；')) : I18n.t('条件未满足')
                     });
                     break;
                 }
@@ -1581,7 +1615,7 @@ const ModuleManager = {
                 const leaves = this.getLeavesUnder(module, [pathKey]);
                 leaves.forEach((pathIds) => {
                     const key = pathIds.join('|');
-                    if (!inSet.has(key)) notInQueue.push({ type: 'module', name: this.getModuleNodeByPath(module, pathIds).name || pathKey, pathIds, reason: '无进入条件' });
+                    if (!inSet.has(key)) notInQueue.push({ type: 'module', name: this.getModuleNodeByPath(module, pathIds).name || pathKey, pathIds, reason: I18n.t('无进入条件') });
                 });
                 return;
             }
@@ -1589,7 +1623,7 @@ const ModuleManager = {
                 const leaves = this.getLeavesUnder(module, [pathKey]);
                 leaves.forEach((pathIds) => {
                     const key = pathIds.join('|');
-                    if (!inSet.has(key)) notInQueue.push({ type: 'module', name: this.getModuleNodeByPath(module, pathIds).name || pathKey, pathIds, reason: '进入条件未满足' });
+                    if (!inSet.has(key)) notInQueue.push({ type: 'module', name: this.getModuleNodeByPath(module, pathIds).name || pathKey, pathIds, reason: I18n.t('进入条件未满足') });
                 });
             }
         });
@@ -1599,7 +1633,7 @@ const ModuleManager = {
         events.forEach((ev) => {
             const id = ev.id || ev.name;
             if (!id || inSet.has('ev:' + id)) return;
-            if (!pendingIds.has(id)) notInQueue.push({ type: 'timeline_event', name: ev.name || id, eventId: id, reason: '条件未满足' });
+            if (!pendingIds.has(id)) notInQueue.push({ type: 'timeline_event', name: ev.name || id, eventId: id, reason: I18n.t('条件未满足') });
         });
         const parallel = sub.filter((n) => n.flowRole === 'parallel');
         parallel.forEach((p) => {
@@ -1609,7 +1643,7 @@ const ModuleManager = {
             if (enterCond == null || !this._evaluateCondition(enterCond, variables, module)) {
                 const leaves = this.getLeavesUnder(module, [pathKey]);
                 const flowName = p.flowName || p.name || p.id;
-                if (leaves.length > 0 && !inSet.has(leaves[0].join('|'))) notInQueue.push({ type: 'module', name: (p.name || p.id) + '（' + (flowName || '分流程') + '）', pathIds: leaves[0], reason: '进入条件未满足' });
+                if (leaves.length > 0 && !inSet.has(leaves[0].join('|'))) notInQueue.push({ type: 'module', name: I18n.t('{name}（{flow}）', { name: p.name || p.id, flow: flowName || I18n.t('分流程') }), pathIds: leaves[0], reason: I18n.t('进入条件未满足') });
             }
         });
         const triggerLeaves = this._getTriggerChainLeavesOrdered(module);
@@ -1621,7 +1655,7 @@ const ModuleManager = {
             if (enterCond == null) return;
             if (!this._evaluateCondition(enterCond, variables, module)) {
                 const name = this.getModuleNodeByPath(module, pathIds).name || pathIds[pathIds.length - 1];
-                notInQueue.push({ type: 'module', name, pathIds, reason: '上级阶段未达成要求' });
+                notInQueue.push({ type: 'module', name, pathIds, reason: I18n.t('上级阶段未达成要求') });
             }
         });
         return notInQueue;
@@ -1724,7 +1758,7 @@ const ModuleManager = {
         const flatList = [];
         function collect(nodes, depth) {
             nodes.forEach((n) => {
-                flatList.push({ id: n.id || n.name, name: n.name || n.id || '未命名', depth });
+                flatList.push({ id: n.id || n.name, name: n.name || n.id || I18n.t('未命名'), depth });
                 if (Array.isArray(n.subModules) && n.subModules.length) collect(n.subModules, depth + 1);
             });
         }
@@ -1742,11 +1776,11 @@ const ModuleManager = {
 
         const parts = [];
         if (nextName) {
-            parts.push(`当前处于【${currName}】阶段（本事件未完成）；下一阶段为【${nextName}】`);
+            parts.push(I18n.t('当前处于【{curr}】阶段（本事件未完成）；下一阶段为【{next}】', { curr: currName, next: nextName }));
         } else {
-            parts.push(`当前处于【${currName}】阶段（本阶段为时间线末节）`);
+            parts.push(I18n.t('当前处于【{curr}】阶段（本阶段为时间线末节）', { curr: currName }));
         }
-        return parts.join('，') + '。';
+        return parts.join(I18n.t('，')) + I18n.t('。');
     },
 
     /**
@@ -1779,7 +1813,7 @@ const ModuleManager = {
                     const hasNewFormat = conds.length > 0 || r.deliverMessage != null || (Array.isArray(r.addToModuleInfo) && r.addToModuleInfo.length > 0);
                     if (hasNewFormat) {
                         if (conds.length > 0 && !this._evaluateCondition(conds.length === 1 ? conds[0] : conds, vars, cur)) return;
-                        const text = r.deliverMessage || r.question || '需要确认';
+                        const text = r.deliverMessage || r.question || I18n.t('需要确认');
                         out.push({
                             moduleId: cur.id,
                             moduleName: n.name || n.id || '',
@@ -1802,14 +1836,14 @@ const ModuleManager = {
                     const displayVal = displayId && typeof getVariableValue === 'function' ? getVariableValue(vars, displayId) : undefined;
                     let text = r.deliveryText || r.question;
                     if (!text) {
-                        if (r.variableId == null && triggerModuleId && nextName) text = `是否结束【${triggerName}】进入【${nextName}】？`;
+                        if (r.variableId == null && triggerModuleId && nextName) text = I18n.t('是否结束【{from}】进入【{to}】？', { from: triggerName, to: nextName });
                         else if (displayId && triggerModuleId && nextName) {
                             const defs = this.getAllVariableDefs(cur);
                             const displayDef = defs.find((d) => d.id === displayId);
                             const displayName = (displayDef && displayDef.name) ? displayDef.name : displayId;
-                            text = `【${displayName}】已达成（当前值 ${displayVal}），是否触发【${nextName}】？`;
-                        } else if (displayId && triggerName) text = `【变量】已达成（当前值 ${displayVal}），是否触发【${triggerName}】？`;
-                        else text = '需要确认';
+                            text = I18n.t('【{name}】已达成（当前值 {val}），是否触发【{to}】？', { name: displayName, val: displayVal, to: nextName });
+                        } else if (displayId && triggerName) text = I18n.t('【变量】已达成（当前值 {val}），是否触发【{to}】？', { val: displayVal, to: triggerName });
+                        else text = I18n.t('需要确认');
                     }
                     out.push({
                         moduleId: cur.id,
@@ -2010,14 +2044,14 @@ const ModuleManager = {
         for (let i = 0; i < s.length; i++) {
             const c = s[i];
             if (c === '(') depth++;
-            else if (c === ')') { depth--; if (depth < 0) return { valid: false, error: '括号不匹配' }; }
+            else if (c === ')') { depth--; if (depth < 0) return { valid: false, error: I18n.t('括号不匹配') }; }
         }
-        if (depth !== 0) return { valid: false, error: '括号不匹配' };
+        if (depth !== 0) return { valid: false, error: I18n.t('括号不匹配') };
         const refs = s.match(/\d+/g) || [];
         const maxRef = n;
         for (const r of refs) {
             const num = parseInt(r, 10);
-            if (num < 1 || num > maxRef) return { valid: false, error: `条目号应为 1～${maxRef}` };
+            if (num < 1 || num > maxRef) return { valid: false, error: I18n.t('条目号应为 1～{max}', { max: maxRef }) };
         }
         return { valid: true };
     },
@@ -2496,25 +2530,25 @@ const ModuleManager = {
                 const pathKey = c.pathIds.join('|');
                 if (completedMap[pathKey] !== true) {
                     const name = this.getModuleNodeByPath(cur, c.pathIds).name || c.pathIds[c.pathIds.length - 1];
-                    parts.push('模块「' + (name || pathKey) + '」未完成');
+                    parts.push(I18n.t('模块「{name}」未完成', { name: name || pathKey }));
                 }
                 return;
             }
             if (c.type === 'event_completed' && c.eventId) {
                 const mod = module || this.currentModule;
                 if (!mod || !mod.id || typeof State === 'undefined' || !State.triggeredTimelineEvents || !State.triggeredTimelineEvents[mod.id] || State.triggeredTimelineEvents[mod.id][c.eventId] == null)
-                    parts.push('时间线模块「' + (c.eventId) + '」未触发');
+                    parts.push(I18n.t('时间线模块「{id}」未触发', { id: c.eventId }));
                 return;
             }
             if (c.type === 'time' && c.relativeToPath) {
                 const mod = module || this.currentModule;
                 if (!mod || !mod.id || typeof State === 'undefined' || !State.flowNodeCompletedAt || !State.flowNodeCompletedAt[mod.id]) {
-                    parts.push('相对时间：模块「' + (c.relativeToPath || '') + '」尚未有完成日期');
+                    parts.push(I18n.t('相对时间：模块「{path}」尚未有完成日期', { path: c.relativeToPath || '' }));
                     return;
                 }
                 const completedAt = State.flowNodeCompletedAt[mod.id][c.relativeToPath];
                 if (!completedAt || typeof completedAt !== 'object') {
-                    parts.push('相对时间：模块「' + c.relativeToPath + '」无完成日期');
+                    parts.push(I18n.t('相对时间：模块「{path}」无完成日期', { path: c.relativeToPath }));
                     return;
                 }
                 const timeVarId = this._getTimeVarId(module);
@@ -2525,7 +2559,7 @@ const ModuleManager = {
                     const gd = typeof getVariableValue === 'function' ? getVariableValue(vars, 'calendar_day', timeVarId) : vars.calendar_day;
                     if (gy != null || gm != null || gd != null) current = { year: gy, month: gm, day: gd };
                 }
-                if (!current) { parts.push('相对时间：无当前日期'); return; }
+                if (!current) { parts.push(I18n.t('相对时间：无当前日期')); return; }
                 const toDays = (o) => {
                     if (!o || typeof o !== 'object') return 0;
                     const y = Number(o.year) || 0;
@@ -2538,8 +2572,8 @@ const ModuleManager = {
                 if (c.offsetDays != null) met = daysSince === c.offsetDays;
                 else if (c.rangeStartDays != null && c.rangeEndDays != null) met = daysSince >= c.rangeStartDays && daysSince <= c.rangeEndDays;
                 if (!met) {
-                    const desc = c.offsetDays != null ? '完成后第' + c.offsetDays + '天' : '完成后第' + (c.rangeStartDays ?? 0) + '～' + (c.rangeEndDays ?? 0) + '天';
-                    parts.push('相对时间：模块「' + c.relativeToPath + '」' + desc + ' 未满足（当前距完成 ' + daysSince + ' 天）');
+                    const desc = c.offsetDays != null ? I18n.t('完成后第{n}天', { n: c.offsetDays }) : I18n.t('完成后第{a}～{b}天', { a: c.rangeStartDays ?? 0, b: c.rangeEndDays ?? 0 });
+                    parts.push(I18n.t('相对时间：模块「{path}」{desc} 未满足（当前距完成 {days} 天）', { path: c.relativeToPath, desc, days: daysSince }));
                 }
                 return;
             }
@@ -2571,7 +2605,7 @@ const ModuleManager = {
                     const def = defs.find((d) => d.id === c.variableId);
                     const varName = (def && def.name) ? def.name : c.variableId;
                     const dateStr = [right.year, right.month, right.day].filter((x) => x != null && x !== '').join('/');
-                    parts.push('时间「' + varName + '」需 ' + (op === '>=' ? '≥' : op === '<=' ? '≤' : op) + ' ' + dateStr + '（当前 ' + (left && typeof left === 'object' ? [left.year, left.month, left.day].filter((x) => x != null).join('/') : left) + '）');
+                    parts.push(I18n.t('时间「{name}」需 {op} {date}（当前 {cur}）', { name: varName, op: (op === '>=' ? '≥' : op === '<=' ? '≤' : op), date: dateStr, cur: (left && typeof left === 'object' ? [left.year, left.month, left.day].filter((x) => x != null).join('/') : left) }));
                 }
                 return;
             }
@@ -2601,7 +2635,7 @@ const ModuleManager = {
                 if (!inRange || firstDayOnly) {
                     const s = [c.start.year, c.start.month, c.start.day].filter((x) => x != null).join('/');
                     const e = [c.end.year, c.end.month, c.end.day].filter((x) => x != null).join('/');
-                    parts.push('区间 ' + s + '～' + e + (c.firstDayOnly ? '（仅开始日）' : '') + ' 未满足');
+                    parts.push(I18n.t('区间 {start}～{end}{first} 未满足', { start: s, end: e, first: c.firstDayOnly ? I18n.t('（仅开始日）') : '' }));
                 }
                 return;
             }
@@ -2623,7 +2657,7 @@ const ModuleManager = {
                     const defs = this.getAllVariableDefs(cur);
                     const def = defs.find((d) => d.id === c.variableId);
                     const varName = (def && def.name) ? def.name : c.variableId;
-                    parts.push('变量「' + varName + '」需 ' + (op === '>=' ? '≥' : op === '<=' ? '≤' : op) + ' ' + right + '（当前 ' + left + '）');
+                    parts.push(I18n.t('变量「{name}」需 {op} {value}（当前 {cur}）', { name: varName, op: (op === '>=' ? '≥' : op === '<=' ? '≤' : op), value: right, cur: left }));
                 }
             }
         };

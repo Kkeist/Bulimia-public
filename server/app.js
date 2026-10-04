@@ -50,7 +50,7 @@ export function createApp(opts = {}) {
     app.use('/api/relay', localOnly, createRelayRouter({ headerTimeoutMs: opts.relayHeaderTimeoutMs }));
     app.use('/api/modules', localOnly, createModulesRouter(path.join(root, 'module'), listOpts));
     app.use('/api', (req, res) => {
-        res.status(404).json({ error: true, message: '没有这个接口。' });
+        res.status(404).json({ error: true, code: 'not-found-api', message: '没有这个接口。' });
     });
 
     // 模组登记表：永远剔除不发布的模组；本机启动时再并入 list.local.json 里的自用模组
@@ -84,7 +84,7 @@ export function createApp(opts = {}) {
     app.use((req, res) => {
         res.status(404);
         if (req.accepts(['html', 'json']) === 'json' || req.path.startsWith('/api')) {
-            res.json({ error: true, message: '没有找到。' });
+            res.json({ error: true, code: 'not-found', message: '没有找到。' });
         } else {
             res.type('text/plain').send('没有找到。');
         }
@@ -93,10 +93,10 @@ export function createApp(opts = {}) {
     // 错误处理：不把内部信息带给页面
     app.use((err, req, res, next) => {
         if (res.headersSent) return res.end();
-        if (err && err.type === 'entity.too.large') return res.status(413).json({ error: true, message: '内容太大。' });
-        if (err && (err.type === 'entity.parse.failed' || err.status === 400)) return res.status(400).json({ error: true, message: '请求内容不正确。' });
+        if (err && err.type === 'entity.too.large') return res.status(413).json({ error: true, code: 'too-large', message: '内容太大。' });
+        if (err && (err.type === 'entity.parse.failed' || err.status === 400)) return res.status(400).json({ error: true, code: 'bad-request', message: '请求内容不正确。' });
         console.error('[server]', err && err.message);
-        res.status(500).json({ error: true, message: '服务出错了，请稍后再试。' });
+        res.status(500).json({ error: true, code: 'server-error', message: '服务出错了，请稍后再试。' });
     });
 
     return app;

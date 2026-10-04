@@ -324,7 +324,7 @@ const TagList = {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'btn-small';
-        btn.textContent = '添加';
+        btn.textContent = I18n.t('添加');
         add.appendChild(input);
         add.appendChild(btn);
         el.appendChild(list);
@@ -343,7 +343,7 @@ const TagList = {
                 const rm = document.createElement('button');
                 rm.type = 'button';
                 rm.className = 'tag-remove';
-                rm.setAttribute('aria-label', '删除');
+                rm.setAttribute('aria-label', I18n.t('删除'));
                 rm.textContent = '×';
                 rm.addEventListener('click', () => {
                     const removed = values[i];
@@ -351,7 +351,7 @@ const TagList = {
                     render();
                     emit();
                     if (window.Toast && Toast.undo) {
-                        Toast.undo('已删除', () => { values.splice(i, 0, removed); render(); emit(); });
+                        Toast.undo(I18n.t('已删除'), () => { values.splice(i, 0, removed); render(); emit(); });
                     }
                 });
                 tag.appendChild(text);

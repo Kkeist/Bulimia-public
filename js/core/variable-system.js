@@ -30,7 +30,7 @@ const FormulaEvaluator = {
         const tokens = this._tokenize(String(source));
         const state = { tokens, pos: 0, lookup };
         const value = this._ternary(state);
-        if (state.pos < tokens.length) throw new Error('公式里有多余的内容');
+        if (state.pos < tokens.length) throw new Error(I18n.t('公式里有多余的内容'));
         return value;
     },
 
@@ -42,7 +42,7 @@ const FormulaEvaluator = {
             if (/\s/.test(ch)) { i++; continue; }
             if (ch === '{' && src[i + 1] === '{') {
                 const end = src.indexOf('}}', i + 2);
-                if (end < 0) throw new Error('变量引用缺少结尾');
+                if (end < 0) throw new Error(I18n.t('变量引用缺少结尾'));
                 tokens.push({ t: 'var', v: src.slice(i + 2, end).trim() });
                 i = end + 2;
                 continue;
@@ -51,7 +51,7 @@ const FormulaEvaluator = {
                 let j = i;
                 while (j < src.length && /[0-9.]/.test(src[j])) j++;
                 const num = Number(src.slice(i, j));
-                if (!Number.isFinite(num)) throw new Error('数字格式不正确');
+                if (!Number.isFinite(num)) throw new Error(I18n.t('数字格式不正确'));
                 tokens.push({ t: 'num', v: num });
                 i = j;
                 continue;
@@ -62,7 +62,7 @@ const FormulaEvaluator = {
                 while (j < src.length && src[j] !== ch) {
                     if (src[j] === '\\' && j + 1 < src.length) { out += src[j + 1]; j += 2; } else { out += src[j]; j++; }
                 }
-                if (j >= src.length) throw new Error('文字缺少结尾引号');
+                if (j >= src.length) throw new Error(I18n.t('文字缺少结尾引号'));
                 tokens.push({ t: 'str', v: out });
                 i = j + 1;
                 continue;
@@ -77,14 +77,14 @@ const FormulaEvaluator = {
             const two = src.slice(i, i + 2);
             if (['==', '!=', '<=', '>=', '&&', '||'].includes(two)) { tokens.push({ t: 'op', v: two }); i += 2; continue; }
             if ('+-*/%()<>!?:,'.includes(ch)) { tokens.push({ t: 'op', v: ch }); i++; continue; }
-            throw new Error('公式里有不能识别的字符：' + ch);
+            throw new Error(I18n.t('公式里有不能识别的字符：{ch}', { ch }));
         }
         return tokens;
     },
 
     _peek(s) { return s.tokens[s.pos]; },
     _isOp(s, v) { const t = s.tokens[s.pos]; return t && t.t === 'op' && t.v === v; },
-    _expect(s, v) { if (!this._isOp(s, v)) throw new Error('公式缺少 ' + v); s.pos++; },
+    _expect(s, v) { if (!this._isOp(s, v)) throw new Error(I18n.t('公式缺少 {v}', { v })); s.pos++; },
 
     _ternary(s) {
         const cond = this._or(s);
@@ -140,7 +140,7 @@ const FormulaEvaluator = {
     },
     _primary(s) {
         const t = this._peek(s);
-        if (!t) throw new Error('公式不完整');
+        if (!t) throw new Error(I18n.t('公式不完整'));
         s.pos++;
         if (t.t === 'num' || t.t === 'str') return t.v;
         if (t.t === 'var') {
@@ -153,7 +153,7 @@ const FormulaEvaluator = {
             if (t.v === 'null') return null;
             const fn = t.v.replace(/^Math\./, '');
             const fns = { floor: Math.floor, ceil: Math.ceil, round: Math.round, min: Math.min, max: Math.max, abs: Math.abs };
-            if (!fns[fn]) throw new Error('公式里不支持：' + t.v);
+            if (!fns[fn]) throw new Error(I18n.t('公式里不支持：{v}', { v: t.v }));
             this._expect(s, '(');
             const args = [];
             if (!this._isOp(s, ')')) {
@@ -167,7 +167,7 @@ const FormulaEvaluator = {
             this._expect(s, ')');
             return v;
         }
-        throw new Error('公式里有多余的符号：' + t.v);
+        throw new Error(I18n.t('公式里有多余的符号：{v}', { v: t.v }));
     }
 };
 
@@ -373,7 +373,7 @@ class Variable {
             const value = FormulaEvaluator.evaluate(formula, (id) => variableSystem.getValue(id));
             return { ok: true, value };
         } catch (e) {
-            return { ok: false, error: `变量「${this.name || this.id}」的计算公式有误：${e.message}` };
+            return { ok: false, error: I18n.t('变量「{name}」的计算公式有误：{msg}', { name: this.name || this.id, msg: e.message }) };
         }
     }
 }
@@ -544,11 +544,11 @@ class VariableSystem {
         this.lastAdjust = null;
         const variable = this.getVariable(variableId);
         if (!variable) {
-            return this._fail(`没有找到变量「${variableId}」`);
+            return this._fail(I18n.t('没有找到变量「{id}」', { id: variableId }));
         }
 
         if (variable.readonly) {
-            return this._fail(`变量「${variable.name || variableId}」是只读的`);
+            return this._fail(I18n.t('变量「{name}」是只读的', { name: variable.name || variableId }));
         }
 
         const ok = this._dispatch(variable, operation, params);
@@ -581,7 +581,7 @@ class VariableSystem {
             case 'remove_item':
                 return this.opRemoveItem(variable, params);
             default:
-                return this._fail(`不支持的操作：${operation}`);
+                return this._fail(I18n.t('不支持的操作：{op}', { op: operation }));
         }
     }
 
@@ -591,12 +591,12 @@ class VariableSystem {
     executeChangeRule(variableId, ruleName, aiParams = {}) {
         const variable = this.getVariable(variableId);
         if (!variable) {
-            return this._fail(`没有找到变量「${variableId}」`);
+            return this._fail(I18n.t('没有找到变量「{id}」', { id: variableId }));
         }
 
         const rule = variable.getChangeRule(ruleName);
         if (!rule) {
-            return this._fail(`变量「${variable.name || variableId}」没有名为「${ruleName}」的规则`);
+            return this._fail(I18n.t('变量「{name}」没有名为「{rule}」的规则', { name: variable.name || variableId, rule: ruleName }));
         }
 
         // Process rule value, replacing $param placeholders with aiParams
@@ -623,8 +623,8 @@ class VariableSystem {
         const { value: v, adjusted } = variable.clampValue(value);
         if (adjusted) {
             this.lastAdjust = variable.type === 'number'
-                ? `变量「${variable.name || variable.id}」超出范围，已收回到 ${v}`
-                : `变量「${variable.name || variable.id}」超出最大长度，已截取`;
+                ? I18n.t('变量「{name}」超出范围，已收回到 {v}', { name: variable.name || variable.id, v })
+                : I18n.t('变量「{name}」超出最大长度，已截取', { name: variable.name || variable.id });
         }
         variable.value = variable.cloneValue(v);
         return true;
@@ -637,25 +637,25 @@ class VariableSystem {
     opSet(variable, params) {
         // 内置变量不可被 set，仅由 computeConditions 计算
         if (variable.category === 'builtin') {
-            return this._fail(`变量「${variable.name || variable.id}」是自动计算的，不能直接修改`);
+            return this._fail(I18n.t('变量「{name}」是自动计算的，不能直接修改', { name: variable.name || variable.id }));
         }
         // params can be either a direct value or {value: actualValue}
         const value = this._unwrap(params);
 
         if (!variable.validateValue(value)) {
-            return this._fail(`变量「${variable.name || variable.id}」的值类型不正确`);
+            return this._fail(I18n.t('变量「{name}」的值类型不正确', { name: variable.name || variable.id }));
         }
         return this._store(variable, value);
     }
 
     _numericOperand(variable, params, opName) {
         if (variable.type !== 'number') {
-            this._fail(`${opName}只能用于数值变量`);
+            this._fail(I18n.t('{op}只能用于数值变量', { op: I18n.t(opName) }));
             return null;
         }
         const value = this._unwrap(params);
         if (typeof value !== 'number' || !Number.isFinite(value)) {
-            this._fail(`变量「${variable.name || variable.id}」的${opName}需要一个数字`);
+            this._fail(I18n.t('变量「{name}」的{op}需要一个数字', { name: variable.name || variable.id, op: I18n.t(opName) }));
             return null;
         }
         return value;
@@ -677,7 +677,7 @@ class VariableSystem {
         const value = this._numericOperand(variable, params, '乘法');
         if (value === null) return false;
         const result = variable.value * value;
-        if (!Number.isFinite(result)) return this._fail(`变量「${variable.name || variable.id}」乘法的结果超出范围`);
+        if (!Number.isFinite(result)) return this._fail(I18n.t('变量「{name}」乘法的结果超出范围', { name: variable.name || variable.id }));
         return this._store(variable, result);
     }
 
@@ -685,7 +685,7 @@ class VariableSystem {
         const value = this._numericOperand(variable, params, '除法');
         if (value === null) return false;
         if (value === 0) {
-            return this._fail(`变量「${variable.name || variable.id}」不能除以 0`);
+            return this._fail(I18n.t('变量「{name}」不能除以 0', { name: variable.name || variable.id }));
         }
         return this._store(variable, variable.value / value);
     }
@@ -704,10 +704,10 @@ class VariableSystem {
 
     opAppend(variable, value) {
         if (variable.type !== 'list') {
-            return this._fail('追加只能用于列表变量');
+            return this._fail(I18n.t('追加只能用于列表变量'));
         }
         if (!this._elementOk(variable, value)) {
-            return this._fail(`变量「${variable.name || variable.id}」的列表元素类型不符`);
+            return this._fail(I18n.t('变量「{name}」的列表元素类型不符', { name: variable.name || variable.id }));
         }
         variable.value.push(value);
         return true;
@@ -715,7 +715,7 @@ class VariableSystem {
 
     opRemove(variable, value) {
         if (variable.type !== 'list') {
-            return this._fail('移除只能用于列表变量');
+            return this._fail(I18n.t('移除只能用于列表变量'));
         }
         const index = variable.value.indexOf(value);
         if (index > -1) {
@@ -726,13 +726,13 @@ class VariableSystem {
 
     opExtend(variable, values) {
         if (variable.type !== 'list') {
-            return this._fail('合并只能用于列表变量');
+            return this._fail(I18n.t('合并只能用于列表变量'));
         }
         if (!Array.isArray(values)) {
-            return this._fail('合并需要一个列表');
+            return this._fail(I18n.t('合并需要一个列表'));
         }
         if (!values.every(x => this._elementOk(variable, x))) {
-            return this._fail(`变量「${variable.name || variable.id}」的列表元素类型不符`);
+            return this._fail(I18n.t('变量「{name}」的列表元素类型不符', { name: variable.name || variable.id }));
         }
         variable.value.push(...values);
         return true;
@@ -740,10 +740,10 @@ class VariableSystem {
 
     opAddItem(variable, item) {
         if (variable.type !== 'list_of_object') {
-            return this._fail('添加条目只能用于对象列表变量');
+            return this._fail(I18n.t('添加条目只能用于对象列表变量'));
         }
         if (!isPlainObject(item)) {
-            return this._fail('添加的条目必须是对象');
+            return this._fail(I18n.t('添加的条目必须是对象'));
         }
         variable.value.push(item);
         return true;
@@ -751,21 +751,21 @@ class VariableSystem {
 
     opModifyItem(variable, params) {
         if (variable.type !== 'list_of_object' && variable.type !== 'object') {
-            return this._fail('修改字段只能用于对象或对象列表变量');
+            return this._fail(I18n.t('修改字段只能用于对象或对象列表变量'));
         }
         if (!isPlainObject(params)) {
-            return this._fail('修改字段需要说明字段与操作');
+            return this._fail(I18n.t('修改字段需要说明字段与操作'));
         }
 
         const { index, field, op, value } = params;
         if (typeof field !== 'string' || !field) {
-            return this._fail('修改字段需要字段名');
+            return this._fail(I18n.t('修改字段需要字段名'));
         }
 
         let target;
         if (variable.type === 'list_of_object') {
             if (!Number.isInteger(index) || index < 0 || index >= variable.value.length) {
-                return this._fail(`序号 ${index} 超出范围`);
+                return this._fail(I18n.t('序号 {index} 超出范围', { index }));
             }
             target = variable.value[index];
         } else {
@@ -776,17 +776,17 @@ class VariableSystem {
         } else if ((op === 'add' || op === 'subtract') && typeof target[field] === 'number' && typeof value === 'number' && Number.isFinite(value)) {
             target[field] = op === 'add' ? target[field] + value : target[field] - value;
         } else {
-            return this._fail(`字段「${field}」不支持操作 ${op}`);
+            return this._fail(I18n.t('字段「{field}」不支持操作 {op}', { field, op }));
         }
         return true;
     }
 
     opRemoveItem(variable, index) {
         if (variable.type !== 'list_of_object') {
-            return this._fail('移除条目只能用于对象列表变量');
+            return this._fail(I18n.t('移除条目只能用于对象列表变量'));
         }
         if (!Number.isInteger(index) || index < 0 || index >= variable.value.length) {
-            return this._fail(`序号 ${index} 超出范围`);
+            return this._fail(I18n.t('序号 {index} 超出范围', { index }));
         }
         variable.value.splice(index, 1);
         return true;

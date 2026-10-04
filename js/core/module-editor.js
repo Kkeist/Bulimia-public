@@ -11,7 +11,7 @@ class EditError extends Error {
 }
 
 const EDIT_TYPES = ['trigger_chain', 'timeline', 'free_trigger'];
-const EDIT_TYPE_NAMES = { trigger_chain: '触发器链', timeline: '时间线', free_trigger: '自由触发器' };
+const EDIT_TYPE_NAMES = { trigger_chain: I18n.t('触发器链'), timeline: I18n.t('时间线'), free_trigger: I18n.t('自由触发器') };
 
 class ModuleEditor {
     /** 队列显示的默认值（与提示词生成一致：之后路线 3 个，已完成 0 个） */
@@ -156,7 +156,7 @@ class ModuleEditor {
 
     static _need(cfg, id) {
         const r = ModuleEditor._find(cfg, id);
-        if (!r) throw new EditError('没有找到这个事件，可能已被删除。');
+        if (!r) throw new EditError(I18n.t('没有找到这个事件，可能已被删除。'));
         return r;
     }
 
@@ -195,7 +195,7 @@ class ModuleEditor {
     }
 
     static _checkType(type) {
-        if (!EDIT_TYPES.includes(type)) throw new EditError('事件类型不正确。');
+        if (!EDIT_TYPES.includes(type)) throw new EditError(I18n.t('事件类型不正确。'));
     }
 
     // ---- 新建 ----
@@ -203,7 +203,7 @@ class ModuleEditor {
     /** 一份全新的空模组配置 */
     static createBlank(name) {
         const n = String(name || '').trim();
-        if (!n) throw new EditError('请先填写模组名称。');
+        if (!n) throw new EditError(I18n.t('请先填写模组名称。'));
         return {
             id: `mod_${Date.now().toString(36)}`,
             name: n,
@@ -226,12 +226,12 @@ class ModuleEditor {
             if (!parent.flows) parent.flows = {};
             const fn = flowName || 'main';
             if (!parent.flows[fn]) {
-                if (fn !== 'main') throw new EditError('没有找到这个流程。');
+                if (fn !== 'main') throw new EditError(I18n.t('没有找到这个流程。'));
                 parent.flows.main = { entryEvent: null, subModules: [] };
             }
             const list = parent.flows[fn].subModules;
             const id = ModuleEditor._uid(cfg, 'ev');
-            const base = String(name || '').trim() || '新事件';
+            const base = String(name || '').trim() || I18n.t('新事件');
             const node = { id, name: ModuleEditor._uniqueName(cfg, base), type: type || 'trigger_chain', info: [], entryConditions: [], completionConditions: [], variables: [], plugins: [], flows: { main: { entryEvent: null, subModules: [] } } };
             list.push(node);
             ModuleEditor._relink(list, node.type === 'trigger_chain');
@@ -241,7 +241,7 @@ class ModuleEditor {
 
     rename(id, name) {
         const n = String(name == null ? '' : name).trim();
-        if (!n) throw new EditError('名称不能为空。');
+        if (!n) throw new EditError(I18n.t('名称不能为空。'));
         this._apply((cfg) => { ModuleEditor._need(cfg, id).node.name = n; });
     }
 
@@ -249,7 +249,7 @@ class ModuleEditor {
         ModuleEditor._checkType(type);
         this._apply((cfg) => {
             const r = ModuleEditor._need(cfg, id);
-            if (!r.parent) throw new EditError('故事根没有类型。');
+            if (!r.parent) throw new EditError(I18n.t('故事根没有类型。'));
             if (r.node.type === type) return;
             r.node.type = type;
             ModuleEditor._relink(r.list, type === 'trigger_chain');
@@ -278,7 +278,7 @@ class ModuleEditor {
             const out = [];
             for (const raw of (Array.isArray(list) ? list : [])) {
                 const content = String(raw && raw.content != null ? raw.content : '');
-                if (!content.trim()) throw new EditError('背景内容不能为空。');
+                if (!content.trim()) throw new EditError(I18n.t('背景内容不能为空。'));
                 const item = { content, condition: ModuleEditor._cleanWrapper(raw.condition) };
                 if (raw.persistent) item.persistent = true;
                 out.push(item);
@@ -292,11 +292,11 @@ class ModuleEditor {
         const norm = (x, label) => {
             if (x == null || x === '') return null;
             const n = Number(x);
-            if (!Number.isInteger(n) || n < 0 || n > 99) throw new EditError(`${label}要填 0 到 99 之间的整数。`);
+            if (!Number.isInteger(n) || n < 0 || n > 99) throw new EditError(I18n.t('{label}要填 0 到 99 之间的整数。', { label }));
             return n;
         };
-        const b = norm(before, '已完成事件的显示数量');
-        const a = norm(after, '之后路线的显示数量');
+        const b = norm(before, I18n.t('已完成事件的显示数量'));
+        const a = norm(after, I18n.t('之后路线的显示数量'));
         this._apply((cfg) => {
             const { node } = ModuleEditor._need(cfg, id);
             if (b == null && a == null) { delete node.queueDisplay; return; }
@@ -321,15 +321,15 @@ class ModuleEditor {
      */
     setTimeConfig({ initialValues, displayFormat, units } = {}) {
         const INT_KEYS = ['year', 'month', 'day', 'hour', 'minute'];
-        const LABEL = { year: '年', month: '月', day: '日', hour: '时', minute: '分' };
-        const UNIT_KEYS = [['minutesPerHour', '每小时的分钟数'], ['hoursPerDay', '每天的小时数'], ['daysPerMonth', '每月的天数'], ['monthsPerYear', '每年的月数']];
+        const LABEL = { year: I18n.t('年'), month: I18n.t('月'), day: I18n.t('日'), hour: I18n.t('时'), minute: I18n.t('分') };
+        const UNIT_KEYS = [['minutesPerHour', I18n.t('每小时的分钟数')], ['hoursPerDay', I18n.t('每天的小时数')], ['daysPerMonth', I18n.t('每月的天数')], ['monthsPerYear', I18n.t('每年的月数')]];
         const iv = {};
         if (initialValues) {
             for (const k of INT_KEYS) {
                 const x = initialValues[k];
                 if (x == null || x === '') continue;
                 const n = Number(x);
-                if (!Number.isInteger(n) || n < 0 || n > 999999) throw new EditError(`起始时间的${LABEL[k]}要填非负整数。`);
+                if (!Number.isInteger(n) || n < 0 || n > 999999) throw new EditError(I18n.t('起始时间的{unit}要填非负整数。', { unit: LABEL[k] }));
                 iv[k] = n;
             }
         }
@@ -339,7 +339,7 @@ class ModuleEditor {
                 const x = units[k];
                 if (x == null || x === '') continue;
                 const n = Number(x);
-                if (!Number.isInteger(n) || n < 1 || n > 9999) throw new EditError(`${label}要填 1 以上的整数。`);
+                if (!Number.isInteger(n) || n < 1 || n > 9999) throw new EditError(I18n.t('{label}要填 1 以上的整数。', { label }));
                 un[k] = n;
             }
         }
@@ -377,25 +377,25 @@ class ModuleEditor {
             for (const n of ModuleEditor._all(cfg)) for (const v of (n.variables || [])) if (v && v.id) defs.set(v.id, v);
             const map = {};
             for (const r of (Array.isArray(list) ? list : [])) {
-                if (!r || !r.variableId) throw new EditError('请先选择变量。');
+                if (!r || !r.variableId) throw new EditError(I18n.t('请先选择变量。'));
                 const def = defs.get(r.variableId);
-                if (!def) throw new EditError('选择的变量已经不存在。');
-                const name = def.name || '未命名变量';
-                if (Object.prototype.hasOwnProperty.call(map, r.variableId)) throw new EditError(`变量「${name}」重复了。`);
+                if (!def) throw new EditError(I18n.t('选择的变量已经不存在。'));
+                const name = def.name || I18n.t('未命名变量');
+                if (Object.prototype.hasOwnProperty.call(map, r.variableId)) throw new EditError(I18n.t('变量「{name}」重复了。', { name }));
                 let value = r.value;
                 if (def.type === 'number') {
                     value = (typeof value === 'number') ? value : (value === '' || value == null ? NaN : Number(value));
-                    if (!Number.isFinite(value)) throw new EditError(`变量「${name}」的值要填数字。`);
+                    if (!Number.isFinite(value)) throw new EditError(I18n.t('变量「{name}」的值要填数字。', { name }));
                     if ((def.min != null && value < def.min) || (def.max != null && value > def.max)) {
-                        throw new EditError(`变量「${name}」的值要在 ${def.min != null ? def.min : '不限'} 到 ${def.max != null ? def.max : '不限'} 之间。`);
+                        throw new EditError(I18n.t('变量「{name}」的值要在 {min} 到 {max} 之间。', { name, min: def.min != null ? def.min : I18n.t('不限'), max: def.max != null ? def.max : I18n.t('不限') }));
                     }
                 } else if (def.type === 'boolean') {
                     value = value === true || value === 'true';
                 } else if (def.type === 'string') {
                     value = value == null ? '' : String(value);
-                    if (def.maxLength != null && value.length > def.maxLength) throw new EditError(`变量「${name}」最多 ${def.maxLength} 个字。`);
+                    if (def.maxLength != null && value.length > def.maxLength) throw new EditError(I18n.t('变量「{name}」最多 {n} 个字。', { name, n: def.maxLength }));
                 } else {
-                    throw new EditError(`变量「${name}」是${def.type === 'list' || def.type === 'list_of_object' ? '列表' : '对象'}，不能在这里设置。`);
+                    throw new EditError(I18n.t('变量「{name}」是{kind}，不能在这里设置。', { name, kind: def.type === 'list' || def.type === 'list_of_object' ? I18n.t('列表') : I18n.t('对象') }));
                 }
                 map[r.variableId] = value;
             }
@@ -408,7 +408,7 @@ class ModuleEditor {
         let n = null;
         if (value !== null && value !== undefined && value !== '') {
             n = Number(value);
-            if (!Number.isInteger(n) || n < 0 || n > 99999999999) throw new EditError('排序值要填非负整数。');
+            if (!Number.isInteger(n) || n < 0 || n > 99999999999) throw new EditError(I18n.t('排序值要填非负整数。'));
         }
         this._apply((cfg) => {
             const { node } = ModuleEditor._need(cfg, id);
@@ -436,7 +436,7 @@ class ModuleEditor {
     deleteNode(id) {
         return this._apply((cfg) => {
             const r = ModuleEditor._need(cfg, id);
-            if (!r.parent) throw new EditError('故事根不能删除。');
+            if (!r.parent) throw new EditError(I18n.t('故事根不能删除。'));
             const gone = new Set(ModuleEditor._all(r.node).map((n) => n.id));
             r.list.splice(r.list.indexOf(r.node), 1);
             ModuleEditor._relink(r.list, false);
@@ -457,7 +457,7 @@ class ModuleEditor {
     moveNode(id, dir) {
         this._apply((cfg) => {
             const r = ModuleEditor._need(cfg, id);
-            if (!r.parent) throw new EditError('故事根不能移动。');
+            if (!r.parent) throw new EditError(I18n.t('故事根不能移动。'));
             const peers = r.list.filter((n) => n.type === r.node.type);
             const i = peers.indexOf(r.node);
             const j = dir === 'up' ? i - 1 : i + 1;
@@ -473,13 +473,13 @@ class ModuleEditor {
     moveTo(id, newParentId, newFlow) {
         this._apply((cfg) => {
             const r = ModuleEditor._need(cfg, id);
-            if (!r.parent) throw new EditError('故事根不能移动。');
+            if (!r.parent) throw new EditError(I18n.t('故事根不能移动。'));
             const np = ModuleEditor._need(cfg, newParentId);
-            if (ModuleEditor._all(r.node).some((n) => n.id === newParentId)) throw new EditError('不能移到它自己的内部。');
+            if (ModuleEditor._all(r.node).some((n) => n.id === newParentId)) throw new EditError(I18n.t('不能移到它自己的内部。'));
             const fn = newFlow || 'main';
             if (!np.node.flows) np.node.flows = {};
             if (!np.node.flows[fn]) {
-                if (fn !== 'main') throw new EditError('没有找到这个流程。');
+                if (fn !== 'main') throw new EditError(I18n.t('没有找到这个流程。'));
                 np.node.flows.main = { entryEvent: null, subModules: [] };
             }
             r.list.splice(r.list.indexOf(r.node), 1);
@@ -494,7 +494,7 @@ class ModuleEditor {
     duplicate(id, targetParentId, targetFlow) {
         return this._apply((cfg) => {
             const r = ModuleEditor._need(cfg, id);
-            if (!r.parent) throw new EditError('故事根不能复制。');
+            if (!r.parent) throw new EditError(I18n.t('故事根不能复制。'));
             const tp = ModuleEditor._need(cfg, targetParentId == null ? r.parent.id : targetParentId);
             const fn = targetFlow || r.flow;
             if (!tp.node.flows) tp.node.flows = {};
@@ -509,7 +509,7 @@ class ModuleEditor {
                     n.linkedList = { prev: map.get(n.linkedList.prev) || null, next: map.get(n.linkedList.next) || null };
                 }
             }
-            copy.name = ModuleEditor._uniqueName(cfg, `${r.node.name} 副本`);
+            copy.name = ModuleEditor._uniqueName(cfg, I18n.t('{name} 副本', { name: r.node.name }));
             if (copy.linkedList) copy.linkedList = { prev: null, next: null };
             tp.node.flows[fn].subModules.push(copy);
             ModuleEditor._relink(tp.node.flows[fn].subModules, copy.type === 'trigger_chain');
@@ -522,12 +522,12 @@ class ModuleEditor {
     /** 新建分流程，名称是显示用的文字，标识自动分配；返回流程的键 */
     addFlow(parentId, name) {
         const n = String(name == null ? '' : name).trim();
-        if (!n) throw new EditError('分流程名称不能为空。');
+        if (!n) throw new EditError(I18n.t('分流程名称不能为空。'));
         return this._apply((cfg) => {
             const { node } = ModuleEditor._need(cfg, parentId);
             if (!node.flows) node.flows = {};
             for (const k of Object.keys(node.flows)) {
-                if ((node.flows[k].name || k) === n) throw new EditError('已经有同名的流程。');
+                if ((node.flows[k].name || k) === n) throw new EditError(I18n.t('已经有同名的流程。'));
             }
             const key = ModuleEditor._uid(cfg, 'flow');
             node.flows[key] = { entryEvent: null, name: n, subModules: [] };
@@ -537,21 +537,21 @@ class ModuleEditor {
 
     renameFlow(parentId, flowKey, name) {
         const n = String(name == null ? '' : name).trim();
-        if (!n) throw new EditError('流程名称不能为空。');
+        if (!n) throw new EditError(I18n.t('流程名称不能为空。'));
         this._apply((cfg) => {
             const { node } = ModuleEditor._need(cfg, parentId);
-            if (!node.flows || !node.flows[flowKey]) throw new EditError('没有找到这个流程。');
-            if (flowKey === 'main') throw new EditError('主流程不能改名。');
-            for (const k of Object.keys(node.flows)) if (k !== flowKey && (node.flows[k].name || k) === n) throw new EditError('已经有同名的流程。');
+            if (!node.flows || !node.flows[flowKey]) throw new EditError(I18n.t('没有找到这个流程。'));
+            if (flowKey === 'main') throw new EditError(I18n.t('主流程不能改名。'));
+            for (const k of Object.keys(node.flows)) if (k !== flowKey && (node.flows[k].name || k) === n) throw new EditError(I18n.t('已经有同名的流程。'));
             node.flows[flowKey].name = n;
         });
     }
 
     deleteFlow(parentId, flowKey) {
-        if (flowKey === 'main') throw new EditError('主流程不能删除。');
+        if (flowKey === 'main') throw new EditError(I18n.t('主流程不能删除。'));
         return this._apply((cfg) => {
             const { node } = ModuleEditor._need(cfg, parentId);
-            if (!node.flows || !node.flows[flowKey]) throw new EditError('没有找到这个流程。');
+            if (!node.flows || !node.flows[flowKey]) throw new EditError(I18n.t('没有找到这个流程。'));
             const gone = new Set();
             for (const c of node.flows[flowKey].subModules || []) for (const n of ModuleEditor._all(c)) gone.add(n.id);
             delete node.flows[flowKey];
@@ -566,8 +566,8 @@ class ModuleEditor {
     setFlowEntryEvent(parentId, flowKey, moduleId) {
         this._apply((cfg) => {
             const { node } = ModuleEditor._need(cfg, parentId);
-            if (!node.flows || !node.flows[flowKey]) throw new EditError('没有找到这个流程。');
-            if (moduleId != null && !ModuleEditor._find(cfg, moduleId)) throw new EditError('没有找到这个事件。');
+            if (!node.flows || !node.flows[flowKey]) throw new EditError(I18n.t('没有找到这个流程。'));
+            if (moduleId != null && !ModuleEditor._find(cfg, moduleId)) throw new EditError(I18n.t('没有找到这个事件。'));
             node.flows[flowKey].entryEvent = moduleId == null ? null : moduleId;
         });
     }
@@ -610,16 +610,16 @@ class ModuleEditor {
             for (const raw of (Array.isArray(defs) ? defs : [])) {
                 const same = raw && raw.id && existing.get(raw.id) === JSON.stringify(raw);
                 const v = same ? JSON.parse(JSON.stringify(raw)) : ModuleEditor.normalizeVariable(raw);
-                if (!v.name) throw new EditError('变量名称不能为空。');
-                if (names.has(v.name)) throw new EditError(`变量名称「${v.name}」重复了。`);
+                if (!v.name) throw new EditError(I18n.t('变量名称不能为空。'));
+                if (names.has(v.name)) throw new EditError(I18n.t('变量名称「{name}」重复了。', { name: v.name }));
                 names.add(v.name);
                 if (!v.id) v.id = ModuleEditor._uid(cfg, 'var');
-                if (others.has(v.id) || result.some((x) => x.id === v.id)) throw new EditError(`变量「${v.name}」与其他变量冲突。`);
+                if (others.has(v.id) || result.some((x) => x.id === v.id)) throw new EditError(I18n.t('变量「{name}」与其他变量冲突。', { name: v.name }));
                 result.push(v);
             }
             for (const [vid, owner] of others) {
                 const ov = (owner.variables || []).find((x) => x.id === vid);
-                if (ov && names.has(ov.name)) throw new EditError(`变量名称「${ov.name}」已被「${owner.name || '其他事件'}」使用。`);
+                if (ov && names.has(ov.name)) throw new EditError(I18n.t('变量名称「{name}」已被「{owner}」使用。', { name: ov.name, owner: owner.name || I18n.t('其他事件') }));
             }
             node.variables = result;
             return result;
@@ -665,7 +665,7 @@ class ModuleEditor {
             if (type === (k === 'maxLength' ? 'string' : 'number') && r[k] !== '' && r[k] != null && Number.isFinite(Number(r[k]))) v[k] = Number(r[k]);
             else delete v[k];
         }
-        if (type === 'number' && v.min != null && v.max != null && v.min > v.max) throw new EditError(`变量「${v.name || '未命名'}」的最小值不能大于最大值。`);
+        if (type === 'number' && v.min != null && v.max != null && v.min > v.max) throw new EditError(I18n.t('变量「{name}」的最小值不能大于最大值。', { name: v.name || I18n.t('未命名') }));
         if (type === 'list') {
             v.elementType = r.elementType || r.listItemType || 'string';
             if (v.elementType === 'object') v.listItemType = 'object'; else delete v.listItemType;
@@ -696,9 +696,9 @@ class ModuleEditor {
 
     static get RULE_OPS() {
         return {
-            number: [['add', '增加'], ['subtract', '减少'], ['set', '设为'], ['multiply', '乘以'], ['divide', '除以']],
-            string: [['set', '设为']],
-            boolean: [['set', '设为']]
+            number: [['add', I18n.t('增加')], ['subtract', I18n.t('减少')], ['set', I18n.t('设为')], ['multiply', I18n.t('乘以')], ['divide', I18n.t('除以')]],
+            string: [['set', I18n.t('设为')]],
+            boolean: [['set', I18n.t('设为')]]
         };
     }
 
@@ -735,18 +735,18 @@ class ModuleEditor {
     static normalizeRules(list, v) {
         const out = [];
         const names = new Set();
-        const who = v.name || '未命名';
+        const who = v.name || I18n.t('未命名');
         for (const raw of (Array.isArray(list) ? list : [])) {
             if (!raw || typeof raw !== 'object') continue;
             const name = String(raw.name == null ? '' : raw.name).trim();
-            if (!name) throw new EditError(`变量「${who}」有一条规则没有名称。`);
-            if (names.has(name)) throw new EditError(`变量「${who}」里有两条规则都叫「${name}」。`);
+            if (!name) throw new EditError(I18n.t('变量「{who}」有一条规则没有名称。', { who }));
+            if (names.has(name)) throw new EditError(I18n.t('变量「{who}」里有两条规则都叫「{name}」。', { who, name }));
             names.add(name);
             const rule = Object.assign({}, raw, { name });
             const parts = ModuleEditor.ruleParts(raw, v.type);
             if (parts && v.type === 'number') {
-                if (typeof parts.value !== 'number' || !Number.isFinite(parts.value)) throw new EditError(`规则「${name}」的数值要填数字。`);
-                if (parts.operation === 'divide' && parts.value === 0) throw new EditError(`规则「${name}」不能除以 0。`);
+                if (typeof parts.value !== 'number' || !Number.isFinite(parts.value)) throw new EditError(I18n.t('规则「{name}」的数值要填数字。', { name }));
+                if (parts.operation === 'divide' && parts.value === 0) throw new EditError(I18n.t('规则「{name}」不能除以 0。', { name }));
             }
             out.push(rule);
         }
@@ -768,7 +768,7 @@ class ModuleEditor {
         return String(text == null ? '' : text).replace(/\{\{\s*([^}]+?)\s*\}\}/g, (m, name) => {
             if (byName.has(name)) return `{{${byName.get(name)}}}`;
             if (byId.has(name)) return `{{${name}}}`;
-            throw new EditError(`公式里的变量「${name}」不存在。`);
+            throw new EditError(I18n.t('公式里的变量「{name}」不存在。', { name }));
         });
     }
 
@@ -793,10 +793,10 @@ class ModuleEditor {
         for (const raw of (Array.isArray(list) ? list : [])) {
             if (!raw || typeof raw !== 'object') continue;
             const formula = String(raw.formula == null ? '' : raw.formula).trim();
-            if (!formula) throw new EditError(`变量「${v.name || '未命名'}」有一条自动计算没有填结果。`);
+            if (!formula) throw new EditError(I18n.t('变量「{name}」有一条自动计算没有填结果。', { name: v.name || I18n.t('未命名') }));
             if (typeof FormulaEvaluator !== 'undefined') {
                 try { FormulaEvaluator.evaluate(formula, () => 0); }
-                catch (e) { throw new EditError(`变量「${v.name || '未命名'}」的计算公式有误：${e.message}`); }
+                catch (e) { throw new EditError(I18n.t('变量「{name}」的计算公式有误：{msg}', { name: v.name || I18n.t('未命名'), msg: e.message })); }
             }
             out.push(Object.assign({}, raw, { formula, conditionDef: raw.conditionDef && Array.isArray(raw.conditionDef.groups) ? raw.conditionDef : { logic: 'OR', groups: [] } }));
         }
@@ -827,8 +827,8 @@ class ModuleEditor {
             const out = [];
             for (const d of (Array.isArray(list) ? list : [])) {
                 const title = String(d && d.title != null ? d.title : '').trim();
-                if (!title) throw new EditError('投递标题不能为空。');
-                if (titles.has(title)) throw new EditError(`投递标题「${title}」重复了。`);
+                if (!title) throw new EditError(I18n.t('投递标题不能为空。'));
+                if (titles.has(title)) throw new EditError(I18n.t('投递标题「{title}」重复了。', { title }));
                 titles.add(title);
                 const item = { title, content: String(d.content == null ? '' : d.content), condition: ModuleEditor._cleanWrapper(d.condition) };
                 if (d.completed !== undefined) item.completed = !!d.completed;

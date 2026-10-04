@@ -13,6 +13,8 @@
 (function (global) {
     'use strict';
 
+    var I18n = global.I18n || { t: function (s, p) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return p && p[k] != null ? p[k] : m; }); }, lang: 'zh' };
+
     var LIMITS = {
         maxDocChars: 1500000,        // 页面 + 样式（代入变量后）的总长度上限
         bootTimeoutMs: 8000,         // 创建后这么久没收到启动消息 → 停用
@@ -124,6 +126,7 @@
     // 在隔离页面内运行的桥接脚本（序列化后注入，不能引用外部变量）
     function bridgeMain(cfg) {
         var T = cfg.token, P = window.parent;
+        try { window.pluginLang = cfg.lang; document.documentElement.setAttribute('data-lang', cfg.lang); } catch (e) { /* 忽略 */ }
         var vars = {};
         var listeners = [];
         function send(k, d) {
@@ -180,8 +183,8 @@
             }
             send('action', { action: action, label: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80), text: text });
         }, false);
-        window.addEventListener('error', function (e) { send('error', { message: String(e && e.message || '脚本出错').slice(0, 300) }); });
-        window.addEventListener('unhandledrejection', function (e) { send('error', { message: String(e && e.reason && e.reason.message || e && e.reason || '脚本出错').slice(0, 300) }); });
+        window.addEventListener('error', function (e) { send('error', { message: String(e && e.message || cfg.scriptError).slice(0, 300) }); });
+        window.addEventListener('unhandledrejection', function (e) { send('error', { message: String(e && e.reason && e.reason.message || e && e.reason || cfg.scriptError).slice(0, 300) }); });
         document.addEventListener('securitypolicyviolation', function (e) { send('blocked', { uri: String(e.blockedURI || '').slice(0, 200), dir: String(e.violatedDirective || '').slice(0, 60) }); });
         var lastH = -1, pend = false, lastSent = 0;
         function measure() {
@@ -217,9 +220,9 @@
         opts = opts || {};
         html = html == null ? '' : String(html);
         css = css == null ? '' : String(css);
-        if (html.length + css.length > LIMITS.maxDocChars) return { error: '页面内容太大（超过 ' + Math.round(LIMITS.maxDocChars / 1000) + 'K 字），已停止显示。' };
+        if (html.length + css.length > LIMITS.maxDocChars) return { error: I18n.t('页面内容太大（超过 {n}K 字），已停止显示。', { n: Math.round(LIMITS.maxDocChars / 1000) }) };
         var doc;
-        try { doc = new DOMParser().parseFromString(html, 'text/html'); } catch (e) { return { error: '页面内容无法读取。' }; }
+        try { doc = new DOMParser().parseFromString(html, 'text/html'); } catch (e) { return { error: I18n.t('页面内容无法读取。') }; }
         var rm = doc.querySelectorAll(REMOVE_SELECTORS);
         var removed = [];
         for (var i = 0; i < rm.length; i++) { removed.push(rm[i].nodeName.toLowerCase()); rm[i].parentNode.removeChild(rm[i]); }
@@ -238,7 +241,7 @@
         var first = head.firstChild;
         function put(el) { head.insertBefore(el, first); }
         var bridge = doc.createElement('script');
-        bridge.textContent = '(' + bridgeMain.toString() + ')(' + JSON.stringify({ token: opts.token || '' }).replace(/</g, '\\u003c') + ');';
+        bridge.textContent = '(' + bridgeMain.toString() + ')(' + JSON.stringify({ token: opts.token || '', lang: I18n.lang || 'zh', scriptError: I18n.t('脚本出错') }).replace(/</g, '\\u003c') + ');';
         // 顺序：字符集 → base → CSP → 桥接脚本 → 作者内容
         var nodes = [];
         var charset = doc.createElement('meta'); charset.setAttribute('charset', 'utf-8'); nodes.push(charset);
@@ -250,7 +253,7 @@
         nodes.push(bridge);
         nodes.forEach(put);
         var out = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
-        if (out.length > LIMITS.maxDocChars + 20000) return { error: '页面内容太大（代入变量后超过上限），已停止显示。' };
+        if (out.length > LIMITS.maxDocChars + 20000) return { error: I18n.t('页面内容太大（代入变量后超过上限），已停止显示。') };
         return { srcdoc: out, removed: removed };
     }
 
@@ -273,22 +276,22 @@
                 return { ok: true, kind: k, data: { h: h } };
             }
             if (k === 'action') {
-                if (!str(d.action) || !NAME_RE.test(d.action)) return { ok: false, reason: 'action-name', notice: '插件发来的操作名称不合规，已忽略。' };
+                if (!str(d.action) || !NAME_RE.test(d.action)) return { ok: false, reason: 'action-name', notice: I18n.t('插件发来的操作名称不合规，已忽略。') };
                 var label = d.label == null ? '' : d.label, text = d.text == null ? '' : d.text;
-                if (!str(label) || !str(text)) return { ok: false, reason: 'action-field', notice: '插件发来的操作内容格式不对，已忽略。' };
-                if (label.length > T || text.length > T) return { ok: false, reason: 'too-long', notice: '插件发来的内容太长（超过 ' + T + ' 字），已忽略。' };
+                if (!str(label) || !str(text)) return { ok: false, reason: 'action-field', notice: I18n.t('插件发来的操作内容格式不对，已忽略。') };
+                if (label.length > T || text.length > T) return { ok: false, reason: 'too-long', notice: I18n.t('插件发来的内容太长（超过 {n} 字），已忽略。', { n: T }) };
                 return { ok: true, kind: k, data: { action: d.action, label: label, text: text } };
             }
-            if (k === 'error') return { ok: true, kind: k, data: { message: str(d.message) ? d.message.slice(0, 300) : '脚本出错' } };
+            if (k === 'error') return { ok: true, kind: k, data: { message: str(d.message) ? d.message.slice(0, 300) : I18n.t('脚本出错') } };
             if (k === 'blocked') return { ok: true, kind: k, data: { uri: str(d.uri) ? d.uri.slice(0, 200) : '', dir: str(d.dir) ? d.dir.slice(0, 60) : '' } };
             return { ok: false, reason: 'kind' };
         }
         // 作者脚本直接 postMessage({ type: '动作名', text, label }) 的写法
         if (str(d.type)) {
-            if (d.type.indexOf('__') === 0 || !NAME_RE.test(d.type)) return { ok: false, reason: 'action-name', notice: '插件发来的操作名称不合规，已忽略。' };
+            if (d.type.indexOf('__') === 0 || !NAME_RE.test(d.type)) return { ok: false, reason: 'action-name', notice: I18n.t('插件发来的操作名称不合规，已忽略。') };
             var lb = d.label == null ? '' : d.label, tx = d.text == null ? '' : d.text;
-            if (!str(lb) || !str(tx)) return { ok: false, reason: 'action-field', notice: '插件发来的操作内容格式不对，已忽略。' };
-            if (lb.length > T || tx.length > T) return { ok: false, reason: 'too-long', notice: '插件发来的内容太长（超过 ' + T + ' 字），已忽略。' };
+            if (!str(lb) || !str(tx)) return { ok: false, reason: 'action-field', notice: I18n.t('插件发来的操作内容格式不对，已忽略。') };
+            if (lb.length > T || tx.length > T) return { ok: false, reason: 'too-long', notice: I18n.t('插件发来的内容太长（超过 {n} 字），已忽略。', { n: T }) };
             return { ok: true, kind: 'action', data: { action: d.type, label: lb, text: tx } };
         }
         return { ok: false, reason: 'shape' };
@@ -358,7 +361,7 @@
         ensureListening();
         var inst = {
             id: opts.pluginId || '',
-            name: opts.name || '插件',
+            name: opts.name || I18n.t('插件'),
             opts: opts,
             token: newToken(),
             state: 'loading',
@@ -400,7 +403,7 @@
         var reloadBtn = document.createElement('button');
         reloadBtn.type = 'button';
         reloadBtn.className = 'plugin-sandbox-reload';
-        reloadBtn.textContent = '重新载入';
+        reloadBtn.textContent = I18n.t('重新载入');
         stopped.appendChild(stoppedText);
         stopped.appendChild(reloadBtn);
         wrap.appendChild(notice);
@@ -414,7 +417,7 @@
             inst.reason = reason || '';
             wrap.setAttribute('data-state', state);
             if (state === 'stopped') {
-                stoppedText.textContent = '「' + inst.name + '」已停用：' + inst.reason;
+                stoppedText.textContent = I18n.t('「{name}」已停用：{reason}', { name: inst.name, reason: inst.reason });
                 stopped.hidden = false;
             } else {
                 stopped.hidden = true;
@@ -477,7 +480,7 @@
             f.addEventListener('load', function () {
                 if (inst.frame !== f || inst.state === 'stopped') return;
                 if (inst.expectLoads > 0) { inst.expectLoads--; return; }
-                inst.stop('页面试图跳转到别的地址。');
+                inst.stop(I18n.t('页面试图跳转到别的地址。'));
             });
             f.srcdoc = srcdoc; // 先设内容再加入页面，避免多出一次空白页面的 load
             stage.appendChild(f);
@@ -518,7 +521,7 @@
                 for (var q = 0; q < instances.length; q++) if (instances[q].token === owner) alive = true;
                 if (!alive) {
                     lsDel(flagKey());
-                    inst.stop('上次载入这个插件时页面卡住了，已先暂停。点「重新载入」再试一次。');
+                    inst.stop(I18n.t('上次载入这个插件时页面卡住了，已先暂停。点「重新载入」再试一次。'));
                     return Promise.resolve();
                 }
             }
@@ -531,7 +534,7 @@
                 lsSet(flagKey(), inst.token + '|' + now());
                 if (!inst._render(d)) return;
             }, function (e) {
-                if (!inst.destroyed) inst.stop('页面内容读取失败：' + (e && e.message ? e.message : e));
+                if (!inst.destroyed) inst.stop(I18n.t('页面内容读取失败：{error}', { error: e && e.message ? e.message : e }));
             });
         };
 
@@ -573,7 +576,7 @@
                 inst.windowStart = t; inst.msgCount = 0; inst.actionCount = 0; inst.actionDropped = 0; inst.resizeCount = 0;
             }
             inst.msgCount++;
-            if (inst.msgCount > LIMITS.maxMsgPerSec) { inst.stop('发来的消息太多（每秒超过 ' + LIMITS.maxMsgPerSec + ' 条）。'); return; }
+            if (inst.msgCount > LIMITS.maxMsgPerSec) { inst.stop(I18n.t('发来的消息太多（每秒超过 {n} 条）。', { n: LIMITS.maxMsgPerSec })); return; }
             var r = parseMessage(inst, data);
             if (!r.ok) { if (r.notice) showNotice(r.notice); return; }
             var d = r.data;
@@ -587,11 +590,11 @@
                 case 'hb':
                     inst.lastBeat = t;
                     inst._clearLoadingFlag();
-                    if (d.mem > LIMITS.maxHeapMb) { inst.stop('占用的内存过多（超过 ' + LIMITS.maxHeapMb + ' MB）。'); return; }
+                    if (d.mem > LIMITS.maxHeapMb) { inst.stop(I18n.t('占用的内存过多（超过 {n} MB）。', { n: LIMITS.maxHeapMb })); return; }
                     break;
                 case 'resize':
                     inst.resizeCount++;
-                    if (inst.resizeCount > LIMITS.maxResizePerSec) { inst.stop('页面高度变化过于频繁。'); return; }
+                    if (inst.resizeCount > LIMITS.maxResizePerSec) { inst.stop(I18n.t('页面高度变化过于频繁。')); return; }
                     if (inst.frame) {
                         var cap = maxHeight();
                         var h = Math.max(opts.minHeight || 60, Math.min(cap, Math.ceil(d.h)));
@@ -601,23 +604,23 @@
                     break;
                 case 'action':
                     inst.actionCount++;
-                    if (inst.actionCount > LIMITS.maxActionFloodPerSec) { inst.stop('操作发送得太快（每秒超过 ' + LIMITS.maxActionFloodPerSec + ' 次）。'); return; }
+                    if (inst.actionCount > LIMITS.maxActionFloodPerSec) { inst.stop(I18n.t('操作发送得太快（每秒超过 {n} 次）。', { n: LIMITS.maxActionFloodPerSec })); return; }
                     if (inst.actionCount > LIMITS.maxActionsPerSec) {
-                        if (!inst.actionDropped) showNotice('操作太快，部分点击被忽略。');
+                        if (!inst.actionDropped) showNotice(I18n.t('操作太快，部分点击被忽略。'));
                         inst.actionDropped++;
                         return;
                     }
-                    if (opts.onAction) { try { opts.onAction(d, inst); } catch (e) { console.error('[PluginSandbox] onAction 出错', e); showNotice('处理这次操作时出错：' + (e && e.message ? e.message : e)); } }
+                    if (opts.onAction) { try { opts.onAction(d, inst); } catch (e) { console.error('[PluginSandbox] onAction 出错', e); showNotice(I18n.t('处理这次操作时出错：{error}', { error: e && e.message ? e.message : e })); } }
                     break;
                 case 'error':
                     inst.errorCount++;
-                    if (inst.errorCount <= LIMITS.maxErrorsBeforeNotice) showNotice('插件脚本出错：' + d.message);
+                    if (inst.errorCount <= LIMITS.maxErrorsBeforeNotice) showNotice(I18n.t('插件脚本出错：{error}', { error: d.message }));
                     break;
                 case 'blocked':
                     var key = d.dir + '|' + d.uri;
                     if (!inst.blockedSeen[key] && Object.keys(inst.blockedSeen).length < 5) {
                         inst.blockedSeen[key] = 1;
-                        showNotice('插件想加载的外部内容被拦截了：' + (d.uri || '未知') + '。');
+                        showNotice(I18n.t('插件想加载的外部内容被拦截了：{uri}。', { uri: d.uri || I18n.t('未知') }));
                     }
                     break;
             }
@@ -632,10 +635,10 @@
             if (gap > LIMITS.watchdogTickMs * 3) { inst.lastBeat = t; inst.createdAt = Math.max(inst.createdAt, t - 1000); return; } // 本页自己刚被卡住过，不算插件的问题
             if (!inst.frame || inst.state === 'stopped') return;
             if (!inst.booted) {
-                if (t - inst.createdAt > LIMITS.bootTimeoutMs) inst.stop('没有正常载入，可能脚本卡住了。');
+                if (t - inst.createdAt > LIMITS.bootTimeoutMs) inst.stop(I18n.t('没有正常载入，可能脚本卡住了。'));
                 return;
             }
-            if (t - inst.lastBeat > LIMITS.heartbeatTimeoutMs) inst.stop('长时间没有响应，可能脚本陷入了死循环。');
+            if (t - inst.lastBeat > LIMITS.heartbeatTimeoutMs) inst.stop(I18n.t('长时间没有响应，可能脚本陷入了死循环。'));
         };
 
         inst.destroy = function () {

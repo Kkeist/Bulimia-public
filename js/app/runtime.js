@@ -46,9 +46,9 @@ Object.assign(App, {
                 try {
                     res = await fetch(`module/${cur.folderKey}/module.json`, { cache: 'no-cache' });
                 } catch (e) {
-                    throw new Error('读取模组文件失败，请确认用本地服务器打开页面后再试');
+                    throw new Error(I18n.t('读取模组文件失败，请确认用本地服务器打开页面后再试'));
                 }
-                if (!res.ok) throw new Error(`读取模组文件失败（${res.status}），请到设置里重新加载模组`);
+                if (!res.ok) throw new Error(I18n.t('读取模组文件失败（{status}），请到设置里重新加载模组', { status: res.status }));
                 config = await res.json();
             }
             if (!config) return null;

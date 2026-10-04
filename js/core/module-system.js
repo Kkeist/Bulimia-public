@@ -399,17 +399,17 @@ class ModuleSystem {
         const warnings = [];
         const err = (code, node, message, extra) => errors.push(Object.assign({ code, moduleId: node && node.id, name: node && node.name, message }, extra || {}));
         const warn = (code, node, message, extra) => warnings.push(Object.assign({ code, moduleId: node && node.id, name: node && node.name, message }, extra || {}));
-        const label = (n) => (n && n.name) ? `「${n.name}」` : (n && n.id ? `（标识 ${n.id}）` : '（未命名事件）');
+        const label = (n) => (n && n.name) ? `「${n.name}」` : (n && n.id ? I18n.t('（标识 {id}）', { id: n.id }) : I18n.t('（未命名事件）'));
         const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
 
         if (!isObj(config)) {
-            err('root-invalid', null, '文件内容不是一个模组。');
+            err('root-invalid', null, I18n.t('文件内容不是一个模组。'));
             return { errors, warnings };
         }
-        if (typeof config.id !== 'string' || !config.id.trim()) err('root-no-id', config, '模组缺少标识，无法导入。');
-        if (typeof config.name !== 'string' || !config.name.trim()) warn('root-no-name', config, '模组没有名称。');
+        if (typeof config.id !== 'string' || !config.id.trim()) err('root-no-id', config, I18n.t('模组缺少标识，无法导入。'));
+        if (typeof config.name !== 'string' || !config.name.trim()) warn('root-no-name', config, I18n.t('模组没有名称。'));
         if (config.flows !== undefined && !isObj(config.flows)) {
-            err('flows-invalid', config, '模组的流程设置格式不正确。');
+            err('flows-invalid', config, I18n.t('模组的流程设置格式不正确。'));
             return { errors, warnings };
         }
 
@@ -421,23 +421,23 @@ class ModuleSystem {
         const varDefs = new Map(); // variable id -> { def, owner }
 
         const walk = (node, parent, flow, depth) => {
-            if (!isObj(node)) { err('module-invalid', parent, `${label(parent)}的${flow === 'main' ? '主流程' : '分流程'}里有一个格式不正确的事件。`); return; }
-            if (depth > 60) { err('too-deep', node, `${label(node)}嵌套层级过深。`); return; }
+            if (!isObj(node)) { err('module-invalid', parent, I18n.t('{label}的{flow}里有一个格式不正确的事件。', { label: label(parent), flow: flow === 'main' ? I18n.t('主流程') : I18n.t('分流程') })); return; }
+            if (depth > 60) { err('too-deep', node, I18n.t('{label}嵌套层级过深。', { label: label(node) })); return; }
             nodes.push({ node, parent, flow, depth });
             if (depth === 0) {
                 if (typeof node.id === 'string' && node.id.trim()) ids.set(node.id, node);
             } else if (typeof node.id !== 'string' || !node.id.trim()) {
-                err('module-no-id', node, `${label(node)}缺少标识，无法导入。`);
+                err('module-no-id', node, I18n.t('{label}缺少标识，无法导入。', { label: label(node) }));
             } else if (ids.has(node.id)) {
-                err('duplicate-id', node, `${label(ids.get(node.id))}与${label(node)}使用了相同的标识，导入后其中一个会丢失。`, { otherName: ids.get(node.id).name });
+                err('duplicate-id', node, I18n.t('{a}与{b}使用了相同的标识，导入后其中一个会丢失。', { a: label(ids.get(node.id)), b: label(node) }), { otherName: ids.get(node.id).name });
             } else {
                 ids.set(node.id, node);
             }
-            if (node.flows !== undefined && !isObj(node.flows)) { err('flows-invalid', node, `${label(node)}的流程设置格式不正确。`); return; }
+            if (node.flows !== undefined && !isObj(node.flows)) { err('flows-invalid', node, I18n.t('{label}的流程设置格式不正确。', { label: label(node) })); return; }
             for (const fn of Object.keys(node.flows || {})) {
                 const f = node.flows[fn];
                 if (!isObj(f) || (f.subModules !== undefined && !Array.isArray(f.subModules))) {
-                    err('flow-invalid', node, `${label(node)}的流程「${fn}」格式不正确。`);
+                    err('flow-invalid', node, I18n.t('{label}的流程「{flow}」格式不正确。', { label: label(node), flow: fn }));
                     continue;
                 }
                 (f.subModules || []).forEach((c) => walk(c, node, fn, depth + 1));
@@ -449,20 +449,20 @@ class ModuleSystem {
         for (const { node } of nodes) {
             if (!isObj(node)) continue;
             const list = node.variables;
-            if (list !== undefined && !Array.isArray(list)) { err('variables-invalid', node, `${label(node)}的变量设置格式不正确。`); continue; }
+            if (list !== undefined && !Array.isArray(list)) { err('variables-invalid', node, I18n.t('{label}的变量设置格式不正确。', { label: label(node) })); continue; }
             for (const v of (list || [])) {
-                if (!isObj(v) || typeof v.id !== 'string' || !v.id.trim()) { err('variable-no-id', node, `${label(node)}里有一个变量缺少标识。`); continue; }
+                if (!isObj(v) || typeof v.id !== 'string' || !v.id.trim()) { err('variable-no-id', node, I18n.t('{label}里有一个变量缺少标识。', { label: label(node) })); continue; }
                 if (varDefs.has(v.id)) {
-                    err('duplicate-variable', node, `变量「${v.name || v.id}」被定义了多次，导入后只有一份生效。`);
+                    err('duplicate-variable', node, I18n.t('变量「{name}」被定义了多次，导入后只有一份生效。', { name: v.name || v.id }));
                     continue;
                 }
                 varDefs.set(v.id, { def: v, owner: node });
-                if (!VAR_TYPES.includes(v.type)) err('variable-bad-type', node, `${label(node)}的变量「${v.name || v.id}」类型不正确。`);
-                if (v.category !== undefined && !VAR_CATS.includes(v.category)) warn('variable-bad-category', node, `${label(node)}的变量「${v.name || v.id}」类别不认识。`);
+                if (!VAR_TYPES.includes(v.type)) err('variable-bad-type', node, I18n.t('{label}的变量「{name}」类型不正确。', { label: label(node), name: v.name || v.id }));
+                if (v.category !== undefined && !VAR_CATS.includes(v.category)) warn('variable-bad-category', node, I18n.t('{label}的变量「{name}」类别不认识。', { label: label(node), name: v.name || v.id }));
                 const iv = v.initialValue;
                 if (iv !== undefined && iv !== null) {
                     const okType = ({ number: typeof iv === 'number', string: typeof iv === 'string', boolean: typeof iv === 'boolean', list: Array.isArray(iv), object: isObj(iv), list_of_object: Array.isArray(iv) })[v.type];
-                    if (okType === false) warn('variable-initial-mismatch', node, `变量「${v.name || v.id}」的初始值与类型不一致。`);
+                    if (okType === false) warn('variable-initial-mismatch', node, I18n.t('变量「{name}」的初始值与类型不一致。', { name: v.name || v.id }));
                 }
             }
         }
@@ -470,8 +470,8 @@ class ModuleSystem {
         // 引用检查
         const checkCondition = (c, node) => {
             if (!isObj(c)) return;
-            const refMod = (id) => { if (id != null && id !== '' && !ids.has(id)) warn('unknown-module-ref', node, `${label(node)}的条件引用了不存在的事件。`); };
-            const refVar = (id) => { if (id != null && id !== '' && !varDefs.has(id)) warn('unknown-variable-ref', node, `${label(node)}的条件引用了不存在的变量。`); };
+            const refMod = (id) => { if (id != null && id !== '' && !ids.has(id)) warn('unknown-module-ref', node, I18n.t('{label}的条件引用了不存在的事件。', { label: label(node) })); };
+            const refVar = (id) => { if (id != null && id !== '' && !varDefs.has(id)) warn('unknown-variable-ref', node, I18n.t('{label}的条件引用了不存在的变量。', { label: label(node) })); };
             switch (c.type) {
                 case 'module': refMod(c.moduleId); break;
                 case 'variable': refVar(c.variableId); break;
@@ -526,16 +526,16 @@ class ModuleSystem {
         const groups = new Map();
         for (const { node, parent, flow } of nodes) {
             if (!isObj(node) || !parent) continue;
-            if (node.type === undefined) warn('no-type', node, `${label(node)}没有设置类型。`);
-            else if (!TYPES.includes(node.type)) warn('unknown-type', node, `${label(node)}的类型不认识，它不会出现在任何队列里。`);
-            if (node.type === MODULE_TYPES.TIMELINE && !hasTimeCondition(node)) warn('timeline-without-time', node, `时间线${label(node)}没有时间条件。`);
-            if (typeof node.name !== 'string' || !node.name.trim()) warn('module-no-name', node, `${label(node)}没有名称。`);
+            if (node.type === undefined) warn('no-type', node, I18n.t('{label}没有设置类型。', { label: label(node) }));
+            else if (!TYPES.includes(node.type)) warn('unknown-type', node, I18n.t('{label}的类型不认识，它不会出现在任何队列里。', { label: label(node) }));
+            if (node.type === MODULE_TYPES.TIMELINE && !hasTimeCondition(node)) warn('timeline-without-time', node, I18n.t('时间线{label}没有时间条件。', { label: label(node) }));
+            if (typeof node.name !== 'string' || !node.name.trim()) warn('module-no-name', node, I18n.t('{label}没有名称。', { label: label(node) }));
             const key = (parent.id || '') + '\u0000' + flow;
             if (!groups.has(key)) groups.set(key, { parent, flow, list: [] });
             groups.get(key).list.push(node);
         }
         for (const { parent, flow, list } of groups.values()) {
-            const where = flow === 'main' ? '主流程' : `分流程「${flow}」`;
+            const where = flow === 'main' ? I18n.t('主流程') : I18n.t('分流程「{flow}」', { flow });
             const chain = list.filter((n) => n.type === MODULE_TYPES.TRIGGER_CHAIN);
             const chainIds = new Set(chain.map((n) => n.id));
             for (const n of chain) {
@@ -544,28 +544,28 @@ class ModuleSystem {
                     for (const side of ['prev', 'next']) {
                         const ref = ll[side];
                         if (ref == null) continue;
-                        if (!ids.has(ref)) warn('link-dangling', n, `${label(n)}的${side === 'prev' ? '前一个' : '后一个'}事件不存在，链会在这里断开。`);
+                        if (!ids.has(ref)) warn('link-dangling', n, I18n.t('{label}的{side}事件不存在，链会在这里断开。', { label: label(n), side: side === 'prev' ? I18n.t('前一个') : I18n.t('后一个') }));
                         // 链尾的 next 可以指向别的父级里的触发器链（完成后自动进入下一阶段）
-                        else if (!chainIds.has(ref) && !(side === 'next' && ids.get(ref).type === MODULE_TYPES.TRIGGER_CHAIN)) warn('link-cross', n, `${label(n)}的${side === 'prev' ? '前一个' : '后一个'}事件不在同一条链里。`);
+                        else if (!chainIds.has(ref) && !(side === 'next' && ids.get(ref).type === MODULE_TYPES.TRIGGER_CHAIN)) warn('link-cross', n, I18n.t('{label}的{side}事件不在同一条链里。', { label: label(n), side: side === 'prev' ? I18n.t('前一个') : I18n.t('后一个') }));
                     }
                     if (ll.next != null && ids.has(ll.next) && chainIds.has(ll.next)) {
                         const nx = ids.get(ll.next);
-                        if (isObj(nx.linkedList) && nx.linkedList.prev !== n.id) warn('link-mismatch', n, `${label(n)}与${label(nx)}的前后关系互相矛盾。`);
+                        if (isObj(nx.linkedList) && nx.linkedList.prev !== n.id) warn('link-mismatch', n, I18n.t('{a}与{b}的前后关系互相矛盾。', { a: label(n), b: label(nx) }));
                     }
                 }
             }
             if (chain.length > 1) {
                 const heads = chain.filter((n) => !isObj(n.linkedList) || n.linkedList.prev == null);
                 const linkedHeads = heads.filter((n) => isObj(n.linkedList) && n.linkedList.next != null);
-                if (heads.length === 0) warn('chain-cycle', parent, `${label(parent)}${where}里的触发器链首尾相接，没有起点。`);
-                else if (linkedHeads.length > 1) warn('chain-multi-head', parent, `${label(parent)}${where}里有多条互不相连的触发器链，只有第一条按链序执行。`);
+                if (heads.length === 0) warn('chain-cycle', parent, I18n.t('{label}{where}里的触发器链首尾相接，没有起点。', { label: label(parent), where }));
+                else if (linkedHeads.length > 1) warn('chain-multi-head', parent, I18n.t('{label}{where}里有多条互不相连的触发器链，只有第一条按链序执行。', { label: label(parent), where }));
                 // 沿 next 走一遍检查环
                 const byId = new Map(chain.map((n) => [n.id, n]));
                 for (const h of heads) {
                     const seen = new Set();
                     let cur = h;
                     while (cur && isObj(cur.linkedList) && cur.linkedList.next != null && byId.has(cur.linkedList.next)) {
-                        if (seen.has(cur.id)) { warn('chain-cycle', cur, `${label(cur)}所在的触发器链出现了环。`); break; }
+                        if (seen.has(cur.id)) { warn('chain-cycle', cur, I18n.t('{label}所在的触发器链出现了环。', { label: label(cur) })); break; }
                         seen.add(cur.id);
                         cur = byId.get(cur.linkedList.next);
                     }
@@ -579,7 +579,7 @@ class ModuleSystem {
             if (!byName.has(node.name)) byName.set(node.name, []);
             byName.get(node.name).push(node);
         }
-        for (const [name, list] of byName) if (list.length > 1) warn('duplicate-name', list[1], `有 ${list.length} 个事件都叫「${name}」，AI 按名称进入事件时会分不清。`);
+        for (const [name, list] of byName) if (list.length > 1) warn('duplicate-name', list[1], I18n.t('有 {n} 个事件都叫「{name}」，AI 按名称进入事件时会分不清。', { n: list.length, name }));
         return { errors, warnings };
     }
 
@@ -773,7 +773,7 @@ class ModuleSystem {
      * @param {Object} config 模组配置（与 module.json 同格式）
      */
     replaceConfig(config) {
-        if (!config || typeof config !== 'object' || Array.isArray(config)) throw new Error('模组内容不是有效的对象');
+        if (!config || typeof config !== 'object' || Array.isArray(config)) throw new Error(I18n.t('模组内容不是有效的对象'));
         const snap = this._captureRuntime();
         const oldParents = {};
         const definedBefore = [];
@@ -1866,7 +1866,7 @@ class ModuleSystem {
         // 大模块：完成 main 下所有触发器链，一直完成到 leaf
         if (!module.isLeaf()) {
             if (!options.force && module.state !== MODULE_STATES.ENTERED && module.state !== MODULE_STATES.COMPLETED) {
-                return { success: false, error: '大模块须已进入或已完成后才能勾选（或使用 force 自动完成）' };
+                return { success: false, error: I18n.t('大模块须已进入或已完成后才能勾选（或使用 force 自动完成）') };
             }
             module.setState(MODULE_STATES.COMPLETED, timestamp);
             const mainSubs = module.getFlowSubModules('main');
@@ -2338,7 +2338,7 @@ class ModuleSystem {
         if (module.type === MODULE_TYPES.TRIGGER_CHAIN && module.linkedList && module.linkedList.next) {
             const nextMod = this.getModule(module.linkedList.next);
             if (nextMod && nextMod.state === MODULE_STATES.ENTERED) {
-                return { success: false, error: '下一链节点已进入，不可取消当前链节点' };
+                return { success: false, error: I18n.t('下一链节点已进入，不可取消当前链节点') };
             }
         }
 
@@ -2402,7 +2402,7 @@ class ModuleSystem {
         const module = this.getModule(moduleId);
         if (!module || module.state !== MODULE_STATES.ENTERED || !module.interrupted) return null;
         const summary = module.interruptSummary ? `\n${module.interruptSummary}` : '';
-        return `【中断未完成】${summary}`;
+        return I18n.t('【中断未完成】') + summary;
     }
 
     /**

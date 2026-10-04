@@ -30,7 +30,7 @@ const PersonaManager = {
     create(data) {
         const persona = {
             id: Date.now().toString(),
-            name: data.name || '未命名',
+            name: data.name || I18n.t('未命名'),
             content: data.content || '',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()

@@ -63,7 +63,7 @@ const DebugViewer = {
         const listEl = document.getElementById('debug-writing-guide-list');
         if (!listEl) return;
         if (typeof WritingGuide === 'undefined' || !WritingGuide.getEntries) {
-            listEl.innerHTML = '<div class="debug-item">未加载写作指导模块</div>';
+            listEl.innerHTML = `<div class="debug-item">${I18n.t('未加载写作指导模块')}</div>`;
             return;
         }
         const entries = WritingGuide.getEntries();
@@ -71,26 +71,26 @@ const DebugViewer = {
         document.getElementById('debug-wg-break-hint')?.classList.toggle('hidden', breakNsfwIds.length === 0);
         const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         const hasOwn = entries.some(e => !WritingGuide.isProtocolEntry(e.identifier));
-        const emptyHint = hasOwn ? '' : '<div class="debug-item debug-wg-empty">还没有写作指导。可以添加条目，或导入文件。</div>';
+        const emptyHint = hasOwn ? '' : `<div class="debug-item debug-wg-empty">${I18n.t('还没有写作指导。可以添加条目，或导入文件。')}</div>`;
         listEl.innerHTML = emptyHint + entries.map((e, idx) => {
             const id = esc(e.identifier || '');
             const checked = e.enabled !== false ? ' checked' : '';
             const isMasterControlled = breakNsfwIds.includes(e.identifier);
             const isFixed = isMasterControlled || WritingGuide.isProtocolEntry(e.identifier);
-            const controlledBySwitch = isMasterControlled ? ' <span class="debug-wg-master-hint">由设置里的开关控制</span>' : '';
+            const controlledBySwitch = isMasterControlled ? ` <span class="debug-wg-master-hint">${I18n.t('由设置里的开关控制')}</span>` : '';
             const checkboxReadonly = isMasterControlled ? ' disabled' : '';
-            const del = isFixed ? '' : `<button type="button" class="btn-small btn-ghost danger wg-del" data-identifier="${id}" onclick="event.stopPropagation()">删除</button>`;
+            const del = isFixed ? '' : `<button type="button" class="btn-small btn-ghost danger wg-del" data-identifier="${id}" onclick="event.stopPropagation()">${I18n.t('删除')}</button>`;
             return `
                 <details class="debug-wg-card" data-identifier="${id}" data-index="${idx}">
                     <summary>
                         <input type="checkbox" class="wg-enabled" data-identifier="${id}"${checked}${checkboxReadonly} onclick="event.stopPropagation()">
-                        <input type="text" class="wg-name" data-identifier="${id}" placeholder="名称" onclick="event.stopPropagation()">
+                        <input type="text" class="wg-name" data-identifier="${id}" placeholder="${I18n.t('名称')}" onclick="event.stopPropagation()">
                         ${controlledBySwitch}
                         ${del}
                         <span class="cx-caret debug-wg-toggle" aria-hidden="true"></span>
                     </summary>
                     <div class="debug-wg-body">
-                        <textarea class="wg-content" data-identifier="${id}" rows="6" placeholder="内容"></textarea>
+                        <textarea class="wg-content" data-identifier="${id}" rows="6" placeholder="${I18n.t('内容')}"></textarea>
                     </div>
                 </details>`;
         }).join('');
@@ -125,15 +125,15 @@ const DebugViewer = {
      * 保存写作指导（从调试区表单写回 Storage）
      */
     saveWritingGuide() {
-        if (typeof WritingGuide === 'undefined' || !WritingGuide.saveEntries) { Toast.show('写作指导现在不能保存。', 'error'); return; }
+        if (typeof WritingGuide === 'undefined' || !WritingGuide.saveEntries) { Toast.show(I18n.t('写作指导现在不能保存。'), 'error'); return; }
         if (!document.getElementById('debug-writing-guide-list')) return;
         WritingGuide.saveEntries(this._collectWritingGuide());
-        Toast.show('写作指导已保存。', 'success');
+        Toast.show(I18n.t('写作指导已保存。'), 'success');
     },
 
     /** 新增一条空白条目：先把表单里的改动一起保存，再展开新条目 */
     addWritingGuideEntry() {
-        if (typeof WritingGuide === 'undefined' || !WritingGuide.saveEntries) { Toast.show('写作指导现在不能保存。', 'error'); return; }
+        if (typeof WritingGuide === 'undefined' || !WritingGuide.saveEntries) { Toast.show(I18n.t('写作指导现在不能保存。'), 'error'); return; }
         const entry = { identifier: WritingGuide.newIdentifier(), name: '', content: '', enabled: true };
         WritingGuide.saveEntries(this._withEntries([entry]));
         this.refreshWritingGuideList();
@@ -161,7 +161,7 @@ const DebugViewer = {
         }
         WritingGuide.saveEntries(this._withEntries(entries));
         this.refreshWritingGuideList();
-        Toast.show(`已导入 ${entries.length} 条写作指导。`, 'success');
+        Toast.show(I18n.t('已导入 {n} 条写作指导。', { n: entries.length }), 'success');
     },
 
     /** 删除一条自己添加或导入的条目，给撤销 */
@@ -171,7 +171,7 @@ const DebugViewer = {
         if (rest.length === before.length) return;
         WritingGuide.saveEntries(rest);
         this.refreshWritingGuideList();
-        Toast.undo('已删除一条写作指导。', () => {
+        Toast.undo(I18n.t('已删除一条写作指导。'), () => {
             WritingGuide.saveEntries(before);
             this.refreshWritingGuideList();
         });
@@ -181,12 +181,12 @@ const DebugViewer = {
      * 恢复写作指导为默认：会丢掉现在的修改，先问一句
      */
     async resetWritingGuide() {
-        if (typeof WritingGuide === 'undefined' || !WritingGuide.resetToDefault) { Toast.show('写作指导现在不能恢复默认。', 'error'); return; }
-        const ok = await Modal.confirm('恢复默认', '现在的修改会全部丢掉。', { confirmLabel: '恢复', danger: true });
+        if (typeof WritingGuide === 'undefined' || !WritingGuide.resetToDefault) { Toast.show(I18n.t('写作指导现在不能恢复默认。'), 'error'); return; }
+        const ok = await Modal.confirm(I18n.t('恢复默认'), I18n.t('现在的修改会全部丢掉。'), { confirmLabel: I18n.t('恢复'), danger: true });
         if (!ok) return;
         WritingGuide.resetToDefault();
         this.refreshWritingGuideList();
-        Toast.show('已恢复为默认写作指导。', 'success');
+        Toast.show(I18n.t('已恢复为默认写作指导。'), 'success');
     },
 
     /**
@@ -213,39 +213,39 @@ const DebugViewer = {
             'module-summary': '模块总结', 'global-summary': '全局总结', 'user-meta-block': '场外', 'user-meta-guidance': '场外说明',
             'current-user': '本轮用户消息', 'wg-pov': '写作指导·人称', 'tavern-authors-note': '作者注释'
         };
-        if (exact[id]) return exact[id];
+        if (exact[id]) return I18n.t(exact[id]);
         let kind = '';
         if (/^wg-/.test(id)) kind = '写作指导';
         else if (/^patch-/.test(id)) kind = '补丁';
         else if (/^tavern-wb-/.test(id)) kind = '世界书';
         else if (/^chat-/.test(id) || id === 'user' || id === 'assistant' || id === 'system') kind = '对话';
         else kind = '输出预设';
-        return name ? kind + '·' + name : kind;
+        return name ? I18n.t(kind) + '·' + name : I18n.t(kind);
     },
 
     /** 一条消息的来源说明：同一条里合并了多段时逐段列出，重复的只写一次。 */
     _labelOf(m) {
         const names = m.labels || [];
-        return (m.sources || []).map((s, k) => this._sourceLabel(s, names[k])).filter((s, k, arr) => arr.indexOf(s) === k).join('、');
+        return (m.sources || []).map((s, k) => this._sourceLabel(s, names[k])).filter((s, k, arr) => arr.indexOf(s) === k).join(I18n.pick({ zh: '、', en: ', ' }));
     },
 
     /** 当前要显示的消息列表 [{role, content, sources}]，以及说明文字。 */
     _currentWire() {
         if (this.promptMode === 'last') {
-            if (!this.lastSent || !this.lastSent.length) return { wire: [], note: '还没有发送过消息。' };
+            if (!this.lastSent || !this.lastSent.length) return { wire: [], note: I18n.t('还没有发送过消息。') };
             return { wire: this.lastSent, note: '' };
         }
-        if (typeof App === 'undefined' || !App.buildNextPromptPreview) return { wire: [], note: '游戏还没有准备好。' };
+        if (typeof App === 'undefined' || !App.buildNextPromptPreview) return { wire: [], note: I18n.t('游戏还没有准备好。') };
         const cur = typeof ModuleManager !== 'undefined' ? ModuleManager.getCurrent() : null;
         if (cur && !App.getEngineConfig() && App._engineConfigLoading) {
             App.ensureEngineConfig().then(() => this.refreshPrompt()).catch(() => this.refreshPrompt());
         }
         try {
             const wire = App.wireWithSources(App.buildNextPromptPreview());
-            const note = (cur && !App.getEngineConfig()) ? '模组数据还没读到，模组相关的段落暂时没有。' : '';
+            const note = (cur && !App.getEngineConfig()) ? I18n.t('模组数据还没读到，模组相关的段落暂时没有。') : '';
             return { wire, note };
         } catch (e) {
-            return { wire: [], note: '提示词生成失败：' + (e && e.message ? e.message : e) };
+            return { wire: [], note: I18n.t('提示词生成失败：') + (e && e.message ? e.message : e) };
         }
     },
 
@@ -309,7 +309,7 @@ const DebugViewer = {
             s.children[0].textContent = '#' + i;
             s.children[1].textContent = label;
             s.children[2].textContent = String(m.role || 'system').toUpperCase();
-            s.children[3].textContent = (m.content || '').length + ' 字';
+            s.children[3].textContent = I18n.t('{n} 字', { n: (m.content || '').length });
             const pre = document.createElement('pre');
             pre.className = 'prompt-block-body';
             pre.textContent = m.content || '';
@@ -329,7 +329,7 @@ const DebugViewer = {
         const anyOpen = blocks.some(b => b.open);
         blocks.forEach(b => { b.open = !anyOpen; });
         const btn = document.getElementById('btn-debug-prompt-fold');
-        if (btn) btn.textContent = anyOpen ? '全部展开' : '全部折叠';
+        if (btn) btn.textContent = anyOpen ? I18n.t('全部展开') : I18n.t('全部折叠');
     },
 
     /** 完整提示词文本（复制用）：每条消息一段，标明序号、角色、来源。 */
@@ -465,7 +465,7 @@ const DebugViewer = {
 
     /** 把文字放进剪贴板：先用系统接口，不行再用选中复制，都不行就提示手动复制。 */
     copyText(text) {
-        const done = () => Toast.show('已复制到剪贴板', 'success');
+        const done = () => Toast.show(I18n.t('已复制到剪贴板'), 'success');
         const fallback = () => {
             const ta = document.createElement('textarea');
             ta.value = text;
@@ -476,7 +476,7 @@ const DebugViewer = {
             let ok = false;
             try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
             ta.remove();
-            if (ok) done(); else Toast.show('这个浏览器不允许自动复制，请在展开的内容里手动选中复制。', 'warning', 6000);
+            if (ok) done(); else Toast.show(I18n.t('这个浏览器不允许自动复制，请在展开的内容里手动选中复制。'), 'warning', 6000);
         };
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text).then(done).catch(fallback);

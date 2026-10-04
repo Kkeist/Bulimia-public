@@ -23,7 +23,7 @@ const VariableOperations = {
             if (t === 'string') return this._opString(op, currentValue, value);
             if (t === 'boolean') return { ok: true, value: this._parseValue(value, 'boolean') };
             if (t === 'object') return this._opObject(op, currentValue, value);
-            return { ok: false, error: `未知类型: ${t}` };
+            return { ok: false, error: I18n.t('未知类型: {type}', { type: t }) };
         } catch (e) {
             return { ok: false, error: (e && e.message) || String(e) };
         }
@@ -52,15 +52,15 @@ const VariableOperations = {
     _opNumber(op, current, value) {
         const cur = Number(current);
         const delta = Number(value);
-        if (Number.isNaN(cur)) return { ok: false, error: '当前值非数字' };
-        if (Number.isNaN(delta) && op !== 'set') return { ok: false, error: '操作参数非数字' };
+        if (Number.isNaN(cur)) return { ok: false, error: I18n.t('当前值非数字') };
+        if (Number.isNaN(delta) && op !== 'set') return { ok: false, error: I18n.t('操作参数非数字') };
         switch (op) {
             case 'add': return { ok: true, value: cur + delta };
             case 'minus': return { ok: true, value: cur - delta };
             case 'multiply': return { ok: true, value: cur * delta };
-            case 'divide': return delta === 0 ? { ok: false, error: '除数为0' } : { ok: true, value: cur / delta };
+            case 'divide': return delta === 0 ? { ok: false, error: I18n.t('除数为0') } : { ok: true, value: cur / delta };
             case 'set': return { ok: true, value: this._parseValue(value, 'number') };
-            default: return { ok: false, error: `number 不支持操作: ${op}` };
+            default: return { ok: false, error: I18n.t('number 不支持操作: {op}', { op }) };
         }
     },
 
@@ -144,7 +144,7 @@ const VariableOperations = {
             case 'set':
                 return { ok: true, value: this._parseValue(value, 'date') || cur };
             default:
-                return { ok: false, error: `date 不支持操作: ${op}` };
+                return { ok: false, error: I18n.t('date 不支持操作: {op}', { op }) };
         }
     },
 
@@ -165,14 +165,14 @@ const VariableOperations = {
             case 'listRemove':
             case 'list_remove': {
                 const idx = parseInt(value, 10);
-                if (Number.isNaN(idx) || idx < 0 || idx >= cur.length) return { ok: false, error: '无效索引' };
+                if (Number.isNaN(idx) || idx < 0 || idx >= cur.length) return { ok: false, error: I18n.t('无效索引') };
                 cur.splice(idx, 1);
                 return { ok: true, value: cur };
             }
             case 'set':
                 return { ok: true, value: this._parseValue(value, 'list') };
             default:
-                return { ok: false, error: `list 不支持操作: ${op}` };
+                return { ok: false, error: I18n.t('list 不支持操作: {op}', { op }) };
         }
     },
 
@@ -192,12 +192,12 @@ const VariableOperations = {
             case 'set':
                 return { ok: true, value: String(value != null ? value : '') };
             default:
-                return { ok: false, error: `string 不支持操作: ${op}` };
+                return { ok: false, error: I18n.t('string 不支持操作: {op}', { op }) };
         }
     },
 
     _opObject(op, current, value) {
-        if (op !== 'set') return { ok: false, error: `object 仅支持 set` };
+        if (op !== 'set') return { ok: false, error: I18n.t('object 仅支持 set') };
         return { ok: true, value: this._parseValue(value, 'object') };
     },
 

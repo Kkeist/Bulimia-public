@@ -18,7 +18,7 @@
             var script = document.createElement('script');
             script.src = src;
             script.onload = function () { resolve(); };
-            script.onerror = function () { reject(new Error('插件脚本没能载入：' + src)); };
+            script.onerror = function () { reject(new Error(I18n.t('插件脚本没能载入：{src}', { src: src }))); };
             document.head.appendChild(script);
         });
     }
@@ -55,7 +55,7 @@
             var poolData = found.poolData, items = found.items;
             var empty = function () {
                 if (!testOnly && typeof State !== 'undefined' && State.variables) State.variables[outputVariableId] = [];
-                if (window.Toast) Toast.show('随机池是空的：' + poolId, 'warning');
+                if (window.Toast) Toast.show(I18n.t('随机池是空的：{id}', { id: poolId }), 'warning');
                 return testOnly ? [] : undefined;
             };
             if (!poolData) return empty();
@@ -91,7 +91,7 @@
                     State.variables[outputVariableId] = result;
                 }
                 if (window.App && window.App.autoSaveToCurrentSlot) window.App.autoSaveToCurrentSlot();
-                if (window.Toast) Toast.show('已写入变量：' + outputVariableId + '，共 ' + (Array.isArray(result) ? result.length : 1) + ' 条', 'success');
+                if (window.Toast) Toast.show(I18n.t('已写入变量：{id}，共 {n} 条', { id: outputVariableId, n: Array.isArray(result) ? result.length : 1 }), 'success');
             }
             return testOnly ? result : undefined;
         });
@@ -103,23 +103,23 @@
 
     function registerRandomizer(reg, id, name, type, cfg) {
         reg.register(id, {
-            name: name, type: reg.TYPES.GLOBAL, description: cfg.description || '随机器，由事件触发', pluginType: type, config: cfg, hasFrontend: false,
+            name: name, type: reg.TYPES.GLOBAL, description: cfg.description || I18n.t('随机器，由事件触发'), pluginType: type, config: cfg, hasFrontend: false,
             render: function (container) {
                 if (!container) return;
                 var custom = window.__PluginRenders__ && window.__PluginRenders__[id];
                 if (custom) { try { custom(container, cfg); } catch (e) { container.innerHTML = '<div class="plugin-item">' + esc(e.message) + '</div>'; } return; }
                 var outVarId = cfg.outputVariableId || '';
                 var vars = (typeof State !== 'undefined' && State.variables) ? State.variables : {};
-                var runBtn = typeof window.RunRandomizer === 'function' ? '<button type="button" class="btn-small plugin-test-run-randomizer" data-plugin-id="' + pid(id) + '">运行一次</button>' : '';
-                var resetBtn = '<button type="button" class="btn-small plugin-test-reset" data-plugin-id="' + pid(id) + '">重置</button>';
-                container.innerHTML = '<div class="plugin-item"><p class="plugin-test-hint">测试结果不存储，仅供预览</p><div class="plugin-test-output-var">输出变量：<code>' + esc(outVarId) + '</code></div><pre class="plugin-test-output-value">' + esc(show(outVarId ? vars[outVarId] : null)) + '</pre><div class="plugin-test-actions">' + runBtn + ' ' + resetBtn + '</div></div>';
+                var runBtn = typeof window.RunRandomizer === 'function' ? '<button type="button" class="btn-small plugin-test-run-randomizer" data-plugin-id="' + pid(id) + '">' + I18n.t('运行一次') + '</button>' : '';
+                var resetBtn = '<button type="button" class="btn-small plugin-test-reset" data-plugin-id="' + pid(id) + '">' + I18n.t('重置') + '</button>';
+                container.innerHTML = '<div class="plugin-item"><p class="plugin-test-hint">' + I18n.t('测试结果不存储，仅供预览') + '</p><div class="plugin-test-output-var">' + I18n.t('输出变量：') + '<code>' + esc(outVarId) + '</code></div><pre class="plugin-test-output-value">' + esc(show(outVarId ? vars[outVarId] : null)) + '</pre><div class="plugin-test-actions">' + runBtn + ' ' + resetBtn + '</div></div>';
                 var run = container.querySelector('.plugin-test-run-randomizer');
                 if (run) run.addEventListener('click', function () {
                     if (typeof window.RunRandomizer !== 'function') return;
                     window.RunRandomizer(id, { testOnly: true }).then(function (result) {
                         var pre = container.querySelector('.plugin-test-output-value');
                         if (pre) pre.textContent = show(result);
-                    }, function (e) { if (window.Toast) Toast.show('运行失败：' + e.message, 'error'); });
+                    }, function (e) { if (window.Toast) Toast.show(I18n.t('运行失败：{error}', { error: e.message }), 'error'); });
                 });
                 var rs = container.querySelector('.plugin-test-reset');
                 if (rs) rs.addEventListener('click', function () { var p = reg.plugins.get(id); if (p && p.render) p.render(container, cfg); });
@@ -128,7 +128,7 @@
     }
 
     function registerGenerator(reg, id, name, type, cfg) {
-        var desc = type === 'schedule-generator' ? '排期生成器，由节点 linkedScheduleRandomizer 引用' : '触发器链生成器，由节点 linkedModuleGenerator 引用';
+        var desc = type === 'schedule-generator' ? I18n.t('排期生成器，由节点 linkedScheduleRandomizer 引用') : I18n.t('触发器链生成器，由节点 linkedModuleGenerator 引用');
         var srcVarId = cfg.sourceVariableId || '';
         var randomizerId = cfg.randomizerId || null;
         reg.register(id, {
@@ -139,10 +139,10 @@
                 if (custom) { try { custom(container, cfg); } catch (e) { container.innerHTML = '<div class="plugin-item">' + esc(e.message) + '</div>'; } return; }
                 var vars = (typeof State !== 'undefined' && State.variables) ? State.variables : {};
                 var tempList = (typeof State !== 'undefined' && Array.isArray(State.temporaryGeneratedModules)) ? State.temporaryGeneratedModules : [];
-                var tempLabel = type === 'schedule-generator' ? '测试生成的排期' : '测试生成的临时模块';
-                var tempHtml = tempList.length ? '<div class="plugin-test-temp-list"><strong>' + tempLabel + '</strong>（' + tempList.length + ' 条）<ul>' + tempList.map(function (t) { return '<li>' + esc(typeof t === 'object' && t != null ? (t.name || t.id || t.content || JSON.stringify(t)) : String(t)) + '</li>'; }).join('') + '</ul></div>' : '';
-                var formatHint = esc(cfg.outputFormat || cfg.requiredFormat || '') || '未设置输出格式';
-                container.innerHTML = '<div class="plugin-item"><p class="plugin-test-hint">先运行随机器写入来源变量，再生成临时内容（仅测试，不写入模组）</p>' + esc(desc) + '<br/>来源变量：<code>' + esc(srcVarId) + '</code><pre class="plugin-test-output-value">' + esc(show(srcVarId ? vars[srcVarId] : null)) + '</pre>' + tempHtml + '<div class="plugin-test-format"><strong>需求格式</strong>：' + formatHint + '</div><div class="plugin-test-actions"><button type="button" class="btn-small plugin-test-run-generator">测试运行</button> <button type="button" class="btn-small plugin-test-reset">清除测试内容</button></div></div>';
+                var tempLabel = type === 'schedule-generator' ? I18n.t('测试生成的排期') : I18n.t('测试生成的临时模块');
+                var tempHtml = tempList.length ? '<div class="plugin-test-temp-list"><strong>' + tempLabel + '</strong>' + I18n.t('（{n} 条）', { n: tempList.length }) + '<ul>' + tempList.map(function (t) { return '<li>' + esc(typeof t === 'object' && t != null ? (t.name || t.id || t.content || JSON.stringify(t)) : String(t)) + '</li>'; }).join('') + '</ul></div>' : '';
+                var formatHint = esc(cfg.outputFormat || cfg.requiredFormat || '') || I18n.t('未设置输出格式');
+                container.innerHTML = '<div class="plugin-item"><p class="plugin-test-hint">' + I18n.t('先运行随机器写入来源变量，再生成临时内容（仅测试，不写入模组）') + '</p>' + esc(desc) + '<br/>' + I18n.t('来源变量：') + '<code>' + esc(srcVarId) + '</code><pre class="plugin-test-output-value">' + esc(show(srcVarId ? vars[srcVarId] : null)) + '</pre>' + tempHtml + '<div class="plugin-test-format"><strong>' + I18n.t('需求格式') + '</strong>' + I18n.t('：') + formatHint + '</div><div class="plugin-test-actions"><button type="button" class="btn-small plugin-test-run-generator">' + I18n.t('测试运行') + '</button> <button type="button" class="btn-small plugin-test-reset">' + I18n.t('清除测试内容') + '</button></div></div>';
                 var again = function () { var p = reg.plugins.get(id); if (p && p.render) p.render(container, cfg); };
                 var run = container.querySelector('.plugin-test-run-generator');
                 if (run) run.addEventListener('click', function () {
@@ -152,14 +152,14 @@
                         var list = Array.isArray(srcVal) ? srcVal : (srcVal != null ? [srcVal] : []);
                         State.temporaryGeneratedModules = list.slice(0, 50).map(function (x) { return typeof x === 'object' && x !== null ? { id: x.id, name: x.name || x.label, content: x.content || x.label } : { content: String(x) }; });
                         again();
-                        if (window.Toast) Toast.show('已生成 ' + State.temporaryGeneratedModules.length + ' 条测试数据（仅测试）', 'success');
-                    }, function (e) { if (window.Toast) Toast.show('测试运行失败：' + e.message, 'error'); });
+                        if (window.Toast) Toast.show(I18n.t('已生成 {n} 条测试数据（仅测试）', { n: State.temporaryGeneratedModules.length }), 'success');
+                    }, function (e) { if (window.Toast) Toast.show(I18n.t('测试运行失败：{error}', { error: e.message }), 'error'); });
                 });
                 var rs = container.querySelector('.plugin-test-reset');
                 if (rs) rs.addEventListener('click', function () {
                     if (typeof State !== 'undefined') State.temporaryGeneratedModules = [];
                     again();
-                    if (window.Toast) Toast.show('已清除测试内容', 'success');
+                    if (window.Toast) Toast.show(I18n.t('已清除测试内容'), 'success');
                 });
             }
         });
@@ -171,9 +171,9 @@
             name: name, type: reg.TYPES.GLOBAL, description: config.description || '', pluginType: type, config: config, hasFrontend: true,
             render: function (container, testParams) {
                 if (!container) return;
-                if (custom) { try { window.__PluginRenders__[id](container, config, testParams); } catch (e) { container.innerHTML = '<div class="plugin-item">渲染出错：' + esc(e.message) + '</div>'; } return; }
+                if (custom) { try { window.__PluginRenders__[id](container, config, testParams); } catch (e) { container.innerHTML = '<div class="plugin-item">' + I18n.t('渲染出错：') + esc(e.message) + '</div>'; } return; }
                 if (window.InteractiveSaveDriver) InteractiveSaveDriver.render(id, config, container, testParams);
-                else container.innerHTML = '<div class="plugin-item">交互插件驱动没有载入</div>';
+                else container.innerHTML = '<div class="plugin-item">' + I18n.t('交互插件驱动没有载入') + '</div>';
             },
             onInit: function () { if (!custom && window.InteractiveSaveDriver) InteractiveSaveDriver.init(id, config); }
         });
@@ -185,7 +185,7 @@
             name: name, type: reg.TYPES.STATUS, description: config.description || '', pluginType: type, config: config, hasFrontend: true,
             render: function (container) {
                 if (!container) return;
-                if (custom) { try { window.__PluginRenders__[id](container, config); } catch (e) { container.innerHTML = '<div class="plugin-item">渲染出错：' + esc(e.message) + '</div>'; } return; }
+                if (custom) { try { window.__PluginRenders__[id](container, config); } catch (e) { container.innerHTML = '<div class="plugin-item">' + I18n.t('渲染出错：') + esc(e.message) + '</div>'; } return; }
                 var vars = (typeof State !== 'undefined' && State.variables) ? State.variables : {};
                 var personaNameKey = config.personaNameKey || 'persona_name';
                 var labels = config.displayLabels || {};
@@ -200,9 +200,9 @@
                     var val;
                     if (key === personaNameKey) val = (typeof PersonaManager !== 'undefined' && PersonaManager.current && PersonaManager.current.name) ? PersonaManager.current.name : '—';
                     else { var v = vars[key]; val = v === undefined || v === null ? '—' : (typeof v === 'object' ? JSON.stringify(v) : String(v)); }
-                    return (labels[key] || key) + '：' + val;
+                    return I18n.t('{label}：{value}', { label: labels[key] || key, value: val });
                 });
-                container.innerHTML = lines.length ? '<div class="plugin-status-lines">' + lines.map(function (l) { return '<div class="plugin-status-line">' + esc(l) + '</div>'; }).join('') + '</div>' : '<div class="plugin-item">没有要显示的变量。</div>';
+                container.innerHTML = lines.length ? '<div class="plugin-status-lines">' + lines.map(function (l) { return '<div class="plugin-status-line">' + esc(l) + '</div>'; }).join('') + '</div>' : '<div class="plugin-item">' + I18n.t('没有要显示的变量。') + '</div>';
             }
         });
     }
