@@ -642,7 +642,6 @@ I18n.add('en', {
     "没有可以设置的变量了。": "No more variables to set.",
     "已删除一条设置。": "Setting deleted.",
     "排序值（越小越先）": "Sort value (lower first)",
-    "设置": "Set",
     "不设": "Not set",
     "显示数量": "Display count",
     "自定义": "Custom",

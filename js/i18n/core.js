@@ -90,9 +90,9 @@ const I18n = {
     _walk(node) {
         if (node.nodeType === 3) return this._text(node);
         if (node.nodeType !== 1) return;
-        if (node.matches && node.matches(this.SKIP)) return;
-        if (node.closest && node.closest(this.SKIP)) return;
+        if (node.closest && node.closest('#chat-messages,.msg-content,.no-i18n')) return;
         this._attrs(node);
+        if (node.matches && node.matches(this.SKIP)) return;
         for (const c of node.childNodes) this._walk(c);
     },
 
