@@ -319,6 +319,43 @@ label.setting-check.hidden { display: none !important; }
     color: var(--color-on-primary);
 }
 
+/* 显示设置底部的署名：头像在左，说明在右，第二行和链接排在同一行 */
+.studio-credit {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    max-width: 440px;
+    margin: var(--spacing-md) auto 0;
+    padding: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: var(--color-bg);
+    text-align: left;
+}
+.studio-credit-avatar {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    border-radius: var(--border-radius-sm);
+    object-fit: cover;
+}
+.studio-credit-text {
+    min-width: 0;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+}
+.studio-credit-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25em;
+}
+.studio-credit-text a {
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
 .setting-note {
     padding: var(--spacing-sm) var(--spacing-md);
     border: 1px solid var(--border-color);
