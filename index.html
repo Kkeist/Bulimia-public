@@ -99,7 +99,12 @@
                     </div>
 
                     <div id="chat-display">
-                        <div class="game-empty" id="game-empty"><h1 class="game-empty-title">Bulimia</h1></div>
+                        <div class="game-empty" id="game-empty"><h1 class="game-empty-title">Bulimia</h1>
+                            <select class="lang-select" aria-label="语言">
+                                <option value="zh">中文</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
                         <div id="chat-messages"></div>
                     </div>
 
@@ -535,6 +540,13 @@
                             <input type="text" id="input-ai-name" value="故事之声">
                         </div>
                         <div class="setting-group">
+                            <label>语言</label>
+                            <select class="lang-select" id="select-language" aria-label="语言">
+                                <option value="zh">中文</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
                             <label>皮肤</label>
                             <select id="select-theme">
                                 <option value="auto">云与灰（跟随系统）</option>
@@ -808,6 +820,7 @@
 
     <!-- 主入口（负责接线：开始游戏/读档/自动存档/设置存档页/Persona/API/预设） -->
     <script src="js/ui/studio-credit.js"></script>
+    <script src="js/ui/i18n.js"></script>
     <script src="js/app.js"></script>
     <script src="js/app/settings.js"></script>
     <script src="js/app/saves.js"></script>

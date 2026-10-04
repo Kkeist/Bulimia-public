@@ -12,7 +12,10 @@
     align-items: center;
     justify-content: center;
     min-height: 100%;
+    flex-direction: column;
+    gap: var(--spacing-md);
 }
+.game-empty .lang-select { width: auto; min-width: 120px; }
 .game-empty-title {
     font-size: var(--font-size-xxl);
     font-weight: 300;
