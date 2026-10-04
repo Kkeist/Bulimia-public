@@ -28,6 +28,19 @@
     <meta name="twitter:title" content="贪食症 - Bulimia">
     <meta name="twitter:image" content="icons/og-image.png">
 
+    <!-- 多语言：核心 + 各语言词典（须最先载入，其他脚本随时可调用 I18n.t） -->
+    <script src="js/i18n/core.js"></script>
+    <script src="js/i18n/en/static.js"></script>
+    <script src="js/i18n/en/app.js"></script>
+    <script src="js/i18n/en/module-manager.js"></script>
+    <script src="js/i18n/en/module-system.js"></script>
+    <script src="js/i18n/en/protocol.js"></script>
+    <script src="js/i18n/en/ui.js"></script>
+    <script src="js/i18n/en/debug.js"></script>
+    <script src="js/i18n/en/plugins.js"></script>
+    <script src="js/i18n/en/services.js"></script>
+    <script src="js/i18n/en/prompts.js"></script>
+
     <!-- 主题：首次绘制前写入 data-theme -->
     <script src="js/ui/theme.js"></script>
 
@@ -820,7 +833,6 @@
 
     <!-- 主入口（负责接线：开始游戏/读档/自动存档/设置存档页/Persona/API/预设） -->
     <script src="js/ui/studio-credit.js"></script>
-    <script src="js/ui/i18n.js"></script>
     <script src="js/app.js"></script>
     <script src="js/app/settings.js"></script>
     <script src="js/app/saves.js"></script>
