@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="is-booting">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="format-detection" content="telephone=no">
+    <title>贪食症 - Bulimia</title>
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="apple-mobile-web-app-title" content="贪食症">
+    <meta name="application-name" content="贪食症">
+    <meta name="msapplication-TileColor" content="#e9e9eb">
+    <meta name="msapplication-config" content="browserconfig.xml">
+    <meta property="og:title" content="贪食症 - Bulimia">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="icons/og-image.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="贪食症 - Bulimia">
+    <meta name="twitter:image" content="icons/og-image.png">
+
+    <!-- 主题：首次绘制前写入 data-theme -->
+    <script src="js/ui/theme.js"></script>
+
+    <!-- Markdown解析 - 使用showdown（与SillyTavern一致） -->
+    <script src="vendor/showdown/showdown.min.js"></script>
+
+    <!-- DOMPurify - HTML清理 -->
+    <script src="vendor/dompurify/purify.min.js"></script>
+
+    <!-- Token计数器 -->
+    <script src="js/utils/token-counter.js"></script>
+
+    <!-- 消息格式化工具 -->
+    <script src="js/utils/message-formatter.js"></script>
+
+    <!-- 通用随机池抽取工具（支持 poolType / pickCount / conditions / sections / multi_dimension） -->
+    <script src="js/utils/random-pool-picker.js"></script>
+
+    <!-- 文件下载与复制 -->
+    <script src="js/utils/file-download.js"></script>
+
+    <!-- 基础样式 -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components/layout.css">
+    <link rel="stylesheet" href="css/components/chat.css">
+    <link rel="stylesheet" href="css/components/status-bar.css">
+    <link rel="stylesheet" href="css/components/modals.css">
+    <link rel="stylesheet" href="css/components/debug.css">
+    <link rel="stylesheet" href="css/components/prompt-viewer.css">
+    <link rel="stylesheet" href="css/components/debug-module-jump.css">
+    <link rel="stylesheet" href="css/components/debug-module-edit.css">
+    <link rel="stylesheet" href="css/components/plugins.css">
+    <link rel="stylesheet" href="css/components/plugin-panels.css">
+    <link rel="stylesheet" href="css/components/settings.css">
+
+    <!-- 主题配色 -->
+    <link rel="stylesheet" href="css/themes/minimal-white.css">
+    <link rel="stylesheet" href="css/themes/minimal-dark.css">
+</head>
+
+<body>
+    <noscript>
+        <p style="padding: 16px;">需要开启 JavaScript 才能使用。</p>
+    </noscript>
+    <!-- 主容器 -->
+    <div id="app">
+        <!-- 页面：游戏（打开就是这一页；还没有开始游戏时中间只显示标题） -->
+        <div id="page-game" class="page active is-empty" data-left="0" data-right="0">
+            <!-- 左侧插件 | 聊天 | 右侧插件：窄屏为抽屉，宽屏为三栏 -->
+            <div class="game-layout">
+                <aside id="panel-left" class="side-panel" aria-label="交互插件">
+                    <button type="button" class="drawer-tab is-left" data-drawer-open="left" aria-controls="panel-left" aria-expanded="false" aria-label="交互插件"></button>
+                    <div class="panel-scroll" id="left-plugins-container"></div>
+                </aside>
+
+                <main id="chat-main">
+                    <header class="game-header">
+                        <h1 class="header-title" id="game-module-title"></h1>
+                    </header>
+
+                    <div id="status-bar" class="status-bar">
+                        <div id="status-panel" class="status-panel" aria-label="基本信息">
+                            <div class="status-row" id="status-permanent-content"></div>
+                        </div>
+                        <button type="button" class="status-toggle" id="btn-status-toggle" aria-controls="status-panel" aria-expanded="true" aria-label="状态栏">
+                            <span class="chev is-up" aria-hidden="true"></span>
+                        </button>
+                    </div>
+
+                    <div id="chat-display">
+                        <div class="game-empty" id="game-empty"><h1 class="game-empty-title">Bulimia</h1></div>
+                        <div id="chat-messages"></div>
+                    </div>
+
+                    <div id="input-area">
+                        <div id="multi-select-bar">
+                            <span class="multi-select-info">已选择 <span id="selected-count">0</span> 条消息</span>
+                            <div class="multi-select-actions">
+                                <button type="button" class="action-btn danger" id="btn-multi-delete">删除所选</button>
+                                <button type="button" class="action-btn" id="btn-multi-cancel">取消</button>
+                            </div>
+                        </div>
+
+                        <div id="action-bar">
+                            <div class="action-group" id="reroll-group">
+                                <button type="button" class="action-btn" data-action="reroll">重新生成</button>
+                                <button type="button" class="action-btn" data-action="delete-multi">多选删除</button>
+                            </div>
+                            <div class="action-group is-story" id="advancer-group">
+                                <button type="button" class="action-btn btn-accent" data-action="advance-event">下一事件</button>
+                                <button type="button" class="action-btn btn-accent" data-action="advance-day">下一天</button>
+                                <button type="button" class="action-btn btn-accent" data-action="advance-custom">自定义推进</button>
+                            </div>
+                            <div class="action-group is-file" id="save-group">
+                                <button type="button" class="action-btn btn-ghost" id="btn-new-game-quick">新游戏</button>
+                                <button type="button" class="action-btn btn-ghost" id="btn-load-saves">读取存档</button>
+                            </div>
+                        </div>
+
+                        <div id="pending-plugin-actions" style="display:none;"></div>
+
+                        <div id="text-input-wrapper">
+                            <div class="input-tools">
+                                <button type="button" class="hdr-btn chat-meta-toggle" id="chat-meta-toggle" aria-controls="chat-meta-block" aria-expanded="false">
+                                    <span class="chat-meta-toggle-label">场外指令</span>
+                                    <span class="chev" aria-hidden="true"></span>
+                                </button>
+                                <button type="button" class="hdr-btn" id="btn-tb-settings">设置</button>
+                                <button type="button" class="hdr-btn" id="btn-tb-debug">调试</button>
+                            </div>
+                            <div class="chat-meta-block collapsed" id="chat-meta-block">
+                                <textarea id="user-meta-input" placeholder="输入场外指令" rows="1" aria-label="场外指令"></textarea>
+                            </div>
+                            <div class="chat-input-main">
+                                <textarea id="user-input" placeholder="输入内容" rows="1" aria-label="输入内容"></textarea>
+                                <div class="chat-input-buttons">
+                                    <button type="button" id="btn-stop" class="btn-stop hidden">停止</button>
+                                    <button type="button" id="btn-send" class="btn-send">发送</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+
+                <aside id="panel-right" class="side-panel" aria-label="状态插件">
+                    <button type="button" class="drawer-tab is-right" data-drawer-open="right" aria-controls="panel-right" aria-expanded="false" aria-label="状态插件"></button>
+                    <div class="panel-scroll" id="right-plugins-container"></div>
+                </aside>
+
+                <div class="drawer-backdrop" id="drawer-backdrop"></div>
+            </div>
+        </div>
+
+        <!-- 页面：设置 -->
+        <div id="page-settings" class="page">
+            <div class="page-header">
+                <button type="button" class="back-btn" id="btn-settings-back">返回</button>
+                <h2>设置</h2>
+            </div>
+            <div class="settings-container nav-shell">
+                <div class="settings-tabs nav-shell-nav" role="tablist">
+                    <button type="button" class="settings-tab nav-shell-tab active" data-tab="api" role="tab">API 连接</button>
+                    <button type="button" class="settings-tab nav-shell-tab" data-tab="module" role="tab">模组管理</button>
+                    <button type="button" class="settings-tab nav-shell-tab" data-tab="save" role="tab">存档管理</button>
+                    <button type="button" class="settings-tab nav-shell-tab" data-tab="display" role="tab">显示设置</button>
+                    <button type="button" class="settings-tab nav-shell-tab" data-tab="persona" role="tab">个人设定</button>
+                    <button type="button" class="settings-tab nav-shell-tab" data-tab="writing-guide" role="tab">写作指导</button>
+                    <button type="button" class="settings-tab nav-shell-tab" data-tab="patches" role="tab">补丁</button>
+                    <button type="button" class="settings-tab nav-shell-tab" data-tab="preset" role="tab">输出预设</button>
+                    <button type="button" class="settings-tab nav-shell-tab" data-tab="regex" role="tab">正则脚本</button>
+                </div>
+
+                <div class="settings-body nav-shell-body">
+                <!-- API 连接 -->
+                <div class="settings-panel active" id="settings-panel-api">
+                    <div class="settings-flow">
+                    <div class="setting-card">
+                        <div class="setting-group">
+                            <label>已保存的配置</label>
+                            <div class="setting-row">
+                                <select id="api-preset-select">
+                                    <option value="">新配置</option>
+                                </select>
+                                <button type="button" id="btn-api-preset-save" class="btn-primary">保存</button>
+                                <button type="button" id="btn-api-preset-delete" class="danger">删除</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="setting-card">
+                        <div class="setting-group">
+                            <label>服务商</label>
+                            <select id="api-provider-select">
+                                <option value="claude_cli">本机 Claude（无需密钥）</option>
+                                <option value="openai">OpenAI</option>
+                                <option value="claude">Claude（Anthropic）</option>
+                                <option value="google">Google Gemini</option>
+                                <option value="cohere">Cohere</option>
+                                <option value="mistral">Mistral AI</option>
+                                <option value="openrouter">OpenRouter</option>
+                                <option value="groq">Groq</option>
+                                <option value="together">Together AI</option>
+                                <option value="deepseek">DeepSeek</option>
+                                <option value="moonshot">Moonshot（月之暗面）</option>
+                                <option value="zhipu">智谱 AI</option>
+                                <option value="qwen">通义千问</option>
+                                <option value="custom">自定义（OpenAI 兼容）</option>
+                            </select>
+                        </div>
+                        <div class="setting-group" id="api-field-endpoint">
+                            <label for="input-api-endpoint">接口地址</label>
+                            <input type="text" id="input-api-endpoint" placeholder="https://" autocomplete="off" spellcheck="false">                        </div>
+                        <div class="setting-group" id="api-field-key">
+                            <label for="input-api-key">API 密钥</label>
+                            <div class="setting-row">
+                                <input type="password" id="input-api-key" autocomplete="off" spellcheck="false">
+                                <button type="button" id="btn-toggle-api-key" class="btn-ghost">显示</button>
+                            </div>
+                            <small class="setting-hint">密钥只保存在本机浏览器中。</small>
+                        </div>
+                        <div class="setting-group" id="api-field-model">
+                            <label>模型</label>
+                            <div class="setting-row">
+                                <select id="api-model-select">
+                                    <option value="">未选择</option>
+                                </select>
+                                <button type="button" id="btn-fetch-models">获取模型列表</button>
+                            </div>
+                            <input type="text" id="input-api-model-manual" placeholder="手动填写模型名称" autocomplete="off" spellcheck="false" style="margin-top: 8px;">
+                        </div>
+                        <div class="setting-group" id="api-field-relay">
+                            <label>连接方式</label>
+                            <select id="api-relay-select">
+                                <option value="direct">直接连接</option>
+                                <option value="relay">经本机转发</option>
+                            </select>
+                            <small class="setting-hint" id="api-relay-hint"></small>
+                        </div>
+                        <div class="setting-actions" id="api-field-test">
+                            <button type="button" id="btn-test-api" class="btn-accent">测试连接</button>
+                            <span id="api-test-status" class="setting-status"></span>
+                        </div>
+                        <div class="setting-group" id="api-field-localcli-note" style="display:none;">
+                            <small class="setting-hint">使用本机已登录的 Claude，无需填写地址和密钥。</small>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- 写作指导 -->
+                <div class="settings-panel" id="settings-panel-writing-guide">
+                    <div class="settings-flow">
+                    <div class="setting-card">
+                        <label class="setting-check">
+                            <input type="checkbox" id="writing-guide-use-builtin" checked>
+                            使用写作指导
+                        </label>
+                        <label class="setting-check hidden" id="writing-guide-break-row">
+                            <input type="checkbox" id="writing-guide-break-nsfw">
+                            破限与 NSFW
+                        </label>
+                    </div>
+                    <div class="setting-card hidden" id="writing-guide-pov-card">
+                        <div class="setting-group">
+                            <label>叙述视角</label>
+                            <select id="writing-guide-pov">
+                                <option value="off">不指定</option>
+                                <option value="first">第一人称（玩家称“我”）</option>
+                                <option value="second">第二人称（玩家称“你”）</option>
+                                <option value="third">第三人称</option>
+                            </select>
+                        </div>
+                    </div>
+                    <small class="setting-hint">各条写作指导在调试页的写作指导中编辑。</small>
+                    </div>
+                </div>
+
+                <!-- 补丁 -->
+                <div class="settings-panel" id="settings-panel-patches">
+                    <div class="settings-flow">
+                    <div class="setting-card">
+                        <h4>模组自带补丁</h4>
+                        <div class="setting-row">
+                            <span id="patches-current-module-name" style="font-weight:600; overflow-wrap:anywhere;">--</span>
+                            <button type="button" id="patches-goto-module" class="btn-small btn-ghost">在模组管理中查看</button>
+                        </div>
+                        <div id="patches-module-list" class="item-list" style="margin-top: 8px;"></div>
+                    </div>
+                    <div class="setting-card">
+                        <h4>自定义补丁</h4>
+                        <div class="setting-row">
+                            <button type="button" id="patches-group-new" class="btn-small">新建分组</button>
+                            <button type="button" id="patches-group-import-wb" class="btn-small">导入世界书</button>
+                        </div>
+                        <input type="file" id="file-import-worldbook" accept=".json" class="hidden">
+                        <div id="patches-imported-groups" class="cards"></div>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- 输出预设 -->
+                <div class="settings-panel" id="settings-panel-preset">
+                    <div class="settings-flow">
+                    <div class="setting-card">
+                        <div class="setting-group">
+                            <label>当前预设</label>
+                            <div class="setting-row">
+                                <select id="prompt-preset-select">
+                                    <option value="">不使用预设</option>
+                                </select>
+                                <button type="button" id="btn-preset-new">新建</button>
+                                <button type="button" id="btn-preset-save" class="btn-primary">保存</button>
+                                <button type="button" id="btn-import-preset">导入</button>
+                            </div>
+                            <input type="file" id="file-import-preset" accept=".json" class="hidden">
+                        </div>
+                        <label class="setting-check preset-enable-switch">
+                            <input type="checkbox" id="preset-enable-checkbox" checked>
+                            启用预设
+                        </label>
+                    </div>
+
+                    <div class="setting-card">
+                        <h4>生成参数</h4>
+                        <div class="param-grid">
+                            <div class="param-item">
+                                <span>温度</span>
+                                <input type="number" id="preset-temp" value="1" step="0.1" min="0" max="2">
+                            </div>
+                            <div class="param-item">
+                                <span>Top P</span>
+                                <input type="number" id="preset-top-p" value="1" step="0.1" min="0" max="1">
+                            </div>
+                            <div class="param-item">
+                                <span>频率惩罚</span>
+                                <input type="number" id="preset-freq-pen" value="0" step="0.1" min="-2" max="2">
+                            </div>
+                            <div class="param-item">
+                                <span>存在惩罚</span>
+                                <input type="number" id="preset-pres-pen" value="0" step="0.1" min="-2" max="2">
+                            </div>
+                            <div class="param-item">
+                                <span>最大输出长度</span>
+                                <input type="number" id="preset-max-tokens" value="300" step="1" min="1" max="200000">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-card" id="preset-editor-visual-group">
+                        <h4>提示词条目</h4>
+                        <div class="setting-row">
+                            <button type="button" id="btn-preset-prompt-add" class="btn-small">新增条目</button>
+                            <button type="button" id="btn-preset-prompt-sort" class="btn-small">排序</button>
+                        </div>
+                        <div id="preset-prompts-visual-list" class="cards"></div>
+                    </div>
+
+                    <div class="setting-card">
+                        <h4>绑定模组</h4>
+                        <div class="setting-row">
+                            <select id="preset-module-select">
+                                <option value="">不绑定</option>
+                            </select>
+                            <button type="button" id="btn-preset-bind-module">绑定</button>
+                            <button type="button" id="btn-preset-unbind-module" class="btn-ghost">解绑</button>
+                        </div>
+                    </div>
+
+                    <div class="setting-card">
+                        <h4>全部预设</h4>
+                        <div id="preset-list" class="item-list"></div>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- 正则脚本 -->
+                <div class="settings-panel" id="settings-panel-regex">
+                    <div class="settings-flow">
+
+                    <div class="setting-card">
+                        <h4>预设绑定的正则</h4>
+                        <div class="setting-group">
+                            <select id="regex-preset-select">
+                                <option value="">选择预设</option>
+                            </select>
+                        </div>
+                        <div class="setting-row">
+                            <button type="button" id="btn-regex-preset-create" class="btn-small">新建</button>
+                            <button type="button" id="btn-regex-preset-import" class="btn-small">导入</button>
+                            <button type="button" id="btn-regex-preset-update" class="btn-small">绑定全部</button>
+                            <button type="button" id="btn-regex-preset-apply" class="btn-small btn-accent">应用</button>
+                        </div>
+                        <div class="setting-row" style="margin-top: 8px;">
+                            <button type="button" id="btn-regex-preset-select-mode" class="btn-small btn-ghost">多选</button>
+                            <button type="button" id="btn-regex-preset-select-all" class="btn-small btn-ghost">全选</button>
+                            <button type="button" id="btn-regex-preset-move-to-global" class="btn-small">移到全局</button>
+                            <button type="button" id="btn-regex-preset-delete-selected" class="btn-small danger">删除所选</button>
+                        </div>
+                        <input type="file" id="file-import-regex-preset" accept=".json" class="hidden" multiple>
+                        <div id="regex-preset-bindings" class="cards"></div>
+                    </div>
+
+                    <div class="setting-card">
+                        <h4>全局正则</h4>
+                        <div class="setting-row">
+                            <button type="button" id="btn-regex-global-add" class="btn-small">新建</button>
+                            <button type="button" id="btn-regex-global-import" class="btn-small">导入</button>
+                        </div>
+                        <div class="setting-row" style="margin-top: 8px;">
+                            <button type="button" id="btn-regex-global-select-mode" class="btn-small btn-ghost">多选</button>
+                            <button type="button" id="btn-regex-global-select-all" class="btn-small btn-ghost">全选</button>
+                            <button type="button" id="btn-regex-global-move-to-preset" class="btn-small">移到预设</button>
+                            <button type="button" id="btn-regex-global-delete-selected" class="btn-small danger">删除所选</button>
+                        </div>
+                        <div id="regex-global-list" class="cards"></div>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- 模组管理 -->
+                <div class="settings-panel" id="settings-panel-module">
+                    <div class="settings-flow">
+                    <div class="setting-card">
+                        <div class="setting-group">
+                            <label>当前模组</label>
+                            <div class="setting-row">
+                                <select id="current-module-select">
+                                    <option value="">未选择</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <button type="button" id="btn-module-new" class="btn-small">新建</button>
+                            <button type="button" id="btn-module-save" class="btn-small btn-primary">保存</button>
+                            <button type="button" id="btn-module-import" class="btn-small">导入</button>
+                            <button type="button" id="btn-module-export" class="btn-small">导出</button>
+                            <button type="button" id="btn-module-refresh-folder" class="btn-small btn-ghost">重新读取</button>
+                        </div>
+                        <input type="file" id="file-import-module" accept=".json" class="hidden">
+                    </div>
+                    <div class="setting-card">
+                        <h4>全部模组</h4>
+                        <div id="module-list" class="item-list"></div>
+                    </div>
+                    <div class="setting-card">
+                        <h4>模组信息</h4>
+                        <div class="form-group">
+                            <label for="module-name-input">名称</label>
+                            <input type="text" id="module-name-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="module-description-input">描述</label>
+                            <textarea id="module-description-input" rows="3"></textarea>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- 个人设定 -->
+                <div class="settings-panel" id="settings-panel-persona">
+                    <div class="settings-flow">
+                    <div class="setting-card">
+                        <div class="setting-group">
+                            <label>当前设定</label>
+                            <div class="setting-row">
+                                <select id="persona-select">
+                                    <option value="">不使用设定</option>
+                                </select>
+                                <button type="button" id="btn-new-persona">新建</button>
+                                <button type="button" id="btn-delete-persona" class="danger">删除</button>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <label for="input-persona-name">名称</label>
+                            <input type="text" id="input-persona-name">
+                        </div>
+                        <div class="setting-group">
+                            <label for="input-persona-content">内容</label>
+                            <textarea id="input-persona-content" rows="10"></textarea>
+                        </div>
+                        <div class="setting-actions">
+                            <button type="button" id="btn-save-persona" class="btn-primary">保存</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- 存档管理 -->
+                <div class="settings-panel" id="settings-panel-save">
+                    <div class="settings-flow">
+                    <div class="setting-card">
+                        <div class="setting-group">
+                            <label for="current-save-name-input">当前存档</label>
+                            <div class="setting-row">
+                                <input type="text" id="current-save-name-input" placeholder="存档名称" value="">
+                                <button type="button" id="btn-rename-save" class="btn-primary">重命名</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="setting-card">
+                        <h4>全部存档</h4>
+                        <div id="save-list" class="item-list"></div>
+                    </div>
+                    <div class="setting-card">
+                        <h4>导出与导入</h4>
+                        <div class="setting-actions" style="margin-top: 0;">
+                            <button type="button" id="btn-export-save">导出存档</button>
+                            <button type="button" id="btn-copy-save-text">复制存档文字</button>
+                            <button type="button" id="btn-import-save">导入存档</button>
+                            <button type="button" id="btn-paste-save-text">粘贴存档文字</button>
+                            <input type="file" id="file-import-save" accept=".json" class="hidden">
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- 显示设置 -->
+                <div class="settings-panel" id="settings-panel-display">
+                    <div class="settings-flow">
+
+                    <div class="setting-card">
+                        <h4>界面</h4>
+                        <div class="setting-group">
+                            <label for="input-ai-name">AI 名称</label>
+                            <input type="text" id="input-ai-name" value="故事之声">
+                        </div>
+                        <div class="setting-group">
+                            <label>皮肤</label>
+                            <select id="select-theme">
+                                <option value="auto">云与灰（跟随系统）</option>
+                                <option value="minimal-white">云与灰（浅色）</option>
+                                <option value="minimal-dark">云与灰（深色）</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label for="input-font-size">字体大小</label>
+                            <input type="number" id="input-font-size" min="12" max="24" step="1" value="15" data-unit="px">
+                        </div>
+                    </div>
+
+                    <div class="setting-card">
+                        <h4>回复处理</h4>
+                        <label class="setting-check"><input type="checkbox" id="checkbox-stream-output" checked>流式输出</label>
+                        <label class="setting-check"><input type="checkbox" id="checkbox-trim-spaces" checked>去除回复首尾空白</label>
+                        <label class="setting-check"><input type="checkbox" id="checkbox-trim-sentences">去除回复末尾不完整的句子</label>
+                        <label class="setting-check"><input type="checkbox" id="checkbox-auto-clean-response" checked>自动清理回复中的标签</label>
+                        <label class="setting-check"><input type="checkbox" id="checkbox-hide-thinking" checked>聊天中隐藏思考内容</label>
+                        <div class="setting-group" style="margin-top: 8px;">
+                            <label>思考内容识别</label>
+                            <select id="select-thinking-format">
+                                <option value="tags">使用默认标签</option>
+                                <option value="custom">使用自定义标签</option>
+                                <option value="none">不识别</option>
+                            </select>
+                        </div>
+                        <div class="setting-group" id="thinking-custom-tags-group">
+                            <div class="field-row">
+                                <div class="field">
+                                    <label for="input-thinking-start-tag">开始标签</label>
+                                    <input type="text" id="input-thinking-start-tag" value="<thinking>" autocomplete="off" spellcheck="false">
+                                </div>
+                                <div class="field">
+                                    <label for="input-thinking-end-tag">结束标签</label>
+                                    <input type="text" id="input-thinking-end-tag" value="</thinking>" autocomplete="off" spellcheck="false">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-card">
+                        <h4>发送给 AI</h4>
+                        <label class="setting-check"><input type="checkbox" id="checkbox-always-add-names" checked>提示词中始终包含角色名字</label>
+                        <label class="setting-check"><input type="checkbox" id="checkbox-names-as-stop-strings" checked>角色名字作为停止字符串</label>
+                        <div class="setting-group" style="margin-top: 8px;">
+                            <label>停止字符串</label>
+                            <div id="stop-strings-field"></div>
+                            <small class="setting-hint">出现这些内容时停止生成。</small>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面：调试窗口 -->
+        <div id="page-debug" class="page">
+            <div class="page-header">
+                <button type="button" class="back-btn" id="btn-debug-back">返回</button>
+                <h2>调试工具</h2>
+            </div>
+            <div class="debug-container nav-shell">
+                <div class="debug-tabs nav-shell-nav" role="tablist">
+                    <button type="button" class="debug-tab nav-shell-tab active" data-tab="module-jump">模块跳转</button>
+                    <button type="button" class="debug-tab nav-shell-tab" data-tab="cheat">作弊器</button>
+                    <button type="button" class="debug-tab nav-shell-tab" data-tab="plugin-test">插件测试</button>
+                    <button type="button" class="debug-tab nav-shell-tab" data-tab="summary">总结</button>
+                    <button type="button" class="debug-tab nav-shell-tab" data-tab="module-edit">模组编辑</button>
+                    <button type="button" class="debug-tab nav-shell-tab" data-tab="prompt">提示词查看器</button>
+                    <button type="button" class="debug-tab nav-shell-tab" data-tab="raw-replies">原始回复</button>
+                    <button type="button" class="debug-tab nav-shell-tab" data-tab="writing-guide">写作指导</button>
+                </div>
+
+                <div class="debug-content nav-shell-body">
+                    <div id="debug-panel-prompt" class="debug-panel">
+                        <div class="debug-toolbar">
+                            <div class="seg" role="group" aria-label="查看内容">
+                                <button id="btn-debug-prompt-mode-next" class="prompt-mode-btn active" type="button">即将发送</button>
+                                <button id="btn-debug-prompt-mode-last" class="prompt-mode-btn" type="button">上次发送</button>
+                            </div>
+                            <button id="btn-debug-refresh-prompt" type="button" class="btn-accent">刷新</button>
+                            <button id="btn-debug-copy-prompt" type="button">复制</button>
+                            <button id="btn-debug-prompt-fold" type="button" class="btn-ghost">全部折叠</button>
+                            <div class="token-stats">
+                                <span class="token-label">Token</span>
+                                <span id="debug-token-count">0</span>
+                            </div>
+                        </div>
+                        <div class="debug-output-tabs">
+                            <button class="debug-output-tab active" data-output="full">完整Prompt</button>
+                            <button class="debug-output-tab" data-output="thinking">Thinking</button>
+                            <button class="debug-output-tab" data-output="ecot">ECoT</button>
+                            <button class="debug-output-tab" data-output="qa">问答区</button>
+                            <button class="debug-output-tab" data-output="prediction">预测区</button>
+                            <button class="debug-output-tab" data-output="raw">原始输出</button>
+                        </div>
+                        <div id="debug-prompt-content-full" class="debug-output-content active">
+                            <div id="debug-prompt-content" class="prompt-viewer"></div>
+                        </div>
+                        <div id="debug-prompt-content-thinking" class="debug-output-content">
+                            <textarea id="debug-thinking-content" rows="20" readonly wrap="soft"></textarea>
+                        </div>
+                        <div id="debug-prompt-content-ecot" class="debug-output-content">
+                            <textarea id="debug-ecot-content" rows="20" readonly wrap="soft"></textarea>
+                        </div>
+                        <div id="debug-prompt-content-qa" class="debug-output-content">
+                            <textarea id="debug-qa-content" rows="20" readonly wrap="soft"></textarea>
+                        </div>
+                        <div id="debug-prompt-content-prediction" class="debug-output-content">
+                            <textarea id="debug-prediction-content" rows="20" readonly wrap="soft"></textarea>
+                        </div>
+                        <div id="debug-prompt-content-raw" class="debug-output-content">
+                            <pre id="debug-raw-content"></pre>
+                        </div>
+                    </div>
+
+                    <!-- 写作指导（独立于预设，可在此编辑条目） -->
+                    <div id="debug-panel-writing-guide" class="debug-panel">
+                        <div class="debug-toolbar">
+                            <button id="btn-debug-wg-save" type="button" class="btn-primary">保存</button>
+                            <button id="btn-debug-wg-add" type="button">添加条目</button>
+                            <button id="btn-debug-wg-import" type="button">导入</button>
+                            <input type="file" id="file-import-writing-guide" accept=".json,.txt,.md" class="hidden">
+                            <button id="btn-debug-wg-reset" type="button" class="danger">恢复默认</button>
+                        </div>
+                        <small class="setting-hint debug-panel-hint hidden" id="debug-wg-break-hint">破限与 NSFW 条目的开关在设置的写作指导里。</small>
+                        <div id="debug-writing-guide-list" class="debug-list debug-fill-list">
+                        </div>
+                    </div>
+
+
+                    <!-- 1. 模块跳转 -->
+                    <div id="debug-panel-module-jump" class="debug-panel active">
+                        <div id="debug-module-jump-placeholder" class="debug-placeholder"></div>
+                    </div>
+
+                    <!-- 2. 作弊器：变量/时间临时编辑 + 当前将生成的 prompt -->
+                    <div id="debug-panel-cheat" class="debug-panel">
+                        <div class="cheat-tool"></div>
+                    </div>
+
+                    <!-- 5. 模组编辑：编辑模组内置信息/变量/插件 -->
+                    <div id="debug-panel-module-edit" class="debug-panel">
+                        <div class="module-editor"></div>
+                    </div>
+
+                    <div id="debug-panel-plugin-test" class="debug-panel">
+                        <div class="plugin-tester"></div>
+                    </div>
+
+                    <div id="debug-panel-summary" class="debug-panel">
+                        <div class="summary-manager"></div>
+                    </div>
+
+                    <!-- 原始回复：最近 assistant 消息的 API 原始全文，块可折叠 -->
+
+                    <div id="debug-panel-raw-replies" class="debug-panel">
+                        <div class="debug-toolbar">
+                            <button id="btn-debug-refresh-raw-replies" type="button" class="btn-accent">刷新</button>
+                        </div>
+                        <div id="debug-raw-replies-list" class="debug-list debug-fill-list">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模态框容器 -->
+        <div id="modal-container" class="hidden">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="modal-title"></span>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+
+        <!-- Toast提示 -->
+        <div id="toast-container"></div>
+    </div>
+
+    <!-- 核心脚本（从 game/ 迁移：存档/Persona 必须一致） -->
+    <script src="js/core/config.js"></script>
+    <script src="js/core/events.js"></script>
+    <script src="js/core/state.js"></script>
+    <script src="js/core/storage.js"></script>
+
+    <!-- Persona（从 game/ 迁移） -->
+    <script src="js/world/persona.js"></script>
+
+    <!-- API系统（迁移自SillyTavern：完整API连接+预设+正则） -->
+    <script src="js/api/connection.js"></script>
+    <script src="js/api/preset-manager.js"></script>
+    <script src="js/data/writing-guide.js"></script>
+    <script src="js/data/patches.js"></script>
+    <script src="js/data/system-prompts.js"></script>
+    <script src="js/data/variable-splitters.js"></script>
+    <script src="js/core/variable-operations.js"></script>
+
+    <!-- 正则处理器（迁移自SillyTavern，支持预设绑定正则） -->
+    <script src="js/world/regex-processor.js"></script>
+
+    <!-- 模块管理器 -->
+    <script src="js/world/module-manager.js"></script>
+
+    <!-- 总结系统（从 game/ 迁移） -->
+    <script src="js/engine/summarizer.js"></script>
+
+    <!-- Mermaid图表渲染器 -->
+    <script src="js/utils/mermaid-renderer.js"></script>
+
+    <!-- HTML文档渲染器（iframe隔离） -->
+    <script src="js/utils/html-renderer.js"></script>
+
+    <!-- UI（从 game/ 迁移：弹窗/聊天记录接口等） -->
+    <script src="js/ui/chat-display.js"></script>
+    <script src="js/ui/modal.js"></script>
+    <script src="js/ui/toast.js"></script>
+    <script src="js/ui/ui-state.js"></script>
+    <script src="js/ui/layout-mode.js"></script>
+    <script src="js/ui/form-controls.js"></script>
+    <script src="js/ui/preset-editor.js"></script>
+    <script src="js/ui/regex-manager.js"></script>
+    <!-- 核心模块系统（调试区模块跳转用：从设置中已加载模组构建 moduleSystem） -->
+    <script src="js/core/time-system.js"></script>
+    <script src="js/core/variable-system.js"></script>
+    <script src="js/core/condition-system.js"></script>
+    <script src="js/core/module-system.js"></script>
+    <script src="js/core/module-editor.js"></script>
+    <script src="js/core/summary-system.js"></script>
+    <script src="js/core/prompt-generator.js"></script>
+    <script src="js/core/tag-parser.js"></script>
+    <script src="js/core/runtime-bridge.js"></script>
+
+    <!-- 插件系统：纯逻辑 → 隔离运行层 → 运行实体 → 统一显示接口 → 编辑器 -->
+    <script src="js/plugins/plugin-runtime.js"></script>
+    <script src="js/plugins/plugin-page-builder.js"></script>
+    <script src="js/plugins/plugin-sandbox.js"></script>
+    <script src="js/plugins/plugin-system.js"></script>
+    <script src="js/ui/plugin-renderer.js"></script>
+    <script src="js/ui/plugin-editor.js"></script>
+
+    <script src="js/ui/debug-viewer.js"></script>
+    <script src="js/world/tavern-layer.js"></script>
+    <script src="js/ui/condition-builder.js"></script>
+    <script src="js/ui/debug-module-jump.js"></script>
+    <script src="js/ui/debug-state-sync.js"></script>
+    <script src="js/ui/debug-tab-cheat.js"></script>
+    <script src="js/ui/debug-tab-plugin.js"></script>
+    <script src="js/ui/debug-tab-summary.js"></script>
+    <script src="js/ui/debug-tab-tavern.js"></script>
+    <script src="js/ui/debug-tab-guide-raw.js"></script>
+    <script src="js/ui/debug-tab-module-edit.js"></script>
+    <script src="js/ui/debug-module-edit-panel.js"></script>
+    <script src="js/ui/debug-module-edit-vars.js"></script>
+    <script src="js/ui/debug-module-edit-misc.js"></script>
+
+    <!-- 游戏流程控制器 -->
+    <script src="js/world/game-flow.js"></script>
+
+    <!-- 插件注册表（主游戏运行时两侧渲染）+ 旧式插件 -->
+    <script src="js/plugins/plugin-legacy.js"></script>
+    <script src="js/plugins/plugin-registry.js"></script>
+    <script src="js/plugins/phone-manager.js"></script>
+
+    <!-- 主入口（负责接线：开始游戏/读档/自动存档/设置存档页/Persona/API/预设） -->
+    <script src="js/app.js"></script>
+    <script src="js/app/settings.js"></script>
+    <script src="js/app/saves.js"></script>
+    <script src="js/app/send.js"></script>
+    <script src="js/app/runtime.js"></script>
+    <script src="js/app/summary-job.js"></script>
+    <script src="js/app/reply-apply.js"></script>
+    <script src="js/app/prompt.js"></script>
+    <script src="js/app/generate.js"></script>
+    <script src="js/app/modules.js"></script>
+    <script src="js/app/display.js"></script>
+</body>
+
+</html>

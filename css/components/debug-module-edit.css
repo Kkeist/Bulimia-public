@@ -1,0 +1,174 @@
+/* 调试页「模组编辑」标签 */
+
+.me-header { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 4px; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+.me-header .me-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+.me-spacer { flex: 1 1 auto; }
+.me-status { flex: 1 1 100%; font-size: 12px; line-height: 1.5; color: var(--color-text-muted); }
+.me-status.is-dirty { color: var(--color-danger); }
+.me-problems { background: var(--color-bg-secondary); color: var(--color-text); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 4px 10px; font-size: 12px; cursor: pointer; min-height: 32px; }
+.me-problems:hover { background: var(--color-bg-tertiary); }
+
+.me-wrap { align-items: flex-start; }
+.me-left { display: flex; flex-direction: column; gap: 6px; padding: 8px; }
+.me-right { min-width: 0; }
+
+.me-search { display: flex; gap: 4px; align-items: center; }
+.me-search input { flex: 1 1 auto; min-width: 0; padding: 6px 8px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); background: var(--color-bg); color: var(--color-text); font-size: 13px; }
+.me-search input:focus { outline: none; border-color: var(--color-text-secondary); }
+.me-x { flex: 0 0 auto; min-width: 32px; min-height: 32px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); background: var(--color-bg); color: var(--color-text); cursor: pointer; font-size: 14px; }
+.me-x:hover { background: var(--color-bg-tertiary); }
+
+.me-crumb { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; font-size: 12px; line-height: 1.5; }
+.me-crumbbtn { background: transparent; border: 0; color: var(--color-text-muted); cursor: pointer; padding: 2px 4px; text-align: left; overflow-wrap: anywhere; }
+.me-crumbbtn.on { color: var(--color-text);}
+.me-crumbbtn:hover { color: var(--color-text); text-decoration: underline; }
+.me-sep { color: var(--color-text-muted); }
+
+.me-clipbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; font-size: 12px; line-height: 1.5; background: var(--color-bg-secondary); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); }
+
+.me-tree { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.me-emptyflow { padding: 6px 8px; font-size: 12px; color: var(--color-text-muted); }
+.me-flowname { background: transparent; border: 0; padding: 4px 6px; font-weight: 600; color: var(--color-text); cursor: pointer; text-align: left; overflow-wrap: anywhere; min-height: 32px; }
+.mjx-flowhead.me-on { background: var(--color-bg-tertiary); }
+
+.me-toolbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 0 10px; }
+.me-toolbar .me-tb { flex: 0 0 auto; min-height: 36px; }
+
+.me-sec { border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 10px; margin-bottom: 12px; background: var(--color-bg); display: flex; flex-direction: column; gap: 8px; }
+.me-sec > h4 { margin: 0 0 2px; font-size: 14px; line-height: 1.4; }
+.me-sec .mjx-fin, .me-sec .mjx-fta { width: 100%; box-sizing: border-box; }
+.me-err { margin: 0; padding: 6px 8px; font-size: 12px; line-height: 1.5; color: var(--color-danger); border: 1px solid var(--color-danger); border-radius: var(--border-radius-sm); background: var(--color-bg); }
+.me-err[hidden] { display: none; }
+.me-actrow { display: flex; gap: 6px; }
+
+.me-var, .me-deliv { border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 8px; display: flex; flex-direction: column; gap: 8px; background: var(--color-bg-secondary); }
+.me-varhead { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.me-varhead .me-vname { flex: 1 1 140px; min-width: 0; width: auto; }
+.me-varhead .me-vtype { flex: 0 0 auto; width: auto; min-width: 96px; }
+.me-varhead .cs-trigger { width: auto; min-width: 96px; }
+.me-cat { font-size: 11px; color: var(--color-text-muted); border: 1px solid var(--border-color); border-radius: 999px; padding: 1px 8px; }
+.me-varbody { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.me-varbody > label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--color-text-muted); flex: 1 1 120px; min-width: 0; }
+.me-varbody .me-fields, .me-varbody .me-chips, .me-varbody .me-addrow { flex: 1 1 100%; }
+.me-fields { display: flex; flex-direction: column; gap: 6px; }
+.me-field, .me-rule { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.me-field > .mjx-fin, .me-rule > .mjx-fin { flex: 1 1 110px; min-width: 0; width: auto; }
+.me-field .cs-trigger, .me-rule .cs-trigger { width: auto; min-width: 88px; }
+.me-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.me-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border: 1px solid var(--border-color); border-radius: 999px; background: var(--color-bg); font-size: 12px; overflow-wrap: anywhere; }
+.me-chip button { background: transparent; border: 0; cursor: pointer; min-width: 24px; min-height: 24px; color: var(--color-text-muted); }
+.me-chip button:hover { color: var(--color-text); }
+.me-addrow { display: flex; gap: 6px; }
+.me-addrow .mjx-fin { flex: 1 1 auto; min-width: 0; width: auto; }
+.me-rules { font-size: 13px; }
+.me-rules > summary { cursor: pointer; padding: 4px 0; color: var(--color-text-muted); }
+.me-rules .me-rule { margin: 6px 0; }
+
+.me-pickrow { display: flex; flex-wrap: wrap; gap: 6px; }
+.me-pickbtn { text-align: left; overflow-wrap: anywhere; }
+.me-pickpop { border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); background: var(--color-bg); padding: 6px; display: flex; flex-direction: column; gap: 6px; max-height: 260px; }
+.me-pickpop[hidden] { display: none; }
+.me-pickopts { overflow-y: auto; display: flex; flex-direction: column; }
+.me-pickopt { text-align: left; background: transparent; border: 0; padding: 8px; cursor: pointer; color: var(--color-text); overflow-wrap: anywhere; min-height: 36px; }
+.me-pickopt:hover { background: var(--color-bg-tertiary); }
+.me-pickempty { padding: 8px; font-size: 12px; color: var(--color-text-muted); }
+
+.me-dialog { display: flex; flex-direction: column; gap: 8px; }
+.me-dialog .mjx-fin { width: 100%; box-sizing: border-box; }
+.me-problist { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; line-height: 1.5; }
+
+@media (max-width: 768px) {
+    .me-left, .me-right { flex: 1 1 auto; width: 100%; max-width: 100%; box-sizing: border-box; }
+    .me-left { max-height: none; }
+}
+
+.me-clipbar[hidden] { display: none; }
+.me-sec textarea, .me-dialog textarea { resize: none; }
+.me-tree .mjx-me-node { flex-wrap: nowrap; align-items: flex-start; }
+.me-tree .mjx-me-name { flex: 1 1 0; min-width: 0; }
+
+/* 触屏与窄屏：可点击的东西不小于 44 像素 */
+@media (pointer: coarse), (max-width: 640px) {
+    #mjx-me button, #mjx-me .cs-trigger, #mjx-me select, #mjx-me input:not([type="file"]) { min-height: 44px; }
+    #mjx-me button { min-width: 44px; }
+    #mjx-me .me-crumbbtn, #mjx-me .me-flowname, #mjx-me .me-x { min-height: 44px; }
+    #mjx-me .me-x { min-width: 44px; }
+}
+@media (max-width: 480px) {
+    .me-addrow { flex-wrap: wrap; }
+    .me-addrow .mjx-fin { flex: 1 1 100%; }
+    .me-sec { padding: 8px 6px; }
+    .me-var, .me-deliv { padding: 6px; }
+    .me-toolbar .me-tb { flex: 1 1 calc(50% - 6px); }
+    #me-entry .cbx-rule, #me-comp .cbx-rule { flex-wrap: wrap; }
+}
+
+.me-line { resize: none; overflow: hidden; min-height: 36px; box-sizing: border-box; line-height: 1.5; padding: 6px 8px; }
+
+/* 区块内的小件：可选数字、卡片、自动计算行 */
+.me-opt { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; flex: 1 1 100%; }
+.me-opt > .mjx-fin { flex: 1 1 140px; min-width: 0; width: auto; }
+.me-optlab { font-size: 12px; line-height: 1.5; color: var(--color-text-muted); }
+.me-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.me-grid > label, .me-objval > label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--color-text-muted); min-width: 0; }
+.me-card { border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 8px; display: flex; flex-direction: column; gap: 8px; background: var(--color-bg-secondary); }
+.me-card + .me-card { margin-top: 0; }
+#me-info, #me-deliv, #me-vars { display: flex; flex-direction: column; gap: 8px; }
+.me-hint { margin: 0; font-size: 12px; line-height: 1.5; color: var(--color-text-muted); }
+.me-hintline { color: var(--color-text-muted); border-color: var(--border-color); }
+.me-comp { border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 8px; margin: 6px 0; display: flex; flex-direction: column; gap: 8px; background: var(--color-bg); }
+.me-comphead { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.me-comphead .me-optlab { flex: 1 1 100%; }
+.me-comphead .cs-trigger, .me-comphead .mjx-fin { width: auto; min-width: 120px; }
+.me-objval { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; padding: 6px; border: 1px dashed var(--border-color); border-radius: var(--border-radius-sm); }
+.me-objval > label { flex: 1 1 120px; }
+.me-toks { display: flex; flex-wrap: wrap; gap: 6px; }
+.me-tok { min-height: 32px; border: 1px solid var(--border-color); border-radius: 999px; background: var(--color-bg); color: var(--color-text-secondary); font-size: 12px; padding: 0 10px; cursor: pointer; }
+.me-tok:hover { border-color: var(--color-text-secondary); color: var(--color-text); }
+.me-varhead .me-vcat { flex: 0 0 auto; min-width: 110px; width: auto; }
+.me-varhead .cs-trigger.me-vcat { width: auto; min-width: 110px; }
+.me-rules .me-hint { margin: 4px 0; }
+.me-rules .mjx-flab { display: block; }
+.me-rules textarea { width: 100%; box-sizing: border-box; }
+.me-card .me-varhead .me-line { flex: 1 1 140px; width: auto; min-width: 0; }
+.me-card details.me-rules > .mjx-cbhost { margin-top: 6px; }
+#me-tags .tag-field { display: flex; flex-direction: column; gap: 6px; }
+#me-tags .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+#me-tags .tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 10px; border: 1px solid var(--border-color); border-radius: 999px; background: var(--color-bg-secondary); font-size: 12px; overflow-wrap: anywhere; }
+#me-tags .tag-remove { background: transparent; border: 0; cursor: pointer; min-width: 24px; min-height: 24px; color: var(--color-text-muted); }
+#me-tags .tag-add { display: flex; gap: 6px; }
+#me-tags .tag-add input { flex: 1 1 auto; min-width: 0; padding: 6px 8px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); background: var(--color-bg); color: var(--color-text); font: inherit; font-size: 13px; }
+.me-sec textarea.me-line, .me-card textarea.me-line { overflow: hidden; }
+
+/* 树里的展开 / 收起小三角 */
+.mjx-cw .cx-caret, .mjx-cbtn .cx-caret { margin: 0; }
+.cx-caret[data-c="1"] { transform: rotate(-90deg); }
+
+/* 条件编辑器里还没填完的规则 */
+.cbx-rule { flex-wrap: wrap; }
+.cbx-rule.cbx-incomplete { border-style: dashed; }
+.cbx-hint { flex: 1 1 100%; font-size: 12px; line-height: 1.5; color: var(--color-text-muted); }
+
+@media (max-width: 480px) {
+    #me-panel .mjx-sin { padding: 8px 2px; }
+    #me-panel .me-card, #me-panel .me-var, #me-panel .me-comp { padding: 6px; }
+}
+
+/* 宽屏：事件树固定宽度，编辑面板占满剩下的宽度 */
+.me-wrap > .me-right { flex: 1 1 0; min-width: 0; max-width: none; }
+
+/* 条件编辑器下拉的小三角：样式绘制 */
+.cbx-ddcar { display: inline-block; flex: 0 0 auto; width: 0; height: 0; border-left: 0.3rem solid transparent; border-right: 0.3rem solid transparent; border-top: 0.4rem solid currentColor; }
+
+/* 宽屏：顶部工具条不动，左栏事件树（搜索固定在上方）与右栏编辑面板各自上下滚动 */
+@media (min-width: 720px) {
+    #mjx-me { gap: 0; }
+    #mjx-me > .me-header { flex: 0 0 auto; }
+    #mjx-me > .me-wrap { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: minmax(15rem, 20rem) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 16px; align-items: stretch; }
+    #mjx-me .me-left { max-height: none; min-height: 0; overflow: hidden; }
+    #mjx-me .me-left > .me-tree { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+    #mjx-me .me-right { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+    #mjx-me .me-left > :not(.me-tree), #mjx-me .me-right > * { flex-shrink: 0; }
+}
+.me-more { display: flex; justify-content: center; padding: 4px 0; }
+.me-varrest { display: contents; }

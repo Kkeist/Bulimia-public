@@ -1,0 +1,614 @@
+/* ============================================
+   页面布局：游戏页、设置页与调试页外壳
+   宽屏判断统一写作：(orientation: landscape) and (min-width: 640px)
+   与 js/ui/layout-mode.js 中的 WIDE_QUERY 保持同一句
+   ============================================ */
+
+/* ---------- 还没有开始游戏：中间只显示标题 ---------- */
+
+.game-empty { display: none; }
+#page-game.is-empty .game-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+}
+.game-empty-title {
+    font-size: var(--font-size-xxl);
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    color: var(--color-text);
+    text-align: center;
+}
+#page-game.is-empty #chat-messages,
+#page-game.is-empty .status-bar,
+#page-game.is-empty #reroll-group,
+#page-game.is-empty #advancer-group,
+#page-game.is-empty .chat-meta-toggle,
+#page-game.is-empty .chat-meta-block { display: none; }
+#page-game.is-empty #action-bar { justify-content: center; }
+#page-game.is-empty .action-group.is-file { margin-left: 0; }
+
+/* ---------- 游戏页 ---------- */
+
+/* 页头只有模组名；设置、调试在输入框上面一排 */
+.game-header { flex: 0 0 auto; }
+.header-title {
+    min-width: 0;
+    padding: calc(var(--spacing-sm) + var(--safe-top)) var(--spacing-md) var(--spacing-sm);
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    line-height: 1.3;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+.header-title:empty { display: none; }
+
+/* 状态栏：内容占满整行居中；收起 / 展开是一个悬浮的小方块，骑在下边线上，不占位置 */
+.status-bar {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: calc(var(--z-header) + 1);
+    padding: var(--spacing-xs) calc(var(--spacing-md) + var(--safe-right)) calc(var(--spacing-sm) + var(--status-tab) / 2) calc(var(--spacing-md) + var(--safe-left));
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--color-bg-secondary);
+    --status-tab: 20px;
+}
+
+.status-panel { min-width: 0; }
+
+.status-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 var(--spacing-lg);
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    line-height: 1.5;
+}
+
+.status-item { min-width: 0; overflow-wrap: anywhere; }
+.status-item-name { color: var(--color-text-muted); margin-right: var(--spacing-xs); }
+
+.status-toggle {
+    position: absolute;
+    right: calc(var(--spacing-md) + var(--safe-right));
+    top: calc(100% - var(--status-tab) / 2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--status-tab);
+    height: var(--status-tab);
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    color: var(--color-text-secondary);
+    background-color: var(--color-bg);
+    border: 1px solid var(--control-border);
+    border-radius: var(--border-radius-sm);
+}
+.status-toggle::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    bottom: -10px;
+    left: -10px;
+}
+.status-toggle:hover { background-color: var(--color-bg-tertiary); }
+.status-toggle .chev { width: 6px; height: 6px; border-width: 0 2px 2px 0; margin: 0 0 4px; }
+.status-toggle .chev.is-up { margin: 4px 0 0; }
+
+.status-bar.is-collapsed { padding: 0; }
+.status-bar.is-collapsed .status-panel { display: none; }
+
+.game-layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+#chat-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-bg);
+}
+
+/* 聊天显示区 */
+#chat-display {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: var(--spacing-md) calc(var(--spacing-md) + var(--safe-right)) var(--spacing-md) calc(var(--spacing-md) + var(--safe-left));
+    background-color: var(--color-bg);
+}
+
+#chat-messages {
+    max-width: var(--chat-max-width);
+    margin: 0 auto;
+    min-width: 0;
+}
+
+
+/* ---------- 侧栏：窄屏为抽屉 ---------- */
+
+.side-panel {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: var(--drawer-width);
+    z-index: var(--z-sidebar);
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-bg-secondary);
+    border: 0 solid var(--border-color);
+    visibility: hidden;
+    transition: transform var(--transition-normal), visibility 0s linear var(--transition-normal);
+}
+
+#panel-left {
+    left: 0;
+    border-right-width: 1px;
+    transform: translateX(-100%);
+    padding-left: var(--safe-left);
+}
+
+#panel-right {
+    right: 0;
+    border-left-width: 1px;
+    transform: translateX(100%);
+    padding-right: var(--safe-right);
+}
+
+.side-panel.is-open,
+#panel-left.is-open,
+#panel-right.is-open {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform var(--transition-normal), visibility 0s;
+}
+
+.drawer-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-backdrop);
+    background-color: var(--color-overlay);
+}
+.drawer-backdrop.is-open { display: block; }
+
+/* 窄屏抽屉的把手：贴在抽屉靠屏幕内侧的边上，抽屉关着时留在屏幕边缘，开着时随抽屉移动；不透明 */
+.drawer-tab {
+    position: absolute;
+    top: 40%;
+    visibility: visible;
+    width: 24px;
+    height: 48px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--border-color);
+}
+.drawer-tab::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border: solid currentColor;
+    border-width: 0 2px 2px 0;
+}
+.drawer-tab.is-right { right: calc(100% + 1px); border-right-width: 0; border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm); }
+.drawer-tab.is-left { left: calc(100% + 1px); border-left-width: 0; border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0; }
+.drawer-tab.is-right::before { transform: rotate(135deg); margin-left: 3px; }
+.drawer-tab.is-left::before { transform: rotate(-45deg); margin-right: 3px; }
+.drawer-tab.is-right[aria-expanded="true"]::before { transform: rotate(-45deg); margin: 0 3px 0 0; }
+.drawer-tab.is-left[aria-expanded="true"]::before { transform: rotate(135deg); margin: 0 0 0 3px; }
+.drawer-tab:hover { background-color: var(--color-bg-tertiary); }
+
+.panel-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: calc(var(--spacing-sm) + var(--safe-top)) var(--spacing-sm) calc(var(--spacing-sm) + var(--safe-bottom));
+}
+
+.panel-empty {
+    padding: var(--spacing-md);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    text-align: center;
+}
+
+/* 侧栏没有内容时，不显示对应把手 */
+#page-game[data-left="0"] [data-drawer-open="left"],
+#page-game[data-right="0"] [data-drawer-open="right"] { display: none; }
+
+/* ---------- 输入区 ---------- */
+
+#input-area {
+    flex: 0 0 auto;
+    position: relative;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--color-bg);
+    padding-bottom: calc(var(--input-bottom-gap) + var(--safe-bottom));
+}
+
+#action-bar,
+#text-input-wrapper,
+#pending-plugin-actions,
+#multi-select-bar {
+    max-width: var(--chat-max-width);
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+}
+
+#action-bar {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs) calc(var(--spacing-md) + var(--safe-left)) var(--spacing-xs) calc(var(--spacing-md) + var(--safe-left));
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+#action-bar::-webkit-scrollbar { display: none; }
+
+/* 推进剧情一组在左（强调色），重新生成 / 多选删除在中，新游戏 / 读取存档靠右（只有文字） */
+.action-group {
+    display: flex;
+    flex: 0 0 auto;
+    gap: var(--spacing-sm);
+    margin-right: var(--spacing-md);
+}
+.action-group:last-child { margin-right: 0; }
+.action-group.is-file { margin-left: auto; }
+
+.action-btn {
+    flex: 0 0 auto;
+    min-height: var(--tap-size);
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+}
+
+.action-btn:not(.btn-accent):not(.btn-ghost):hover { background-color: var(--color-bg-tertiary); }
+
+/* 操作栏：无边框、灰底、全圆角的药丸；和下面输入框上方那排描边小方框写法不同 */
+#action-bar .action-btn {
+    border: 0;
+    border-radius: 999px;
+    padding: 0 var(--spacing-md);
+    color: var(--color-text);
+    background-color: var(--color-bg-tertiary);
+}
+#action-bar .action-btn:hover { background-color: var(--color-accent-hover); }
+#action-bar .action-btn.btn-accent { background-color: var(--color-accent-hover); font-weight: 600; }
+#action-bar .action-btn.btn-accent:hover { background-color: var(--border-color); }
+#action-bar .action-btn.btn-ghost { background-color: transparent; color: var(--color-text-secondary); }
+#action-bar .action-btn.btn-ghost:hover { background-color: var(--color-bg-tertiary); color: var(--color-text); }
+
+/* 多选删除时，操作栏位置换成选择栏，高度不变 */
+#multi-select-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    min-height: calc(var(--tap-size) + var(--spacing-sm));
+    padding: var(--spacing-xs) calc(var(--spacing-md) + var(--safe-left));
+    background-color: var(--color-bg);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 2;
+}
+#input-area.is-multi-select #multi-select-bar { display: flex; }
+#input-area.is-multi-select #action-bar { visibility: hidden; }
+
+.multi-select-info { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+.multi-select-actions { display: flex; gap: var(--spacing-xs); }
+
+#text-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-xs) calc(var(--spacing-md) + var(--safe-left)) 0 calc(var(--spacing-md) + var(--safe-left));
+    min-width: 0;
+}
+
+.chat-input-main {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: flex-end;
+    min-width: 0;
+}
+
+#user-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: var(--tap-size);
+    max-height: 40vh;
+    border-radius: var(--border-radius);
+    padding: 10px var(--spacing-md);
+    line-height: 1.5;
+    overflow-y: auto;
+    font-size: 1em;
+}
+
+.chat-input-buttons {
+    display: grid;
+    flex: 0 0 auto;
+    min-width: 72px;
+}
+.chat-input-buttons > button {
+    grid-area: 1 / 1;
+    min-height: var(--tap-size);
+    padding: 0 var(--spacing-md);
+    font-weight: 500;
+}
+
+.btn-send {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-on-primary);
+}
+.btn-send:hover { background-color: var(--color-primary-light); }
+.btn-send:active { background-color: var(--color-primary-dark); }
+
+.btn-stop {
+    background-color: var(--color-danger-bg);
+    border-color: var(--color-danger-bg);
+    color: var(--color-on-fill);
+}
+.btn-stop:hover { background-color: var(--color-danger-bg); filter: brightness(1.1); }
+
+/* 输入框上面一排：场外指令、设置、调试；按钮之间留空，不挨在一起 */
+.input-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+}
+.input-tools .hdr-btn { min-height: 36px; padding: 0 var(--spacing-md); }
+.chat-meta-toggle { display: flex; align-items: center; gap: var(--spacing-xs); }
+.chat-meta-toggle:hover { background-color: var(--color-bg-secondary); }
+
+#text-input-wrapper.expanded-meta .chat-meta-toggle .chev { transform: rotate(-135deg); margin-bottom: -2px; }
+
+.chat-meta-block {
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-left: 3px solid var(--color-primary);
+    background-color: var(--color-bg-secondary);
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+.chat-meta-block.collapsed { display: none; }
+
+.chat-meta-block textarea {
+    width: 100%;
+    min-height: 32px;
+    max-height: 30vh;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font-size: 0.95em;
+    box-shadow: none;
+}
+
+/* 插件暂存的操作 */
+#pending-plugin-actions {
+    margin-top: var(--spacing-xs);
+    margin-bottom: 0;
+    padding: var(--spacing-xs) calc(var(--spacing-md) + var(--safe-left));
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0;
+    background-color: var(--color-bg-secondary);
+    font-size: var(--font-size-xs);
+}
+
+/* ---------- 宽屏：中间聊天，两侧各一条插件栏 ----------
+   两侧栏宽度永远相同（哪一侧没有插件也留出同样宽的空白），聊天始终在屏幕正中；
+   两侧栏各自上下滚动，互不带动 */
+
+@media (orientation: landscape) and (min-width: 640px) {
+    .header-title { padding-left: var(--spacing-md); padding-right: var(--spacing-md); font-size: var(--font-size-lg); }
+
+    .game-layout {
+        display: grid;
+        grid-template-columns: var(--side-col) minmax(0, 1fr) var(--side-col);
+        grid-template-rows: minmax(0, 1fr);
+        --side-col: clamp(180px, 22vw, 340px);
+    }
+
+    #panel-left { grid-column: 1; grid-row: 1; }
+    #chat-main { grid-column: 2; grid-row: 1; }
+    #panel-right { grid-column: 3; grid-row: 1; }
+
+    .side-panel {
+        position: static;
+        width: auto;
+        min-width: 0;
+        transform: none;
+        visibility: visible;
+        transition: none;
+        padding-left: 0;
+        padding-right: 0;
+        z-index: auto;
+        background-color: var(--color-bg-secondary);
+    }
+    #panel-left { border-right-width: 1px; padding-left: var(--safe-left); transform: none; }
+    #panel-right { border-left-width: 1px; padding-right: var(--safe-right); transform: none; }
+    .drawer-tab { display: none; }
+    .drawer-backdrop, .drawer-backdrop.is-open { display: none; }
+    .panel-scroll { padding-bottom: calc(var(--spacing-md) + var(--safe-bottom)); }
+}
+
+
+/* 横屏手机这类矮屏幕：页头、操作栏、输入区压低，留给聊天的高度才够 */
+@media (max-height: 480px) {
+    :root { --input-bottom-gap: calc(var(--spacing-sm) + var(--spacing-xs)); }
+    .hdr-btn,
+    .back-btn { min-height: 36px; }
+    .action-btn { min-height: 36px; padding-top: 0; padding-bottom: 0; }
+    #user-input { min-height: 36px; padding-top: 6px; padding-bottom: 6px; }
+    .chat-input-buttons > button { min-height: 36px; }
+    #multi-select-bar { min-height: calc(36px + var(--spacing-sm)); }
+    .settings-tab { min-height: 36px; }
+}
+
+/* ---------- 设置页、调试页共用外壳：导航 + 内容 ----------
+   窄屏：导航是一排横向滑动的标签；宽屏：导航竖在左侧，导航和内容作为一组在屏幕居中 */
+
+#page-settings,
+#page-debug { background-color: var(--color-bg-secondary); }
+
+/* 页头：返回在左，标题居中 */
+#page-settings .page-header,
+#page-debug .page-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+}
+#page-settings .page-header > .back-btn,
+#page-debug .page-header > .back-btn { justify-self: start; }
+#page-settings .page-header > h2,
+#page-debug .page-header > h2 { text-align: center; padding: 0 var(--spacing-sm); }
+
+.nav-shell {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.nav-shell-nav {
+    flex: 0 0 auto;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) calc(var(--spacing-sm) + var(--safe-right)) var(--spacing-xs) calc(var(--spacing-sm) + var(--safe-left));
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--color-bg-secondary);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+.nav-shell-nav::-webkit-scrollbar { display: none; }
+
+.nav-shell-tab {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    min-height: var(--tap-size);
+    padding: 0 var(--spacing-md);
+    font-size: var(--font-size-sm);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius-sm);
+    white-space: nowrap;
+    color: var(--color-text-secondary);
+}
+.nav-shell-tab:hover { background-color: var(--color-bg-tertiary); color: var(--color-text); }
+.nav-shell-tab.active {
+    background-color: var(--color-bg);
+    border-color: var(--border-color);
+    color: var(--color-text);
+}
+
+/* 内容区：所有页叠在同一格，只显示当前页；每页自己滚动，滚动位置各自保留 */
+.nav-shell-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+}
+
+/* ---------- 设置页 ---------- */
+
+.settings-panel {
+    grid-area: 1 / 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    visibility: hidden;
+    pointer-events: none;
+    padding: var(--spacing-md) calc(var(--spacing-md) + var(--safe-right)) calc(var(--spacing-lg) + var(--safe-bottom)) calc(var(--spacing-md) + var(--safe-left));
+}
+.settings-panel.active {
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* 一页里的卡片：窄屏一列；宽屏按瀑布流排两列，每张卡片紧接着上一张，不按行对齐 */
+.settings-flow {
+    max-width: 440px;
+    margin: 0 auto;
+}
+/* 卡片保持手机上的宽度：只排得下一列时也不跟着拉宽 */
+.settings-flow > .setting-card {
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+@media (orientation: landscape) and (min-width: 640px) {
+    .nav-shell {
+        flex-direction: row;
+        max-width: 1240px;
+    }
+    .nav-shell-nav {
+        flex: 0 0 188px;
+        flex-direction: column;
+        gap: 2px;
+        padding: var(--spacing-md) var(--spacing-sm) var(--spacing-md) calc(var(--spacing-sm) + var(--safe-left));
+        border-bottom: 0;
+        border-right: 1px solid var(--border-color);
+        background-color: transparent;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+    }
+    .nav-shell-tab { width: 100%; text-align: left; }
+    .nav-shell-body { flex: 1 1 auto; }
+
+    .settings-panel { padding: var(--spacing-lg) calc(var(--spacing-lg) + var(--safe-right)) calc(var(--spacing-lg) + var(--safe-bottom)) var(--spacing-lg); }
+    .settings-flow {
+        max-width: 912px;
+        column-width: 340px;
+        column-count: 2;
+        column-gap: var(--spacing-md);
+    }
+    .settings-flow > h3,
+    .settings-flow > .setting-hint {
+        column-span: all;
+        -webkit-column-span: all;
+    }
+}

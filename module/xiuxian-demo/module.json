@@ -1,0 +1,1556 @@
+{
+  "id": "xiuxian-demo",
+  "name": "修仙模组-功能展示",
+  "version": "1.0.0",
+  "author": "内置教程",
+  "description": "逐个演示模组的每个功能，每个事件的备注只写一句作用。",
+  "note": "教程模组：每个事件、变量、插件都只演示一个功能，备注是这个功能的作用。",
+  "timeSystem": {
+    "parameters": [
+      {
+        "id": "prefix",
+        "type": "base",
+        "systemBinding": "prefix"
+      },
+      {
+        "id": "year",
+        "type": "base",
+        "systemBinding": "year"
+      },
+      {
+        "id": "month",
+        "type": "base",
+        "systemBinding": "month"
+      },
+      {
+        "id": "day",
+        "type": "base",
+        "systemBinding": "day"
+      },
+      {
+        "id": "hour",
+        "type": "base",
+        "systemBinding": "hour"
+      },
+      {
+        "id": "minute",
+        "type": "base",
+        "systemBinding": "minute"
+      },
+      {
+        "id": "shichen",
+        "type": "computed",
+        "formula": "hour/2",
+        "labels": [
+          "子",
+          "丑",
+          "寅",
+          "卯",
+          "辰",
+          "巳",
+          "午",
+          "未",
+          "申",
+          "酉",
+          "戌",
+          "亥"
+        ],
+        "calculationOnly": true
+      }
+    ],
+    "initialValues": {
+      "prefix": "仙历",
+      "year": 1,
+      "month": 1,
+      "day": 1,
+      "hour": 8,
+      "minute": 0,
+      "shichen": 4
+    },
+    "displayFormat": "{{prefix}}{{year}}年{{month}}月{{day}}日 {{shichen}}时"
+  },
+  "timeUnits": {
+    "minutesPerHour": 60,
+    "hoursPerDay": 24,
+    "daysPerMonth": 30,
+    "monthsPerYear": 12
+  },
+  "info": [
+    {
+      "content": "功能展示：每个事件只演示一个功能，用一两句话向玩家说明它的作用，不写剧情。",
+      "condition": null,
+      "persistent": true
+    }
+  ],
+  "variables": [
+    {
+      "id": "qi",
+      "name": "灵气",
+      "type": "number",
+      "category": "module",
+      "initialValue": 0,
+      "min": 0,
+      "max": 100,
+      "changeRules": [
+        {
+          "name": "打坐",
+          "operation": "add",
+          "value": 10
+        },
+        {
+          "name": "受伤",
+          "operation": "subtract",
+          "value": 5
+        }
+      ],
+      "generalRules": "数字变量：0 到 100，<var|灵气|add|10> 加减，<rule|灵气|打坐> 加 10。"
+    },
+    {
+      "id": "sect",
+      "name": "宗门",
+      "type": "string",
+      "category": "module",
+      "initialValue": "",
+      "maxLength": 8,
+      "generalRules": "文字变量：<var|宗门|set|东山宗> 设置，最长 8 个字。"
+    },
+    {
+      "id": "is_disciple",
+      "name": "入门",
+      "type": "boolean",
+      "category": "module",
+      "initialValue": false,
+      "generalRules": "布尔变量：只有是和否，<var|入门|set|true> 修改。"
+    },
+    {
+      "id": "bag",
+      "name": "背包",
+      "type": "list",
+      "category": "module",
+      "initialValue": [],
+      "elementType": "string",
+      "generalRules": "列表变量：append 加入一项，remove 移除一项。"
+    },
+    {
+      "id": "profile",
+      "name": "档案",
+      "type": "object",
+      "category": "module",
+      "initialValue": {
+        "称号": "无"
+      },
+      "fields": [
+        {
+          "name": "称号",
+          "type": "string",
+          "default": "无"
+        }
+      ],
+      "generalRules": "对象变量：modify_item 修改其中一个字段。"
+    },
+    {
+      "id": "friends",
+      "name": "好友",
+      "type": "list_of_object",
+      "category": "module",
+      "initialValue": [],
+      "fields": [
+        {
+          "name": "姓名",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "情谊",
+          "type": "number",
+          "default": 0
+        }
+      ],
+      "generalRules": "对象列表变量：add_item 添加一项，modify_item 修改一项。"
+    },
+    {
+      "id": "realm",
+      "name": "境界",
+      "type": "string",
+      "category": "builtin",
+      "initialValue": "凡人",
+      "computeConditions": [
+        {
+          "conditionDef": {
+            "logic": "AND",
+            "groups": [
+              {
+                "logic": "AND",
+                "items": [
+                  {
+                    "itemType": "condition",
+                    "condition": {
+                      "type": "variable",
+                      "variableId": "qi",
+                      "operator": ">=",
+                      "value": 50
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "formula": "'筑基'"
+        },
+        {
+          "conditionDef": {
+            "logic": "AND",
+            "groups": [
+              {
+                "logic": "AND",
+                "items": [
+                  {
+                    "itemType": "condition",
+                    "condition": {
+                      "type": "variable",
+                      "variableId": "qi",
+                      "operator": ">=",
+                      "value": 20
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "formula": "'炼气'"
+        }
+      ],
+      "generalRules": "内置变量：由灵气自动算出，AI 不能改。"
+    },
+    {
+      "id": "comprehension",
+      "name": "悟性",
+      "type": "number",
+      "category": "switch",
+      "initialValue": 5,
+      "switchConditions": [
+        {
+          "type": "display",
+          "action": "open",
+          "condition": {
+            "logic": "OR",
+            "groups": [
+              {
+                "logic": "OR",
+                "items": [
+                  {
+                    "itemType": "condition",
+                    "condition": {
+                      "type": "tag",
+                      "matchType": "any",
+                      "tags": [
+                        "switch_demo"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "generalRules": "开关变量：只在事件带开关演示标签时发给 AI。"
+    },
+    {
+      "id": "root_type",
+      "name": "灵根",
+      "type": "string",
+      "category": "module",
+      "initialValue": "未测",
+      "readonly": true,
+      "generalRules": "只读变量：AI 看得见，不能修改。"
+    },
+    {
+      "id": "scratch",
+      "name": "暂存",
+      "type": "string",
+      "category": "temp",
+      "initialValue": "",
+      "generalRules": "暂存变量：不发给 AI，留给插件使用。"
+    }
+  ],
+  "plugins": [
+    {
+      "id": "status_panel",
+      "name": "变量面板",
+      "type": "display",
+      "note": "显示器插件：只读显示灵气和境界。",
+      "inlineHtml": "<meta name=\"color-scheme\" content=\"only light\">\n<div class=\"panel\">\n    <div class=\"row\"><span class=\"k\">灵气</span><b class=\"v\" data-bind=\"qi\"></b></div>\n    <div class=\"bar\"><div class=\"fill\" data-bind=\"qi\" data-bind-as=\"width\" data-bind-max=\"100\"></div></div>\n    <div class=\"row\"><span class=\"k\">境界</span><b class=\"v\" data-bind=\"realm\"></b></div>\n</div>",
+      "inlineStyle": ":root { color-scheme: only light; }\n* { box-sizing: border-box; }\nhtml, body { margin: 0; padding: 0; background: #ffffff; color: #111111; }\nbody { font-family: -apple-system, \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans SC\", sans-serif; font-size: 14px; line-height: 1.5; }\n.panel { padding: 12px; background: #ffffff; }\n.row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }\n.k { color: #666666; font-size: 12px; }\n.v { font-weight: 600; overflow-wrap: anywhere; text-align: right; }\n.bar { height: 6px; margin: 4px 0 10px; background: #ececec; border: 1px solid #cfcfcf; }\n.fill { height: 100%; width: 0; background: #111111; }",
+      "config": {
+        "requiredVariables": [
+          "qi",
+          "realm"
+        ]
+      }
+    }
+  ],
+  "flows": {
+    "main": {
+      "entryEvent": null,
+      "subModules": [
+        {
+          "id": "g_structure",
+          "name": "事件结构",
+          "type": "trigger_chain",
+          "note": "父事件：把相关的子事件装在一起。",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "linkedList": {
+            "prev": null,
+            "next": "g_time"
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "chain_1",
+                  "name": "触发器链",
+                  "type": "trigger_chain",
+                  "note": "触发器链：事件按顺序走，上一个完成才能进下一个。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "触发器链：事件按顺序走，上一个完成才能进下一个。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": null,
+                    "next": "chain_2"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "chain_2",
+                  "name": "链上的下一步",
+                  "type": "trigger_chain",
+                  "note": "链上的下一个事件，上一个完成后才能进入。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "链上的下一个事件，上一个完成后才能进入。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": "chain_1",
+                    "next": "time_system"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "free_demo",
+                  "name": "自由触发",
+                  "type": "free_trigger",
+                  "note": "自由触发：没有顺序，条件满足随时可进入。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "自由触发：没有顺序，条件满足随时可进入。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "sect_entry",
+                  "name": "分流程入口",
+                  "type": "free_trigger",
+                  "note": "分流程入口：完成它之后，分流程里的事件才能进入。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "分流程入口：完成它之后，分流程里的事件才能进入。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "g_time",
+          "name": "时间",
+          "type": "trigger_chain",
+          "note": "时间：模组自己定义年月日时分怎么走、怎么显示。",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "linkedList": {
+            "prev": "g_structure",
+            "next": "g_cond"
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "time_system",
+                  "name": "时间系统",
+                  "type": "trigger_chain",
+                  "note": "时间系统：设定年月日时分和显示格式，AI 用 <time|hour|add|2> 推进。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "时间系统：设定年月日时分和显示格式，AI 用 <time|hour|add|2> 推进。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": null,
+                    "next": "cond_complete"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "time_computed",
+                  "name": "计算参数",
+                  "type": "free_trigger",
+                  "note": "计算参数：时辰由小时自动算出，不能直接修改。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "计算参数：时辰由小时自动算出，不能直接修改。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "time_units",
+                  "name": "时间进位",
+                  "type": "free_trigger",
+                  "note": "时间进位：设定每月几天、每年几个月，这里每月 30 天。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "时间进位：设定每月几天、每年几个月，这里每月 30 天。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "time_line",
+                  "name": "时间线",
+                  "type": "timeline",
+                  "note": "时间线：到了指定时间才能进入，必须带时间条件。",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "time",
+                                  "timeType": "absolute",
+                                  "time": {
+                                    "year": 1,
+                                    "month": 1,
+                                    "day": 1,
+                                    "hour": 12,
+                                    "minute": 0
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "时间线：到了指定时间才能进入，必须带时间条件。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "g_cond",
+          "name": "条件",
+          "type": "trigger_chain",
+          "note": "条件：控制事件什么时候能进入、什么时候能完成。",
+          "tags": [
+            "cond_group"
+          ],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "linkedList": {
+            "prev": "g_time",
+            "next": "g_var"
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "cond_complete",
+                  "name": "完成条件",
+                  "type": "trigger_chain",
+                  "note": "完成条件：满足了事件才能完成，这里要求入门为是。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "variable",
+                                  "variableId": "is_disciple",
+                                  "operator": "==",
+                                  "value": true
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "info": [
+                    {
+                      "content": "完成条件：满足了事件才能完成，这里要求入门为是。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": null,
+                    "next": "cond_module"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_module",
+                  "name": "事件状态条件",
+                  "type": "trigger_chain",
+                  "note": "事件状态条件：看另一个事件是否已进入或已完成。",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "module",
+                                  "moduleId": "chain_1",
+                                  "state": "completed"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "事件状态条件：看另一个事件是否已进入或已完成。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": "cond_complete",
+                    "next": "var_on_enter"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_enter",
+                  "name": "进入条件",
+                  "type": "free_trigger",
+                  "note": "进入条件：满足了才能进入，这里要求灵气不少于 10。",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "variable",
+                                  "variableId": "qi",
+                                  "operator": ">=",
+                                  "value": 10
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "进入条件：满足了才能进入，这里要求灵气不少于 10。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_compare",
+                  "name": "变量比较条件",
+                  "type": "free_trigger",
+                  "note": "变量比较条件：拿两个变量互相比，这里是灵气不少于悟性。",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "variable_compare",
+                                  "variableId": "qi",
+                                  "operator": ">=",
+                                  "compareVariableId": "comprehension"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "变量比较条件：拿两个变量互相比，这里是灵气不少于悟性。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_time",
+                  "name": "时间条件",
+                  "type": "free_trigger",
+                  "note": "时间条件：到了指定日期才满足。",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "time",
+                                  "timeType": "absolute",
+                                  "time": {
+                                    "year": 1,
+                                    "month": 1,
+                                    "day": 2
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "时间条件：到了指定日期才满足。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_relative",
+                  "name": "相对时间条件",
+                  "type": "free_trigger",
+                  "note": "相对时间条件：另一个事件完成后过一段时间才满足。",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "time",
+                                  "mode": "relative",
+                                  "timeType": "relative",
+                                  "relative": {
+                                    "moduleId": "chain_1",
+                                    "state": "completed",
+                                    "offset": {
+                                      "hour": 2
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "相对时间条件：另一个事件完成后过一段时间才满足。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_tag",
+                  "name": "标签条件",
+                  "type": "free_trigger",
+                  "note": "标签条件：看进行中的事件带不带指定标签。",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "tag",
+                                  "matchType": "any",
+                                  "tags": [
+                                    "cond_group"
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "标签条件：看进行中的事件带不带指定标签。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "cond_nested",
+                  "name": "条件组合",
+                  "type": "free_trigger",
+                  "note": "条件组合：用且、或把多个条件嵌套起来。",
+                  "tags": [],
+                  "entryConditions": [
+                    {
+                      "type": "precondition",
+                      "conditionDef": {
+                        "logic": "AND",
+                        "groups": [
+                          {
+                            "logic": "OR",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "variable",
+                                  "variableId": "qi",
+                                  "operator": ">=",
+                                  "value": 10
+                                }
+                              },
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "variable",
+                                  "variableId": "is_disciple",
+                                  "operator": "==",
+                                  "value": true
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "logic": "AND",
+                            "items": [
+                              {
+                                "itemType": "condition",
+                                "condition": {
+                                  "type": "module",
+                                  "moduleId": "chain_1",
+                                  "state": "completed"
+                                }
+                              },
+                              {
+                                "itemType": "group",
+                                "group": {
+                                  "logic": "OR",
+                                  "items": [
+                                    {
+                                      "itemType": "condition",
+                                      "condition": {
+                                        "type": "variable",
+                                        "variableId": "qi",
+                                        "operator": ">=",
+                                        "value": 5
+                                      }
+                                    },
+                                    {
+                                      "itemType": "condition",
+                                      "condition": {
+                                        "type": "tag",
+                                        "matchType": "any",
+                                        "tags": [
+                                          "cond_group"
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "条件组合：用且、或把多个条件嵌套起来。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "g_var",
+          "name": "变量",
+          "type": "trigger_chain",
+          "note": "变量：事件可以定义变量，也可以在进入时设置变量。",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "linkedList": {
+            "prev": "g_cond",
+            "next": "g_info"
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "var_on_enter",
+                  "name": "进入时设置变量",
+                  "type": "trigger_chain",
+                  "note": "进入时设置变量：从调试页跳转进入时，自动把宗门设为东山宗。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "进入时设置变量：从调试页跳转进入时，自动把宗门设为东山宗。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "variableSetOnEnter": {
+                    "sect": "东山宗"
+                  },
+                  "linkedList": {
+                    "prev": null,
+                    "next": "var_scope"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "var_scope",
+                  "name": "作用域变量",
+                  "type": "trigger_chain",
+                  "note": "作用域变量：事件里定义的变量，只在它和子事件里可见。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "作用域变量：事件里定义的变量，只在它和子事件里可见。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [
+                    {
+                      "id": "aura",
+                      "name": "灵光",
+                      "type": "number",
+                      "category": "module",
+                      "initialValue": 1,
+                      "generalRules": "作用域演示：只在作用域变量事件里可见。"
+                    }
+                  ],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": "var_on_enter",
+                    "next": "info_basic"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "var_switch",
+                  "name": "开关变量",
+                  "type": "free_trigger",
+                  "note": "开关变量：悟性只在进行带开关演示标签的事件时发给 AI。",
+                  "tags": [
+                    "switch_demo"
+                  ],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "开关变量：悟性只在进行带开关演示标签的事件时发给 AI。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "g_info",
+          "name": "持续背景",
+          "type": "trigger_chain",
+          "note": "持续背景：标为持续的背景，进入子事件后仍会发给 AI。",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [
+            {
+              "content": "持续背景：这一条在子事件进行时也会发出。",
+              "condition": null,
+              "persistent": true
+            },
+            {
+              "content": "本事件背景：这一条只在本事件自己进行时发出。",
+              "condition": null,
+              "persistent": false
+            }
+          ],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "linkedList": {
+            "prev": "g_var",
+            "next": "g_summary"
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "info_basic",
+                  "name": "背景",
+                  "type": "trigger_chain",
+                  "note": "背景：事件进行时发给 AI 的文字，可以带条件。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "背景：这一条在本事件进行时一直发出。",
+                      "condition": null
+                    },
+                    {
+                      "content": "条件背景：灵气不少于 10 时才发出这一条。",
+                      "condition": {
+                        "type": "display",
+                        "conditionDef": {
+                          "logic": "AND",
+                          "groups": [
+                            {
+                              "logic": "AND",
+                              "items": [
+                                {
+                                  "itemType": "condition",
+                                  "condition": {
+                                    "type": "variable",
+                                    "variableId": "qi",
+                                    "operator": ">=",
+                                    "value": 10
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": null,
+                    "next": "delivery_demo"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "delivery_demo",
+                  "name": "投递",
+                  "type": "trigger_chain",
+                  "note": "投递：必须让 AI 确认的信息，确认前事件不能完成。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "投递：必须让 AI 确认的信息，确认前事件不能完成。"
+                    }
+                  ],
+                  "deliveryInfo": [
+                    {
+                      "title": "确认投递",
+                      "content": "投递：本条必须由 AI 用 <delivery|确认投递|done> 确认。",
+                      "condition": null
+                    },
+                    {
+                      "title": "条件投递",
+                      "content": "条件投递：灵气不少于 10 时才要求确认。",
+                      "condition": {
+                        "type": "display",
+                        "conditionDef": {
+                          "logic": "AND",
+                          "groups": [
+                            {
+                              "logic": "AND",
+                              "items": [
+                                {
+                                  "itemType": "condition",
+                                  "condition": {
+                                    "type": "variable",
+                                    "variableId": "qi",
+                                    "operator": ">=",
+                                    "value": 10
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": "info_basic",
+                    "next": "queue_demo"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "queue_demo",
+                  "name": "队列显示",
+                  "type": "trigger_chain",
+                  "note": "队列显示：控制提示词里列出之后几个事件的名字。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "队列显示：控制提示词里列出之后几个事件的名字。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "queueDisplay": {
+                    "before": 1,
+                    "after": 2
+                  },
+                  "linkedList": {
+                    "prev": "delivery_demo",
+                    "next": "summary_leaf"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                },
+                {
+                  "id": "info_calendar",
+                  "name": "日历背景",
+                  "type": "free_trigger",
+                  "note": "日历背景：背景可以只在某段日期或每天某些钟点发出。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "日期背景：只在 1 年 1 月 1 日到 10 日发出。",
+                      "condition": {
+                        "type": "display",
+                        "conditionDef": {
+                          "logic": "AND",
+                          "groups": [
+                            {
+                              "logic": "AND",
+                              "items": [
+                                {
+                                  "itemType": "condition",
+                                  "condition": {
+                                    "type": "time_range",
+                                    "timeType": "absolute",
+                                    "start": {
+                                      "year": 1,
+                                      "month": 1,
+                                      "day": 1
+                                    },
+                                    "end": {
+                                      "year": 1,
+                                      "month": 1,
+                                      "day": 10,
+                                      "hour": 23,
+                                      "minute": 59
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "content": "钟点背景：每天 6 点到 18 点之间发出。",
+                      "condition": {
+                        "type": "display",
+                        "conditionDef": {
+                          "logic": "AND",
+                          "groups": [
+                            {
+                              "logic": "AND",
+                              "items": [
+                                {
+                                  "itemType": "condition",
+                                  "condition": {
+                                    "type": "time_range",
+                                    "timeType": "absolute",
+                                    "start": {
+                                      "hour": 6
+                                    },
+                                    "end": {
+                                      "hour": 17
+                                    },
+                                    "repeat": {
+                                      "enabled": true,
+                                      "interval": {
+                                        "day": 1
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "g_summary",
+          "name": "事件总结",
+          "type": "trigger_chain",
+          "note": "事件总结：子事件完成时，请 AI 为这个父事件写总结。",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "summary": {
+            "enabled": true,
+            "autoSummarize": true,
+            "promptList": [
+              {
+                "condition": [],
+                "content": "用一句话概括这一组事件。"
+              }
+            ]
+          },
+          "linkedList": {
+            "prev": "g_info",
+            "next": "g_plugin"
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "summary_leaf",
+                  "name": "被总结的事件",
+                  "type": "trigger_chain",
+                  "note": "完成它会触发上一级事件的总结。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "完成它会触发上一级事件的总结。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": null,
+                    "next": "plugin_demo"
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "g_plugin",
+          "name": "插件",
+          "type": "trigger_chain",
+          "note": "插件：挂在模组或事件上，在侧栏显示的小面板。",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "linkedList": {
+            "prev": "g_summary",
+            "next": null
+          },
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": [
+                {
+                  "id": "plugin_demo",
+                  "name": "显示器插件",
+                  "type": "trigger_chain",
+                  "note": "显示器插件：只读地显示变量，这里显示灵气和境界。",
+                  "tags": [],
+                  "entryConditions": null,
+                  "completionConditions": null,
+                  "info": [
+                    {
+                      "content": "显示器插件：只读地显示变量，这里显示灵气和境界。"
+                    }
+                  ],
+                  "deliveryInfo": [],
+                  "variables": [],
+                  "plugins": [],
+                  "linkedList": {
+                    "prev": null,
+                    "next": null
+                  },
+                  "flows": {
+                    "main": {
+                      "entryEvent": null,
+                      "subModules": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "sect": {
+      "name": "宗门日常",
+      "entryEvent": "sect_entry",
+      "subModules": [
+        {
+          "id": "sect_event",
+          "name": "分流程里的事件",
+          "type": "free_trigger",
+          "note": "分流程：和主线并行的另一条线，这里是其中一个事件。",
+          "tags": [],
+          "entryConditions": null,
+          "completionConditions": null,
+          "info": [
+            {
+              "content": "分流程：和主线并行的另一条线，这里是其中一个事件。"
+            }
+          ],
+          "deliveryInfo": [],
+          "variables": [],
+          "plugins": [],
+          "flows": {
+            "main": {
+              "entryEvent": null,
+              "subModules": []
+            }
+          }
+        }
+      ]
+    }
+  }
+}

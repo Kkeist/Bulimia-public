@@ -1,0 +1,18 @@
+{
+  "name": "bulimia",
+  "version": "3.0.0",
+  "description": "AI 长流程控制",
+  "main": "server/server.js",
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "start": "cd server && npm start",
+    "dev": "cd server && npm run dev",
+    "serve": "cd server && node server.js",
+    "install-deps": "cd server && npm install"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

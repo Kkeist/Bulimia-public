@@ -1,0 +1,20 @@
+/* 令牌计数（调试页提示词查看器中使用） */
+.token-stats {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: var(--color-bg-secondary);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin-right: 8px;
+}
+
+.token-label { font-weight: 500; }
+
+#token-count,
+#token-total {
+    font-weight: 600;
+    color: var(--color-primary);
+}

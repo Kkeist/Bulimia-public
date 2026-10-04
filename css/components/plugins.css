@@ -1,0 +1,614 @@
+/* ============================================
+   插件区块 - 可折叠的外框
+   ============================================ */
+
+.plugin-widget {
+    background: var(--color-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-md);
+    overflow: hidden;
+    transition: border-color var(--transition-fast);
+}
+
+.plugin-widget:hover {
+    border-color: var(--color-primary-light);
+}
+
+.plugin-widget-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    user-select: none;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+.plugin-widget-header:hover {
+    background: var(--color-bg-secondary);
+}
+
+.plugin-widget-title {
+    flex: 1;
+}
+
+.plugin-widget-toggle {
+    background: none;
+    border: 1px solid var(--border-color);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: var(--border-radius-sm);
+}
+
+.plugin-widget-toggle:hover {
+    color: var(--color-text);
+}
+
+.plugin-widget-content {
+    padding: var(--spacing-sm);
+    overflow: auto;
+    max-height: 520px;
+}
+
+.plugin-widget.collapsed .plugin-widget-content {
+    display: none;
+}
+
+/* ============================================
+   手机插件 - 设备外观
+   ============================================ */
+
+.plugin-widget-content .phone-frame {
+    display: block;
+    max-width: 280px;
+    margin: 0 auto;
+    border: 8px solid #1a1a1a;
+    border-radius: 24px;
+    background: var(--color-bg-secondary);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15), inset 0 0 0 2px #333;
+    overflow: hidden;
+}
+
+.plugin-widget-content .phone-frame.feature {
+    border-radius: 20px;
+}
+
+.plugin-widget-content .phone-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    font-size: 11px;
+    background: #1a1a1a;
+    color: #eee;
+}
+
+.plugin-widget-content .phone-type-label {
+    font-size: 10px;
+    color: #aaa;
+}
+
+.plugin-widget-content .phone-no-signal-hint {
+    padding: 4px 8px;
+    font-size: 11px;
+    background: #2a2a2a;
+    color: #aaa;
+}
+
+.plugin-widget-content .phone-screen-content {
+    padding: 12px;
+    min-height: 200px;
+    background: var(--color-bg);
+}
+
+.plugin-widget-content .phone-home {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.plugin-widget-content .phone-time-display {
+    text-align: center;
+}
+
+.plugin-widget-content .phone-time-display .time {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.plugin-widget-content .phone-time-display .date {
+    font-size: 12px;
+    color: var(--color-text-muted);
+}
+
+.plugin-widget-content .phone-time-display.large .time {
+    font-size: 28px;
+}
+
+.plugin-widget-content .phone-time-display.large .date {
+    font-size: 14px;
+}
+
+.plugin-widget-content .phone-notification {
+    padding: 8px 12px;
+    background: var(--color-primary);
+    color: white;
+    border-radius: var(--border-radius-sm);
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.plugin-widget-content .phone-notification-badge {
+    display: inline-block;
+    margin-right: 4px;
+    padding: 1px 6px;
+    background: white;
+    color: var(--color-primary);
+    border-radius: 10px;
+    font-size: 11px;
+}
+
+.plugin-widget-content .phone-apps-grid {
+    display: grid;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.plugin-widget-content .phone-apps-grid.feature {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.plugin-widget-content .phone-apps-grid.smart {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.plugin-widget-content .phone-app-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    background: var(--color-bg-secondary);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    position: relative;
+}
+
+.plugin-widget-content .phone-app-icon:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.plugin-widget-content .phone-app-icon .icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+.plugin-widget-content .phone-app-icon.large .icon {
+    font-size: 32px;
+    margin-bottom: 6px;
+}
+
+.plugin-widget-content .phone-app-icon .label {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+}
+
+.plugin-widget-content .phone-app-icon.large .label {
+    font-size: 13px;
+}
+
+.plugin-widget-content .phone-app-icon .badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    min-width: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 16px;
+    text-align: center;
+    background: var(--color-danger);
+    color: white;
+    border-radius: 8px;
+}
+
+.plugin-widget-content .phone-pending-indicator {
+    padding: 6px 12px;
+    font-size: 11px;
+    background: var(--color-warning-light);
+    border-top: 1px solid var(--color-warning);
+    color: var(--color-text-secondary);
+}
+
+/* 手机内页：导航、列表、聊天 */
+.plugin-widget-content .phone-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--color-bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.plugin-widget-content .phone-back-btn {
+    padding: 4px 8px;
+    font-size: 14px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+}
+
+.plugin-widget-content .phone-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.plugin-widget-content .sms-list,
+.plugin-widget-content .contact-list {
+    padding: 0;
+}
+
+.plugin-widget-content .sms-item,
+.plugin-widget-content .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.plugin-widget-content .sms-item:hover,
+.plugin-widget-content .contact-item:hover {
+    background: var(--color-bg-secondary);
+}
+
+.plugin-widget-content .sms-avatar,
+.plugin-widget-content .contact-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.plugin-widget-content .sms-content,
+.plugin-widget-content .contact-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.plugin-widget-content .sms-name,
+.plugin-widget-content .contact-name {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.plugin-widget-content .sms-preview,
+.plugin-widget-content .contact-relation {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.plugin-widget-content .sms-time {
+    font-size: 10px;
+    color: var(--color-text-muted);
+}
+
+.plugin-widget-content .phone-chat-messages {
+    padding: 12px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.plugin-widget-content .phone-chat-message {
+    max-width: 85%;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    font-size: 13px;
+}
+
+.plugin-widget-content .phone-chat-message.sent {
+    margin-left: auto;
+    background: var(--color-primary);
+    color: white;
+}
+
+.plugin-widget-content .phone-chat-message.received {
+    background: var(--color-bg-secondary);
+}
+
+.plugin-widget-content .phone-chat-input {
+    padding: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.plugin-widget-content .phone-chat-input input {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    margin-bottom: 6px;
+}
+
+.plugin-widget-content .phone-readonly-hint {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    text-align: center;
+    padding: 8px;
+}
+
+.plugin-widget-content .phone-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 8px 0;
+}
+
+.plugin-widget-content .phone-tab {
+    flex: 1;
+    padding: 6px;
+    font-size: 12px;
+    background: var(--color-bg-secondary);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+}
+
+.plugin-widget-content .phone-tab.active {
+    background: var(--color-primary);
+    color: white;
+}
+
+.plugin-widget-content .call-btn {
+    padding: 6px 10px;
+    font-size: 14px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+}
+
+.plugin-widget-content .empty-message {
+    padding: 16px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--color-text-muted);
+}
+
+.plugin-widget-content .call-history-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 12px;
+}
+
+.plugin-widget-content .call-icon {
+    font-size: 14px;
+}
+
+.plugin-widget-content .call-info {
+    flex: 1;
+}
+
+.plugin-widget-content .call-time {
+    font-size: 10px;
+    color: var(--color-text-muted);
+}
+
+/* ============================================
+   状态栏插件 / 通用插件行
+   ============================================ */
+
+.plugin-item {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    padding: var(--spacing-xs) 0;
+}
+
+.plugin-status-lines {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    align-items: center;
+}
+
+.plugin-status-line {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    padding: 2px 0;
+    white-space: nowrap;
+}
+
+/* 状态栏插件外观（右侧栏）：与 .plugin-status-display 共用 */
+.plugin-widget.plugin-status,
+.plugin-widget.plugin-status-display {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.plugin-widget.plugin-status .plugin-widget-header,
+.plugin-widget.plugin-status-display .plugin-widget-header {
+    background: linear-gradient(to bottom, var(--color-bg-tertiary), var(--color-bg-secondary));
+    font-weight: 600;
+}
+
+.plugin-widget.plugin-status .plugin-widget-content,
+.plugin-widget.plugin-status-display .plugin-widget-content {
+    padding: var(--spacing-md);
+    background: var(--color-bg);
+}
+
+.plugin-widget.plugin-status .plugin-status-lines,
+.plugin-widget.plugin-status-display .plugin-status-lines {
+    gap: 6px;
+}
+
+.plugin-widget.plugin-status .plugin-status-line,
+.plugin-widget.plugin-status-display .plugin-status-line {
+    padding: 6px 10px;
+    background: var(--color-bg-secondary);
+    border-radius: 6px;
+    border-left: 3px solid var(--color-primary);
+}
+
+/* ============================================
+   listFromVar 交互器（道侣/联系人列表 + 聊天）
+   ============================================ */
+
+.plugin-interactor-list-from-var {
+    min-width: 200px;
+    max-width: 320px;
+}
+
+.plugin-interactor-header {
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-sm);
+}
+
+.plugin-interactor-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.plugin-interactor-item {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-secondary);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.plugin-interactor-item:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.plugin-interactor-title {
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+}
+
+.plugin-interactor-subtitle {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.plugin-interactor-chat-area.hidden,
+.plugin-interactor-list.hidden {
+    display: none !important;
+}
+
+.plugin-interactor-chat-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-sm);
+}
+
+.plugin-interactor-back {
+    padding: 4px 8px;
+    font-size: 13px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+}
+
+.plugin-interactor-chat-title {
+    flex: 1;
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+}
+
+.plugin-interactor-chat-messages {
+    max-height: 240px;
+    overflow-y: auto;
+    padding: var(--spacing-sm) 0;
+    margin-bottom: var(--spacing-sm);
+}
+
+.plugin-interactor-msg {
+    max-width: 85%;
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+.plugin-interactor-msg.sent {
+    margin-left: auto;
+    background: var(--color-primary);
+    color: white;
+}
+
+.plugin-interactor-msg.received {
+    background: var(--color-bg-secondary);
+}
+
+.plugin-interactor-chat-input {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.plugin-interactor-chat-input input {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+}
+
+.plugin-interactor-send {
+    padding: 6px 12px;
+    font-size: 12px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+}
+
+.plugin-interactor-empty {
+    padding: var(--spacing-md);
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 12px;
+}

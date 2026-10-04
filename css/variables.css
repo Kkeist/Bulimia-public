@@ -1,0 +1,207 @@
+/* ============================================
+   设计变量：尺寸、层级、字体；配色在 css/themes/ 下按主题给出
+   ============================================ */
+
+:root {
+    /* 圆角 */
+    --border-radius: 8px;
+    --border-radius-sm: 4px;
+    --border-radius-lg: 12px;
+    --radius-sm: var(--border-radius-sm);
+
+    /* 间距 */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+
+    /* 字体 */
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", "PingFang SC", "Microsoft YaHei",
+                   "Noto Sans CJK SC", sans-serif;
+    --font-mono: Consolas, Monaco, "Courier New", monospace;
+    --font-size-xs: 12px;
+    --font-size-sm: 13px;
+    --font-size-base: 14px;
+    --font-size-md: 16px;
+    --font-size-lg: 18px;
+    --font-size-xl: 24px;
+    --font-size-xxl: 32px;
+    --chat-font-size: 15px;
+    --chat-max-width: 720px;
+
+    /* 过渡 */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+    --transition-slow: 0.4s ease;
+
+    /* 布局 */
+    --tap-size: 44px;
+    --sidebar-width: 280px;
+    --header-height: 48px;
+    --drawer-width: min(88vw, 340px);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --input-bottom-gap: var(--spacing-md);
+
+    /* 层级：内容 < 页头 < 遮罩 < 抽屉 < 弹出层 < 对话框 < 下拉列表 < 提示 */
+    --z-header: 50;
+    --z-backdrop: 90;
+    --z-sidebar: 100;
+    --z-popup: 200;
+    --z-modal: 300;
+    --z-select: 350;
+    --z-toast: 400;
+}
+
+/* 同一组控件使用同一种字体与焦点样式，不露浏览器默认外观 */
+input, textarea, select, button, optgroup, option {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+}
+
+input[type="text"], input[type="search"], input[type="password"],
+input[type="number"], input[type="email"], input[type="url"],
+input[type="tel"], input:not([type]), textarea {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: var(--color-bg);
+    border: 1px solid var(--control-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-text);
+    padding: 8px 10px;
+    min-height: 36px;
+    outline: none;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+textarea {
+    resize: none;
+    overflow-y: auto;
+    line-height: 1.5;
+    overscroll-behavior: contain;
+}
+
+/* 选中文字与浏览器自动填充的底色跟随主题，不露系统蓝 */
+::selection {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text);
+}
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill {
+    -webkit-text-fill-color: var(--color-text);
+    box-shadow: 0 0 0 1000px var(--color-bg) inset;
+    caret-color: var(--color-text);
+}
+
+input::placeholder, textarea::placeholder {
+    color: var(--color-text-muted);
+    opacity: 1;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+input:disabled, textarea:disabled, select:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* 下拉：收起状态的外观；展开的列表由 CustomSelect 绘制 */
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: var(--color-bg);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%23808890'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    border: 1px solid var(--control-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-text);
+    padding: 8px 28px 8px 10px;
+    min-height: 36px;
+    outline: none;
+}
+select::-ms-expand { display: none; }
+
+/* 勾选框 / 单选框 */
+input[type="checkbox"], input[type="radio"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    margin: 0 8px 0 0;
+    border: 1.5px solid var(--control-border);
+    background: var(--color-bg);
+    cursor: pointer;
+    vertical-align: middle;
+    position: relative;
+    flex: 0 0 auto;
+    padding: 0;
+    min-height: 0;
+}
+input[type="checkbox"] { border-radius: 4px; }
+input[type="radio"] { border-radius: 50%; }
+input[type="checkbox"]:checked, input[type="radio"]:checked {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+}
+input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid var(--color-on-primary);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+input[type="radio"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-on-primary);
+}
+input[type="checkbox"]:focus-visible, input[type="radio"]:focus-visible {
+    box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-primary);
+}
+
+/* 滚动条 */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); background-clip: content-box; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-corner { background: transparent; }

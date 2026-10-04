@@ -1,0 +1,238 @@
+/* ============================================
+   基础：重置、应用外壳、页面、按钮、通用类
+   ============================================ */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    line-height: 1.6;
+    /* 整个界面默认不可选中文字，输入框与正文单独放开 */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+[contenteditable], [contenteditable] * {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+button, [role="button"], summary, label, select, input[type="checkbox"], input[type="radio"] {
+    touch-action: manipulation;
+}
+
+:focus { outline: none; }
+:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* 应用外壳：高度由 LayoutMode 按可视区域写入 --app-h，软键盘弹出时随之收缩 */
+#app {
+    position: fixed;
+    left: 0;
+    top: var(--app-top, 0px);
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    height: var(--app-h, 100dvh);
+    overflow: hidden;
+    background-color: var(--color-bg);
+}
+
+/* 启动完成前不显示任何页面，避免首页、游戏页依次闪过 */
+html.is-booting #app { visibility: hidden; }
+
+/* 页面 */
+.page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+    background-color: var(--color-bg);
+}
+
+.page.active {
+    display: flex;
+}
+
+/* 页头：顶部留出安全区，放在滚动区之外 */
+.page-header,
+.game-header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    min-height: calc(var(--header-height) + var(--safe-top));
+    padding: var(--safe-top) calc(var(--spacing-sm) + var(--safe-right)) 0 calc(var(--spacing-sm) + var(--safe-left));
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--color-bg);
+    position: relative;
+    z-index: var(--z-header);
+}
+
+.page-header h2 {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* 页头按钮：细框，不小于 44 像素的点击区 */
+.hdr-btn,
+.back-btn {
+    flex: 0 0 auto;
+    min-width: var(--tap-size);
+    min-height: var(--tap-size);
+    padding: 0 var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    background: none;
+    border: 1px solid var(--control-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
+.hdr-btn:hover,
+.back-btn:hover {
+    background-color: var(--color-bg-secondary);
+}
+
+.hdr-btn.is-primary { font-weight: 600; }
+
+/* 通用按钮：平面，不做厚度 */
+button {
+    font-family: inherit;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    border: 1px solid var(--control-border);
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.4;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+button:hover { background-color: var(--color-bg-secondary); }
+button:active { background-color: var(--color-bg-tertiary); }
+
+button:disabled,
+button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-on-primary);
+}
+.btn-primary:hover {
+    background-color: var(--color-primary-light);
+    border-color: var(--color-primary-light);
+}
+.btn-primary:active { background-color: var(--color-primary-dark); }
+
+/* 按钮分四级：主操作实心（.btn-primary）、推进 / 运行这类常用操作用浅灰底（.btn-accent）、
+   普通操作描边（默认）、次要操作浅框灰字（.btn-ghost）；删除类用最深的字色 */
+.btn-accent {
+    background-color: var(--color-accent-bg);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    font-weight: 600;
+}
+.btn-accent:hover { background-color: var(--color-accent-hover); }
+.btn-accent:active { background-color: var(--color-accent-hover); }
+
+.btn-ghost {
+    background-color: transparent;
+    border-color: var(--border-color);
+    color: var(--color-text-secondary);
+}
+.btn-ghost:hover { background-color: var(--color-bg-tertiary); color: var(--color-text); }
+
+/* 删除类按钮：皮肤里没有红色，用最深的字色、粗一号的框和加粗文字和普通按钮分开 */
+button.danger,
+button.btn-danger {
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+    box-shadow: inset 0 0 0 1px var(--color-danger);
+    font-weight: 600;
+}
+button.danger:hover,
+button.btn-danger:hover {
+    background-color: var(--color-danger-light);
+}
+
+@media (pointer: coarse) {
+    button { min-height: var(--tap-size); }
+    input[type="text"], input[type="search"], input[type="password"],
+    input[type="number"], input[type="email"], input[type="url"],
+    input[type="tel"], input:not([type]), textarea, select {
+        font-size: 16px;
+    }
+}
+
+/* 展开 / 收起的箭头，用边框画出，不依赖字符 */
+.chev {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border: solid currentColor;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    transition: transform var(--transition-fast);
+    flex: 0 0 auto;
+    margin: 0 4px 3px;
+}
+.chev.is-up { transform: rotate(-135deg); margin-bottom: -2px; }
+.chev.is-right { transform: rotate(-45deg); margin: 0 6px 0 2px; }
+.chev.is-left { transform: rotate(135deg); margin: 0 2px 0 6px; }
+
+.hidden { display: none !important; }
+.invisible { visibility: hidden; }
+
+/* 带滚动的区域：滚动不带动外层 */
+.scroll-y {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+.scroll-x {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.scroll-x::-webkit-scrollbar { display: none; }
+
+/* 视觉隐藏，仅供读屏 */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}

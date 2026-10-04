@@ -1,0 +1,11 @@
+[
+  {
+    "id": "xiuxian-demo",
+    "name": "修仙模组-功能展示",
+    "version": "1.0.0",
+    "author": "内置教程",
+    "description": "逐个演示模组的每个功能，每个事件的备注只写一句作用。",
+    "path": "module/xiuxian-demo",
+    "enabled": true
+  }
+]

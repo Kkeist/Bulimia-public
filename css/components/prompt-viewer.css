@@ -1,0 +1,83 @@
+/* 提示词查看器：按消息分块，可折叠，长内容完整换行 */
+.prompt-viewer {
+    display: block;
+    width: 100%;
+    max-height: 62dvh;
+    overflow: auto;
+    overscroll-behavior: contain;
+    background: var(--color-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    box-sizing: border-box;
+}
+
+.prompt-note {
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    overflow-wrap: anywhere;
+}
+
+.prompt-block {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.prompt-block:last-child {
+    border-bottom: 0;
+}
+
+.prompt-block > summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs) var(--spacing-sm);
+    align-items: baseline;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--color-bg-secondary);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    overflow-wrap: anywhere;
+}
+
+.prompt-block-index {
+    color: var(--color-text-muted);
+}
+
+/* 来源（哪一段、哪个条目）是主要信息，角色次之 */
+.prompt-block-role {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+}
+
+.prompt-block-source {
+    font-weight: 600;
+    color: var(--color-text);
+    overflow-wrap: anywhere;
+}
+
+.prompt-block-size {
+    margin-left: auto;
+    color: var(--color-text-muted);
+}
+
+.prompt-block-body {
+    margin: 0;
+    padding: var(--spacing-sm) var(--spacing-md);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    font-family: var(--font-mono, monospace);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    color: var(--color-text);
+    background: var(--color-bg);
+}
+
+.prompt-mode-btn.active {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    border-color: var(--color-primary);
+}
+
+.debug-toolbar {
+    flex-wrap: wrap;
+}
