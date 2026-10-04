@@ -72,9 +72,11 @@ const App = {
             await this.loadSaveList();
             this.updateSaveInfo();
             this.initialized = true;
+            // 恢复上次游戏会改写「当前页」，所以先记下刷新前所在的页面
+            const lastUi = { page: UiState.get('page', null), tab: UiState.get('settingsTab', null), debugTab: UiState.get('debugTab', null) };
             await this.resumeLastGame();
             this.updateSystemStatusBar();
-            this.restoreUiPage();
+            this.restoreUiPage(lastUi);
         } catch (error) {
             console.error('Init error:', error);
             Toast.show(I18n.t('初始化失败: {msg}', { msg: error.message }), 'error');
@@ -84,14 +86,14 @@ const App = {
     },
 
     /** 刷新后回到刷新前所在的页面与设置标签 */
-    restoreUiPage() {
-        const page = UiState.get('page', null);
-        const tab = UiState.get('settingsTab', null);
+    restoreUiPage(last) {
+        const page = last ? last.page : UiState.get('page', null);
+        const tab = last ? last.tab : UiState.get('settingsTab', null);
         if (tab) this.switchSettingsTab(tab);
         if (!page || page === this.currentPage || !document.getElementById(`page-${page}`)) return;
         if (page === 'game' && !Engine.isRunning) return;
         if (page === 'debug') {
-            const debugTab = UiState.get('debugTab', null);
+            const debugTab = last ? last.debugTab : UiState.get('debugTab', null);
             if (debugTab && document.querySelector(`.debug-tab[data-tab="${debugTab}"]`)) {
                 document.querySelectorAll('.debug-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === debugTab));
             }
