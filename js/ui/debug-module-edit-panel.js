@@ -31,11 +31,11 @@ Object.assign(DebugModuleJump, {
     _meToolbarHtml(opts) {
         const b = (act, label, cls = '', extra = '') => `<button type="button" class="mjx-b me-tb ${cls}" data-meact="${act}" ${extra}>${label}</button>`;
         return '<div class="me-toolbar">' +
-            b('addchild', '新建事件') +
-            (opts.canAddFlow ? b('addflow', '新建分流程') : '') +
-            (opts.canMove ? b('up', '上移') + b('down', '下移') + b('copy', '复制') + b('cut', '剪切') : '') +
-            (this._meClipboard ? b('paste', '粘贴到这里') : '') +
-            (opts.canDelete ? b('delnode', '删除', 'mjx-b-untrig') : '') + '</div>';
+            b('addchild', I18n.t('新建事件')) +
+            (opts.canAddFlow ? b('addflow', I18n.t('新建分流程')) : '') +
+            (opts.canMove ? b('up', I18n.t('上移')) + b('down', I18n.t('下移')) + b('copy', I18n.t('复制')) + b('cut', I18n.t('剪切')) : '') +
+            (this._meClipboard ? b('paste', I18n.t('粘贴到这里')) : '') +
+            (opts.canDelete ? b('delnode', I18n.t('删除'), 'mjx-b-untrig') : '') + '</div>';
     },
 
     // ---- 流程面板 ----
@@ -48,16 +48,16 @@ Object.assign(DebugModuleJump, {
         const isMain = flow === 'main';
         const meta = (mod.flows && mod.flows[flow]) || {};
         const entry = meta.entryEvent ? ms.getModule(meta.entryEvent) : null;
-        let html = `<div class="mjx-sin"><div class="mjx-dh"><span class="mjx-dt">${isMain ? '主流程' : '分流程：' + esc(this._flowName(flow, mod))}</span></div>` +
+        let html = `<div class="mjx-sin"><div class="mjx-dh"><span class="mjx-dt">${isMain ? I18n.t('主流程') : I18n.t('分流程：{name}', { name: esc(this._flowName(flow, mod)) })}</span></div>` +
             this._meToolbarHtml({ canAddFlow: false, canMove: false, canDelete: false });
         if (!isMain) {
-            html += '<section class="me-sec"><h4>流程设置</h4>' +
-                `<label class="mjx-flab" for="me-flowname">名称</label><textarea rows="1" class="mjx-fta me-line" id="me-flowname">${esc(this._flowName(flow, mod))}</textarea>` +
-                '<label class="mjx-flab">进入前需要完成的事件</label>' +
-                `<div class="me-pickrow"><button type="button" class="mjx-b me-pickbtn" data-meact="pickentry">${entry ? esc(entry.name) : '不限制'}</button>` +
-                (entry ? '<button type="button" class="mjx-b" data-meact="clearentry">不限制</button>' : '') + '</div>' +
+            html += `<section class="me-sec"><h4>${I18n.t('流程设置')}</h4>` +
+                `<label class="mjx-flab" for="me-flowname">${I18n.t('名称')}</label><textarea rows="1" class="mjx-fta me-line" id="me-flowname">${esc(this._flowName(flow, mod))}</textarea>` +
+                `<label class="mjx-flab">${I18n.t('进入前需要完成的事件')}</label>` +
+                `<div class="me-pickrow"><button type="button" class="mjx-b me-pickbtn" data-meact="pickentry">${entry ? esc(entry.name) : I18n.t('不限制')}</button>` +
+                (entry ? `<button type="button" class="mjx-b" data-meact="clearentry">${I18n.t('不限制')}</button>` : '') + '</div>' +
                 '<div class="me-pickpop" id="me-pickpop" hidden></div>' +
-                '<div class="me-actrow"><button type="button" class="mjx-b mjx-b-untrig" data-meact="delflow">删除这个分流程</button></div></section>';
+                `<div class="me-actrow"><button type="button" class="mjx-b mjx-b-untrig" data-meact="delflow">${I18n.t('删除这个分流程')}</button></div></section>`;
         }
         return html + '</div>';
     },
@@ -68,29 +68,29 @@ Object.assign(DebugModuleJump, {
         const ms = this.moduleSystem;
         const esc = this._esc.bind(this);
         const m = ms.getModule(this._meSel);
-        if (!m) return '<div class="mjx-empty">没有选中的事件。</div>';
+        if (!m) return `<div class="mjx-empty">${I18n.t('没有选中的事件。')}</div>`;
         const isRoot = m.id === ms.rootModuleId;
         const typeOpts = this._meOpt(this._ME_TYPES.map((t) => [t, this._TYC[t]]), m.type);
         const cfg = isRoot ? this._meEditor().getConfig() : null;
         const sec = (id, title, inner) => `<section class="me-sec" id="${id}"><h4>${title}</h4>${inner}</section>`;
         return '<div class="mjx-sin">' +
-            `<div class="mjx-dh"><span class="mjx-dt">${esc(m.name || '未命名')}</span></div>` +
+            `<div class="mjx-dh"><span class="mjx-dt">${esc(m.name || I18n.t('未命名'))}</span></div>` +
             this._meToolbarHtml({ canAddFlow: true, canMove: !isRoot, canDelete: !isRoot }) +
-            sec('me-basicsec', '基本信息',
-                `<label class="mjx-flab" for="me-name">名称</label><textarea rows="1" class="mjx-fta me-line" id="me-name">${esc(m.name || '')}</textarea>` +
-                (isRoot ? '' : `<label class="mjx-flab" for="me-type">类型</label><select id="me-type" class="mjx-fin">${typeOpts}</select>`) +
-                `<label class="mjx-flab" for="me-note">备注</label><textarea class="mjx-fta" id="me-note" rows="2">${esc(m.note || '')}</textarea>` +
+            sec('me-basicsec', I18n.t('基本信息'),
+                `<label class="mjx-flab" for="me-name">${I18n.t('名称')}</label><textarea rows="1" class="mjx-fta me-line" id="me-name">${esc(m.name || '')}</textarea>` +
+                (isRoot ? '' : `<label class="mjx-flab" for="me-type">${I18n.t('类型')}</label><select id="me-type" class="mjx-fin">${typeOpts}</select>`) +
+                `<label class="mjx-flab" for="me-note">${I18n.t('备注')}</label><textarea class="mjx-fta" id="me-note" rows="2">${esc(m.note || '')}</textarea>` +
                 (m.type === 'timeline' ? `<div id="me-trig">${this._meTrigHtml(m)}</div>` : '') +
-                '<label class="mjx-flab">标签</label><div id="me-tags"></div>') +
+                `<label class="mjx-flab">${I18n.t('标签')}</label><div id="me-tags"></div>`) +
             (isRoot ? this._meRootHtml(cfg) : '') +
-            sec('me-infosec', '背景', `<div id="me-info">${this._meInfoHtml(m)}</div><p class="me-err" id="me-infoerr" hidden></p><button type="button" class="mjx-b" data-meact="addinfo">新增背景</button>`) +
-            sec('me-entrysec', '进入条件', '<div id="me-entry" class="mjx-cbhost"></div>') +
-            sec('me-compsec', '完成条件', '<div id="me-comp" class="mjx-cbhost"></div>') +
-            sec('me-setsec', '进入时设置变量', `<p class="me-hint">进入这个事件时，把下面的变量设成指定的值。</p><div id="me-set">${this._meSetHtml(m)}</div><p class="me-err" id="me-seterr" hidden></p><button type="button" class="mjx-b" data-meact="addset">新增设置</button>`) +
-            sec('me-varsec', '变量', `<div id="me-vars">${this._meVarsHtml(m)}</div><p class="me-err" id="me-varerr" hidden></p><button type="button" class="mjx-b" data-meact="addvar">新增变量</button>`) +
-            sec('me-delivsec', '投递', `<div id="me-deliv">${this._meDelivHtml(m)}</div><p class="me-err" id="me-deliverr" hidden></p><button type="button" class="mjx-b" data-meact="adddeliv">新增投递</button>`) +
-            sec('me-queuesec', '提示词里的队列', `<div id="me-queue">${this._meQueueHtml(m)}</div>`) +
-            sec('me-pluginsec', '插件', `<div id="mjx-e-plugins">${this._pluginEditRows(m)}</div><button type="button" class="mjx-b" data-addplugin="1">新增插件</button>`) +
+            sec('me-infosec', I18n.t('背景'), `<div id="me-info">${this._meInfoHtml(m)}</div><p class="me-err" id="me-infoerr" hidden></p><button type="button" class="mjx-b" data-meact="addinfo">${I18n.t('新增背景')}</button>`) +
+            sec('me-entrysec', I18n.t('进入条件'), '<div id="me-entry" class="mjx-cbhost"></div>') +
+            sec('me-compsec', I18n.t('完成条件'), '<div id="me-comp" class="mjx-cbhost"></div>') +
+            sec('me-setsec', I18n.t('进入时设置变量'), `<p class="me-hint">${I18n.t('进入这个事件时，把下面的变量设成指定的值。')}</p><div id="me-set">${this._meSetHtml(m)}</div><p class="me-err" id="me-seterr" hidden></p><button type="button" class="mjx-b" data-meact="addset">${I18n.t('新增设置')}</button>`) +
+            sec('me-varsec', I18n.t('变量'), `<div id="me-vars">${this._meVarsHtml(m)}</div><p class="me-err" id="me-varerr" hidden></p><button type="button" class="mjx-b" data-meact="addvar">${I18n.t('新增变量')}</button>`) +
+            sec('me-delivsec', I18n.t('投递'), `<div id="me-deliv">${this._meDelivHtml(m)}</div><p class="me-err" id="me-deliverr" hidden></p><button type="button" class="mjx-b" data-meact="adddeliv">${I18n.t('新增投递')}</button>`) +
+            sec('me-queuesec', I18n.t('提示词里的队列'), `<div id="me-queue">${this._meQueueHtml(m)}</div>`) +
+            sec('me-pluginsec', I18n.t('插件'), `<div id="mjx-e-plugins">${this._pluginEditRows(m)}</div><button type="button" class="mjx-b" data-addplugin="1">${I18n.t('新增插件')}</button>`) +
             '</div>';
     },
 
@@ -119,7 +119,7 @@ Object.assign(DebugModuleJump, {
         if (typeof window.ConditionBuilder === 'undefined' || !m) return;
         const ms = this.moduleSystem;
         const modules = [];
-        ms.modules.forEach((mm) => { if (mm && mm.id !== m.id) modules.push({ id: mm.id, name: mm.name || '未命名' }); });
+        ms.modules.forEach((mm) => { if (mm && mm.id !== m.id) modules.push({ id: mm.id, name: mm.name || I18n.t('未命名') }); });
         const vars = this._varList();
         const wrap = (def) => (def && def.groups && def.groups.length) ? [{ type: 'precondition', conditionDef: def }] : [];
         const mount = (id, kind, wrappers) => {
@@ -192,14 +192,14 @@ Object.assign(DebugModuleJump, {
         const flows = Object.keys(parent.flows || {});
         if (!flows.includes('main')) flows.unshift('main');
         const flowSel = this._meFlowSel ? this._meFlowSel.flow : 'main';
-        const flowOpts = flows.map((f) => `<option value="${esc(f)}"${f === flowSel ? ' selected' : ''}>${f === 'main' ? '主流程' : esc(this._flowName(f, parent))}</option>`).join('');
+        const flowOpts = flows.map((f) => `<option value="${esc(f)}"${f === flowSel ? ' selected' : ''}>${f === 'main' ? I18n.t('主流程') : esc(this._flowName(f, parent))}</option>`).join('');
         const html = '<div class="me-dialog">' +
-            '<label class="mjx-flab" for="me-new-name">名称</label><input type="text" class="mjx-fin" id="me-new-name" placeholder="事件名称" autocomplete="off">' +
-            `<label class="mjx-flab" for="me-new-type">类型</label><select id="me-new-type" class="mjx-fin">${this._meOpt(this._ME_TYPES.map((t) => [t, this._TYC[t]]), 'trigger_chain')}</select>` +
-            (flows.length > 1 ? `<label class="mjx-flab" for="me-new-flow">放入</label><select id="me-new-flow" class="mjx-fin">${flowOpts}</select>` : '') +
+            `<label class="mjx-flab" for="me-new-name">${I18n.t('名称')}</label><input type="text" class="mjx-fin" id="me-new-name" placeholder="${I18n.t('事件名称')}" autocomplete="off">` +
+            `<label class="mjx-flab" for="me-new-type">${I18n.t('类型')}</label><select id="me-new-type" class="mjx-fin">${this._meOpt(this._ME_TYPES.map((t) => [t, this._TYC[t]]), 'trigger_chain')}</select>` +
+            (flows.length > 1 ? `<label class="mjx-flab" for="me-new-flow">${I18n.t('放入')}</label><select id="me-new-flow" class="mjx-fin">${flowOpts}</select>` : '') +
             '</div>';
-        Modal.show('新建事件', html, {
-            buttons: [{ label: '取消', action: 'cancel' }, { label: '新建', action: 'ok', class: 'btn-primary' }],
+        Modal.show(I18n.t('新建事件'), html, {
+            buttons: [{ label: I18n.t('取消'), action: 'cancel' }, { label: I18n.t('新建'), action: 'ok', class: 'btn-primary' }],
             onAction: (action) => {
                 if (action !== 'ok') { Modal.close(); return; }
                 const name = document.getElementById('me-new-name').value;
@@ -219,7 +219,7 @@ Object.assign(DebugModuleJump, {
     },
 
     async _meAddFlowDialog() {
-        const name = await Modal.prompt('新建分流程', '分流程名称');
+        const name = await Modal.prompt(I18n.t('新建分流程'), I18n.t('分流程名称'));
         if (name == null) return;
         const parentId = this._meSel;
         const r = this._meDo((ed) => ed.addFlow(parentId, name), { panel: false });
@@ -230,14 +230,14 @@ Object.assign(DebugModuleJump, {
         const { parentId, flow } = this._meFlowSel;
         const mod = this.moduleSystem.getModule(parentId);
         const n = mod.getFlowSubModules(flow).size;
-        const ok = await Modal.confirm('删除分流程', `删除分流程「${this._esc(this._flowName(flow, mod))}」${n ? `及其下 ${n} 个事件` : ''}。`, { confirmLabel: '删除', danger: true });
+        const ok = await Modal.confirm(I18n.t('删除分流程'), n ? I18n.t('删除分流程「{name}」及其下 {n} 个事件。', { name: this._esc(this._flowName(flow, mod)), n }) : I18n.t('删除分流程「{name}」。', { name: this._esc(this._flowName(flow, mod)) }), { confirmLabel: I18n.t('删除'), danger: true });
         if (!ok) return;
         const nm = this._flowName(flow, mod);
         const r = this._meDo((ed) => ed.deleteFlow(parentId, flow), { panel: false });
         if (r.ok) {
             this._meFlowSel = null;
             this._meAfterEdit();
-            this._meUndoSnapshotToast(`已删除分流程「${nm}」。`);
+            this._meUndoSnapshotToast(I18n.t('已删除分流程「{name}」。', { name: nm }));
         }
     },
 
@@ -255,13 +255,13 @@ Object.assign(DebugModuleJump, {
         const items = [];
         ms.modules.forEach((x) => { if (x.id !== ms.rootModuleId && !skip.has(x.id)) items.push(x); });
         pop.hidden = false;
-        pop.innerHTML = '<input type="text" class="mjx-fin me-picksearch" placeholder="搜索事件" autocomplete="off"><div class="me-pickopts"></div>';
+        pop.innerHTML = `<input type="text" class="mjx-fin me-picksearch" placeholder="${I18n.t('搜索事件')}" autocomplete="off"><div class="me-pickopts"></div>`;
         const input = pop.querySelector('input');
         const box = pop.querySelector('.me-pickopts');
         const draw = () => {
             const s = input.value.trim().toLowerCase();
             const list = items.filter((x) => !s || String(x.name || '').toLowerCase().includes(s));
-            box.innerHTML = list.length ? list.map((x) => `<button type="button" class="me-pickopt" data-pick="${esc(x.id)}">${esc(x.name || '未命名')}</button>`).join('') : '<div class="me-pickempty">没有匹配的事件。</div>';
+            box.innerHTML = list.length ? list.map((x) => `<button type="button" class="me-pickopt" data-pick="${esc(x.id)}">${esc(x.name || I18n.t('未命名'))}</button>`).join('') : `<div class="me-pickempty">${I18n.t('没有匹配的事件。')}</div>`;
         };
         input.addEventListener('input', draw);
         pop.addEventListener('click', (e) => {

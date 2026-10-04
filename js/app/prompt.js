@@ -57,7 +57,7 @@ Object.assign(App, {
         }
         out.push({
             role: 'user',
-            content: roleplay || (!meta ? this.PROMPT_EMPTY_USER_PLACEHOLDER : '(仅场外)'),
+            content: roleplay || (!meta ? this.PROMPT_EMPTY_USER_PLACEHOLDER : I18n.t('(仅场外)')),
             roleplay,
             meta
         });
@@ -76,7 +76,7 @@ Object.assign(App, {
         const engine = this.buildEngine();
         if (!engine) {
             const loading = !!this._engineConfigLoading[cur.id];
-            return { segments: [], ctx, warning: loading ? '模组数据还在读取' : '当前模组不是新版格式，没有模组提示词' };
+            return { segments: [], ctx, warning: loading ? I18n.t('模组数据还在读取') : I18n.t('当前模组不是新版格式，没有模组提示词') };
         }
         const pg = engine.promptGenerator;
         pg.turn = ctx.turn;
@@ -107,8 +107,8 @@ Object.assign(App, {
         const userMessage = (roleplay != null && String(roleplay).trim()) ? String(roleplay).trim() : '';
         const metaContent = (meta != null && String(meta).trim()) ? String(meta).trim() : '';
         const displaySettings = Storage.getSettings() || {};
-        const userName = PersonaManager.current?.name || State.gameState?.playerName || '玩家';
-        const aiName = displaySettings.aiName || '故事之声';
+        const userName = PersonaManager.current?.name || State.gameState?.playerName || I18n.pick({ zh: '玩家', en: 'Player' });
+        const aiName = displaySettings.aiName || I18n.pick({ zh: '故事之声', en: 'Narrator' });
         // function 形式的 replace，避免 userName 含 $& 等替换标记被解释
         const replaceUser = (s) => (typeof s === 'string' ? s.replace(/\{\{user\}\}/g, () => userName) : s);
 
@@ -122,10 +122,10 @@ Object.assign(App, {
         const frontMessages = [];
         if (PersonaManager.current) {
             let personaContent = `Persona: ${PersonaManager.current.name}\n${PersonaManager.current.content}`;
-            if (displaySettings.always_add_names !== false) personaContent += `\n\n用户名字：${userName}\nAI名字：${aiName}`;
+            if (displaySettings.always_add_names !== false) personaContent += '\n\n' + I18n.t('用户名字：{name}', { name: userName }) + '\n' + I18n.t('AI名字：{name}', { name: aiName });
             frontMessages.push({ role: 'system', content: personaContent, identifier: 'persona', injected: true });
         } else if (displaySettings.always_add_names !== false) {
-            frontMessages.push({ role: 'system', content: `用户名字：${userName}\nAI名字：${aiName}`, identifier: 'names', injected: true });
+            frontMessages.push({ role: 'system', content: I18n.t('用户名字：{name}', { name: userName }) + '\n' + I18n.t('AI名字：{name}', { name: aiName }), identifier: 'names', injected: true });
         }
 
         // ——— 2. 写作指导·创作向 ———
@@ -194,7 +194,7 @@ Object.assign(App, {
             let content = msg.content || '';
             if (msg.role === 'assistant' && i < recentHistory.length - recentFullCount) {
                 const summary = (msg.turnSummary && String(msg.turnSummary).trim()) ? String(msg.turnSummary).trim() : '';
-                content = summary ? `[本轮摘要] ${summary}` : content;
+                content = summary ? I18n.t('[本轮摘要] {summary}', { summary }) : content;
             }
             chatMessages.push({ role: msg.role, content, identifier: msg.identifier || `chat-${chatMessages.length}` });
         }
@@ -205,7 +205,7 @@ Object.assign(App, {
             if (metaContent) {
                 chatMessages.push({ role: 'system', content: `<user_meta>\n${this.META_INSTRUCTION}\n\n${metaContent}\n</user_meta>`, identifier: 'user-meta-block', injected: true });
             }
-            const currentUserContent = userMessage || (!metaContent ? this.PROMPT_EMPTY_USER_PLACEHOLDER : '(仅场外)');
+            const currentUserContent = userMessage || (!metaContent ? this.PROMPT_EMPTY_USER_PLACEHOLDER : I18n.t('(仅场外)'));
             chatMessages.push({ role: 'user', content: currentUserContent, identifier: 'current-user' });
         }
 
@@ -224,7 +224,7 @@ Object.assign(App, {
                 const scanText = chatMessages.slice(-10).map(m => (m && m.content) || '').join('\n');
                 base = TavernLayer.apply(base, scanText);
             } catch (e) {
-                throw new Error('世界书注入失败：' + (e && e.message ? e.message : e));
+                throw new Error(I18n.t('世界书注入失败：{error}', { error: e && e.message ? e.message : e }));
             }
         }
         base.forEach((m) => {

@@ -12,11 +12,11 @@ Object.assign(App, {
     /** 压缩总结时发给 AI 的消息。 */
     buildSummaryCompressionMessages(ss, singles) {
         const mega = ss.megaSummaries.map(m => m.content).filter(Boolean);
-        let text = '你是剧情记录员。请把下面的已有总结和新的剧情片段合并成一份新的总结。\n';
-        text += '要求：按时间顺序，只写发生的事实，不评价；保留人物、关键事件、数值变化和约定；用简洁的叙述，不超过 400 字。\n';
-        text += '只输出这一行，不要写别的：<summary|global|总结内容>\n\n';
-        if (mega.length) text += '【已有总结】\n' + mega.join('\n\n') + '\n\n';
-        text += '【新的剧情片段】\n' + singles.map((s, i) => `${i + 1}. ${s.content}`).join('\n');
+        let text = I18n.t('你是剧情记录员。请把下面的已有总结和新的剧情片段合并成一份新的总结。') + '\n';
+        text += I18n.t('要求：按时间顺序，只写发生的事实，不评价；保留人物、关键事件、数值变化和约定；用简洁的叙述，不超过 400 字。') + '\n';
+        text += I18n.t('只输出这一行，不要写别的：<summary|global|总结内容>') + '\n\n';
+        if (mega.length) text += I18n.t('【已有总结】') + '\n' + mega.join('\n\n') + '\n\n';
+        text += I18n.t('【新的剧情片段】') + '\n' + singles.map((s, i) => `${i + 1}. ${s.content}`).join('\n');
         return [{ role: 'user', content: text }];
     },
 
@@ -40,23 +40,23 @@ Object.assign(App, {
         if (!manual && !ss.needsCompression(turn, windowTurns)) return false;
         const singles = ss.getSlidOutSingles(turn, windowTurns);
         if (!singles.length) {
-            if (manual) Toast.show('没有已经滑出对话窗口的单条总结可以整理。', 'info', 5000);
+            if (manual) Toast.show(I18n.t('没有已经滑出对话窗口的单条总结可以整理。'), 'info', 5000);
             return false;
         }
         const count = ss.singleSummaries.indexOf(singles[singles.length - 1]) + 1;
         const batch = ss.singleSummaries.slice(0, count);
         const messages = this.buildSummaryCompressionMessages(ss, batch);
-        const retry = manual ? '' : '下一轮会再试。';
+        const retry = manual ? '' : I18n.t('下一轮会再试。');
         let response;
         try {
             response = await APIConnection.send(messages, { maxTokens: 1000, temperature: 0.3, stream: false });
         } catch (e) {
-            Toast.show('整理剧情总结失败：' + (e && e.message ? e.message : e) + '。' + retry, 'warning', 8000);
+            Toast.show(I18n.t('整理剧情总结失败：{error}。', { error: e && e.message ? e.message : e }) + retry, 'warning', 8000);
             return false;
         }
         const body = this.parseSummaryReply(this._getRawContentFromResponse(response));
         if (!body) {
-            Toast.show('AI 没有按格式给出剧情总结，这次没有保存。' + retry, 'warning', 8000);
+            Toast.show(I18n.t('AI 没有按格式给出剧情总结，这次没有保存。') + retry, 'warning', 8000);
             return false;
         }
         // 请求期间状态可能变了：重新读一份，只去掉已经并入的前 count 条
@@ -71,11 +71,11 @@ Object.assign(App, {
     /** 手动整理：调试页的按钮。和自动整理共用一个任务，已有任务在跑时等它结束。 */
     compressSummariesNow() {
         if (this._summaryJob) {
-            Toast.show('正在整理剧情总结，请稍等。', 'info', 4000);
+            Toast.show(I18n.t('正在整理剧情总结，请稍等。'), 'info', 4000);
             return this._summaryJob;
         }
         this._summaryJob = this._runSummaryCompression(true)
-            .catch(e => { Toast.show('整理剧情总结出错：' + (e && e.message ? e.message : e), 'error', 8000); return false; })
+            .catch(e => { Toast.show(I18n.t('整理剧情总结出错：{error}', { error: e && e.message ? e.message : e }), 'error', 8000); return false; })
             .finally(() => { this._summaryJob = null; });
         return this._summaryJob;
     },
@@ -84,7 +84,7 @@ Object.assign(App, {
     scheduleSummaryJob() {
         if (this._summaryJob) return this._summaryJob;
         this._summaryJob = this._compressSummariesIfNeeded()
-            .catch(e => { Toast.show('整理剧情总结出错：' + (e && e.message ? e.message : e), 'error', 8000); return false; })
+            .catch(e => { Toast.show(I18n.t('整理剧情总结出错：{error}', { error: e && e.message ? e.message : e }), 'error', 8000); return false; })
             .finally(() => { this._summaryJob = null; });
         return this._summaryJob;
     }

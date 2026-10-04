@@ -95,7 +95,7 @@ const InteractiveSaveDriver = {
         const self = this;
         list.forEach(app => {
             const render = this._appRenderers[app.id];
-            self.apps.set(app.id, { ...app, render: render || (() => '<div class="empty-message">这个应用没有内容</div>') });
+            self.apps.set(app.id, { ...app, render: render || (() => '<div class="empty-message">' + I18n.t('这个应用没有内容') + '</div>') });
         });
     },
 
@@ -153,13 +153,13 @@ const InteractiveSaveDriver = {
         const favorField = disp.favorField || 'favor';
         const vars = (typeof State !== 'undefined' && State.variables) ? State.variables : {};
         const list = Array.isArray(vars[listVar]) ? vars[listVar] : [];
-        const label = cfg.label || this.currentPluginId || '列表';
+        const label = cfg.label || this.currentPluginId || I18n.t('列表');
 
         let html = '<div class="plugin-interactor-list-from-var">';
         html += '<div class="plugin-interactor-header">' + (label.replace(/</g, '&lt;')) + '</div>';
         html += '<div class="plugin-interactor-list">';
         if (list.length === 0) {
-            html += '<div class="plugin-item plugin-interactor-empty">暂无条目（变量 ' + (listVar || '').replace(/</g, '&lt;') + ' 为空）</div>';
+            html += '<div class="plugin-item plugin-interactor-empty">' + I18n.t('暂无条目（变量 {name} 为空）', { name: (listVar || '').replace(/</g, '&lt;') }) + '</div>';
         } else {
             list.forEach((item, idx) => {
                 const id = (item && item[titleField]) != null ? String(item[titleField]) : 'item_' + idx;
@@ -167,7 +167,7 @@ const InteractiveSaveDriver = {
                 const subtitle = (item && item[subtitleField]) != null ? String(item[subtitleField]) : '';
                 const lastMsg = (item && item[lastMessageKey]) != null ? String(item[lastMessageKey]) : '';
                 const favor = (item && item[favorField]) != null ? item[favorField] : '';
-                const favorStr = favor !== '' ? ' 好感 ' + favor : '';
+                const favorStr = favor !== '' ? ' ' + I18n.t('好感 {n}', { n: favor }) : '';
                 html += '<div class="plugin-interactor-item" data-contact-id="' + id.replace(/"/g, '&quot;') + '" data-index="' + idx + '">';
                 html += '<span class="plugin-interactor-title">' + title.replace(/</g, '&lt;') + '</span>';
                 html += '<span class="plugin-interactor-subtitle">' + (subtitle || lastMsg || '—').replace(/</g, '&lt;').slice(0, 40) + (favorStr ? ' · ' + favorStr : '') + '</span>';
@@ -176,9 +176,9 @@ const InteractiveSaveDriver = {
         }
         html += '</div>';
         html += '<div class="plugin-interactor-chat-area hidden" id="' + this.currentPluginId + '-chat-area">';
-        html += '<div class="plugin-interactor-chat-nav"><button type="button" class="plugin-interactor-back">← 返回</button><span class="plugin-interactor-chat-title"></span></div>';
+        html += '<div class="plugin-interactor-chat-nav"><button type="button" class="plugin-interactor-back">← ' + I18n.t('返回') + '</button><span class="plugin-interactor-chat-title"></span></div>';
         html += '<div class="plugin-interactor-chat-messages"></div>';
-        html += '<div class="plugin-interactor-chat-input"><input type="text" placeholder="输入消息（将加入暂存）" maxlength="' + (cfg.maxReplyLength || 200) + '"><button type="button" class="plugin-interactor-send">发送</button></div>';
+        html += '<div class="plugin-interactor-chat-input"><input type="text" placeholder="' + I18n.t('输入消息（将加入暂存）') + '" maxlength="' + (cfg.maxReplyLength || 200) + '"><button type="button" class="plugin-interactor-send">' + I18n.t('发送') + '</button></div>';
         html += '</div>';
         html += '</div>';
         container.innerHTML = html;
@@ -197,7 +197,7 @@ const InteractiveSaveDriver = {
                     const msgsEl = area.querySelector('.plugin-interactor-chat-messages');
                     const messages = this._loadChatMessages(id);
                     msgsEl.innerHTML = messages.length === 0
-                        ? '<div class="plugin-item">暂无记录</div>'
+                        ? '<div class="plugin-item">' + I18n.t('暂无记录') + '</div>'
                         : messages.map((m) => '<div class="plugin-interactor-msg ' + (m.from === 'user' ? 'sent' : 'received') + '">' + (m.content || '').replace(/</g, '&lt;') + '</div>').join('');
                     const input = area.querySelector('input');
                     const sendBtn = area.querySelector('.plugin-interactor-send');
@@ -212,7 +212,7 @@ const InteractiveSaveDriver = {
                         msgsEl.innerHTML = messages.map((m) => '<div class="plugin-interactor-msg ' + (m.from === 'user' ? 'sent' : 'received') + '">' + (m.content || '').replace(/</g, '&lt;') + '</div>').join('');
                         msgsEl.scrollTop = msgsEl.scrollHeight;
                         if (window.Events && window.EVENT_TYPES && cfg.replyTag) {
-                            const payload = { pluginId: this.currentPluginId, contactId: id, content: text, format: cfg.replyFormat || '角色名：消息' };
+                            const payload = { pluginId: this.currentPluginId, contactId: id, content: text, format: cfg.replyFormat || I18n.t('角色名：消息') };
                             Events.emit(EVENT_TYPES.PHONE_PENDING_CHANGED, { count: (window.InteractiveSaveDriver && InteractiveSaveDriver.getTotalPendingCount ? InteractiveSaveDriver.getTotalPendingCount() : 0) + 1 });
                         }
                     };
@@ -271,7 +271,7 @@ const InteractiveSaveDriver = {
         
         const date = State.gameState?.currentDate || { hour: 12, minute: 0, month: 1, day: 1 };
         const timeStr = `${String(date.hour).padStart(2, '0')}:${String(date.minute).padStart(2, '0')}`;
-        const dateStr = `${date.month}月${date.day}日`;
+        const dateStr = I18n.t('{month}月{day}日', { month: date.month, day: date.day });
         const phoneLabel = '' + (this.phoneType === 'feature' ? 'feature' : 'smart');
         
         let html = '';
@@ -287,11 +287,11 @@ const InteractiveSaveDriver = {
             <div class="phone-status-bar">
                 <span>${timeStr}</span>
                 <span class="phone-type-label">${phoneLabel}</span>
-                <span>${noSignal ? '无信号' : ''}</span>
+                <span>${noSignal ? I18n.t('无信号') : ''}</span>
             </div>
         `;
         if (noSignal && canViewHistory) {
-            html += `<div class="phone-no-signal-hint" style="padding:4px 8px;font-size:12px;color:var(--color-text-muted);">无信号，仅可查看聊天记录</div>`;
+            html += `<div class="phone-no-signal-hint" style="padding:4px 8px;font-size:12px;color:var(--color-text-muted);">${I18n.t('无信号，仅可查看聊天记录')}</div>`;
         }
         
         // 主屏幕
@@ -311,7 +311,7 @@ const InteractiveSaveDriver = {
                 html += `
                     <div class="phone-notification" onclick="PhoneManager.openApp('sms')">
                         <span class="phone-notification-badge">${this.unreadCount}</span>
-                        收到${this.unreadCount}条新消息
+                        ${I18n.t('收到{n}条新消息', { n: this.unreadCount })}
                     </div>
                 `;
             }
@@ -319,12 +319,12 @@ const InteractiveSaveDriver = {
             html += `
                 <div class="phone-apps-grid feature">
                     <div class="phone-app-icon large" onclick="PhoneManager.openApp('phone')">
-                        <div class="icon">话</div>
-                        <span class="label">电话</span>
+                        <div class="icon">${I18n.t('话')}</div>
+                        <span class="label">${I18n.t('电话')}</span>
                     </div>
                     <div class="phone-app-icon large" onclick="PhoneManager.openApp('sms')">
-                        <div class="icon">信</div>
-                        <span class="label">短信</span>
+                        <div class="icon">${I18n.t('信')}</div>
+                        <span class="label">${I18n.t('短信')}</span>
                         ${this.unreadCount > 0 ? `<span class="badge">${this.unreadCount}</span>` : ''}
                     </div>
                 </div>
@@ -347,8 +347,8 @@ const InteractiveSaveDriver = {
                     const hasBadge = (id === 'sms' && this.unreadCount > 0);
                     html += `
                         <div class="phone-app-icon" onclick="PhoneManager.openApp('${id}')">
-                            <div class="icon">${app.icon || String(app.name || app.id).charAt(0)}</div>
-                            <span class="label">${app.name}</span>
+                            <div class="icon">${app.icon || String(I18n.t(app.name || app.id)).charAt(0)}</div>
+                            <span class="label">${I18n.t(app.name)}</span>
                             ${hasBadge ? `<span class="badge">${this.unreadCount}</span>` : ''}
                         </div>
                     `;
@@ -368,7 +368,7 @@ const InteractiveSaveDriver = {
         if (pendingTotal > 0) {
             html += `
                 <div class="phone-pending-indicator">
-                    有${pendingTotal}项操作待处理
+                    ${I18n.t('有{n}项操作待处理', { n: pendingTotal })}
                 </div>
             `;
         }
@@ -409,7 +409,7 @@ const InteractiveSaveDriver = {
         let html = `
             <div class="phone-nav">
                 <button class="phone-back-btn" onclick="PhoneManager.goHome()">←</button>
-                <span class="phone-title">短信</span>
+                <span class="phone-title">${I18n.t('短信')}</span>
             </div>
             <div class="sms-list">
         `;
@@ -422,7 +422,7 @@ const InteractiveSaveDriver = {
                     <div class="sms-avatar">${contact.name.charAt(0)}</div>
                     <div class="sms-content">
                         <div class="sms-name">${contact.name}</div>
-                        <div class="sms-preview">${lastMsg?.content || '暂无消息'}</div>
+                        <div class="sms-preview">${lastMsg?.content || I18n.t('暂无消息')}</div>
                     </div>
                     <div class="sms-time">${lastMsg?.time || ''}</div>
                 </div>
@@ -430,7 +430,7 @@ const InteractiveSaveDriver = {
         }
         
         if (this.contacts.size === 0) {
-            html += `<div style="padding: 20px; text-align: center; color: var(--color-text-muted);">暂无联系人</div>`;
+            html += `<div style="padding: 20px; text-align: center; color: var(--color-text-muted);">${I18n.t('暂无联系人')}</div>`;
         }
         
         html += `</div>`;
@@ -445,12 +445,12 @@ const InteractiveSaveDriver = {
         let html = `
             <div class="phone-nav">
                 <button class="phone-back-btn" onclick="PhoneManager.goHome()">←</button>
-                <span class="phone-title">电话</span>
+                <span class="phone-title">${I18n.t('电话')}</span>
             </div>
             <div class="phone-app-content">
                 <div class="phone-tabs">
-                    <button class="phone-tab active" onclick="PhoneManager.showPhoneTab('contacts')">联系人</button>
-                    <button class="phone-tab" onclick="PhoneManager.showPhoneTab('history')">通话记录</button>
+                    <button class="phone-tab active" onclick="PhoneManager.showPhoneTab('contacts')">${I18n.t('联系人')}</button>
+                    <button class="phone-tab" onclick="PhoneManager.showPhoneTab('history')">${I18n.t('通话记录')}</button>
                 </div>
                 <div class="phone-tab-content" id="phone-contacts-tab">
                     <div class="contact-list">
@@ -465,13 +465,13 @@ const InteractiveSaveDriver = {
                         <div class="contact-name">${contact.name}</div>
                         <div class="contact-relation">${contact.relation || ''}</div>
                     </div>
-                    <button class="call-btn" onclick="event.stopPropagation(); PhoneManager.initiateCall('${id}')">拨打</button>
+                    <button class="call-btn" onclick="event.stopPropagation(); PhoneManager.initiateCall('${id}')">${I18n.t('拨打')}</button>
                 </div>
             `;
         }
         
         if (this.contacts.size === 0) {
-            html += `<div class="empty-message">暂无联系人</div>`;
+            html += `<div class="empty-message">${I18n.t('暂无联系人')}</div>`;
         }
         
         html += `
@@ -483,11 +483,11 @@ const InteractiveSaveDriver = {
         
         // 显示通话记录
         if (this.callHistory.length === 0) {
-            html += `<div class="empty-message">暂无通话记录</div>`;
+            html += `<div class="empty-message">${I18n.t('暂无通话记录')}</div>`;
         } else {
             for (const call of this.callHistory.slice().reverse()) {
                 const contact = this.contacts.get(call.contactId);
-                const icon = call.type === 'outgoing' ? '拨出' : (call.type === 'incoming' ? '来电' : '未接');
+                const icon = call.type === 'outgoing' ? I18n.t('拨出') : (call.type === 'incoming' ? I18n.t('来电') : I18n.t('未接'));
                 html += `
                     <div class="call-history-item">
                         <span class="call-icon">${icon}</span>
@@ -518,7 +518,7 @@ const InteractiveSaveDriver = {
         
         // 更新选项卡按钮
         screen.querySelectorAll('.phone-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.textContent.includes(tabName === 'contacts' ? '联系人' : '通话记录'));
+            tab.classList.toggle('active', tab.textContent.includes(tabName === 'contacts' ? I18n.t('联系人') : I18n.t('通话记录')));
         });
         
         // 显示对应内容
@@ -536,10 +536,10 @@ const InteractiveSaveDriver = {
         const contact = this.contacts.get(contactId);
         if (!contact) return;
         if (!this.hasSignal()) {
-            if (window.Toast) Toast.show('无信号，无法拨打电话', 'warning');
+            if (window.Toast) Toast.show(I18n.t('无信号，无法拨打电话'), 'warning');
             return;
         }
-        if (window.Modal) Modal.confirm('拨打电话', `确定要给 ${contact.name} 打电话吗？\n\n（通话内容将在下次AI回复时处理）`).then(confirmed => {
+        if (window.Modal) Modal.confirm(I18n.t('拨打电话'), I18n.t('确定要给 {name} 打电话吗？\n\n（通话内容将在下次AI回复时处理）', { name: contact.name })).then(confirmed => {
             if (confirmed) {
                 this.initiateCall(contactId);
             }
@@ -551,7 +551,7 @@ const InteractiveSaveDriver = {
      */
     initiateCall(contactId) {
         if (!this.hasSignal()) {
-            if (window.Toast) Toast.show('无信号，无法拨打电话', 'warning');
+            if (window.Toast) Toast.show(I18n.t('无信号，无法拨打电话'), 'warning');
             return;
         }
         const contact = this.contacts.get(contactId);
@@ -578,7 +578,7 @@ const InteractiveSaveDriver = {
         });
         while (this.callHistory.length > MAX_PHONE_CALL_HISTORY) this.callHistory.shift();
         
-        if (window.Toast) Toast.show(`已添加拨打 ${contact.name} 的电话到暂存`, 'success');
+        if (window.Toast) Toast.show(I18n.t('已添加拨打 {name} 的电话到暂存', { name: contact.name }), 'success');
         this.saveToStorage();
         if (window.Events && window.EVENT_TYPES) Events.emit(EVENT_TYPES.PHONE_PENDING_CHANGED, { count: this.getTotalPendingCount() });
         this.renderHomeScreen();
@@ -599,7 +599,7 @@ const InteractiveSaveDriver = {
         while (this.callHistory.length > 500) this.callHistory.shift();
         
         // 显示来电通知
-        Toast.show(`来电：${callerName || contactId}`, 'info');
+        Toast.show(I18n.t('来电：{name}', { name: callerName || contactId }), 'info');
         
         Events.emit(EVENT_TYPES.PHONE_CALL_RECEIVED, {
             contactId,
@@ -643,7 +643,7 @@ const InteractiveSaveDriver = {
         html += `
                 </div>
                 <div class="phone-chat-input">
-                    ${canSend ? `<input type="text" id="phone-message-input" placeholder="输入消息..."><button onclick="PhoneManager.sendMessage()">发送</button>` : '<span class="phone-readonly-hint">无信号，仅可查看记录</span>'}
+                    ${canSend ? `<input type="text" id="phone-message-input" placeholder="${I18n.t('输入消息...')}"><button onclick="PhoneManager.sendMessage()">${I18n.t('发送')}</button>` : '<span class="phone-readonly-hint">' + I18n.t('无信号，仅可查看记录') + '</span>'}
                 </div>
             </div>
         `;
@@ -656,7 +656,7 @@ const InteractiveSaveDriver = {
      */
     sendMessage() {
         if (!this.hasSignal()) {
-            if (window.Toast) Toast.show('无信号，无法发送', 'warning');
+            if (window.Toast) Toast.show(I18n.t('无信号，无法发送'), 'warning');
             return;
         }
         const input = document.getElementById('phone-message-input');
@@ -713,14 +713,14 @@ const InteractiveSaveDriver = {
             }
         }
         if (msgs.length === 0 && calls.length === 0) return '';
-        let prompt = '【手机操作】\n';
+        let prompt = I18n.t('【手机操作】') + '\n';
         for (const msg of msgs) {
             const c = contacts.get && contacts.get(msg.contactId) || {};
-            prompt += `- 给${c.name || '未知'}发送短信: ${msg.content}\n`;
+            prompt += '- ' + I18n.t('给{name}发送短信: {content}', { name: c.name || I18n.t('未知'), content: msg.content }) + '\n';
         }
         for (const call of calls) {
             const c = contacts.get && contacts.get(call.contactId) || {};
-            prompt += `- 拨打${c.name || '未知'}的电话\n`;
+            prompt += '- ' + I18n.t('拨打{name}的电话', { name: c.name || I18n.t('未知') }) + '\n';
         }
         return prompt;
     },

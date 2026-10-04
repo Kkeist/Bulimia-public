@@ -274,24 +274,24 @@ class SummarizerSystem {
      * 构建全局总结Prompt（融合 MoM/Alice 风格：时间顺序、事件因果、关键对话、伏笔、不评判）
      */
     _buildGlobalSummaryPrompt(messages) {
-        let prompt = `【系统指令：对话内容总结】\n\n`;
-        prompt += `你是内部总结助手。请对以下对话进行总结，总结只用于内部记录，不会展示给用户。\n\n`;
+        let prompt = I18n.t('【系统指令：对话内容总结】') + `\n\n`;
+        prompt += I18n.t('你是内部总结助手。请对以下对话进行总结，总结只用于内部记录，不会展示给用户。') + `\n\n`;
 
-        prompt += `基本原则：\n`;
-        prompt += `- 复述事实，不做道德评判或评价。\n`;
-        prompt += `- 按时间顺序组织信息，可标注大致时间/阶段以便区分先后。\n`;
-        prompt += `- 所有对剧情有影响的人物（含配角）均需在事件中体现，不省略任何角色线。\n`;
-        prompt += `- 信息优先级：事件 > 计划/意图 > 关键对话 > 物品/约定 > 情绪变化。\n`;
-        prompt += `- 每个事件摘要须包含：因果与行为、关键对话（可引述）、计划与执行、重要物品/承诺/情感发展。\n`;
-        prompt += `- 直接陈述事实，使用简洁清晰语言，避免修辞与修饰。\n`;
-        prompt += `- 不回避敏感内容，保证记录完全还原前文含义。\n`;
-        prompt += `- 保留未解决的伏笔、待办事项与数值/状态变化。\n`;
-        prompt += `- 字数控制在${this.config.recentSummaryMaxChars}字以内。\n\n`;
+        prompt += I18n.t('基本原则：') + `\n`;
+        prompt += I18n.t('- 复述事实，不做道德评判或评价。') + `\n`;
+        prompt += I18n.t('- 按时间顺序组织信息，可标注大致时间/阶段以便区分先后。') + `\n`;
+        prompt += I18n.t('- 所有对剧情有影响的人物（含配角）均需在事件中体现，不省略任何角色线。') + `\n`;
+        prompt += I18n.t('- 信息优先级：事件 > 计划/意图 > 关键对话 > 物品/约定 > 情绪变化。') + `\n`;
+        prompt += I18n.t('- 每个事件摘要须包含：因果与行为、关键对话（可引述）、计划与执行、重要物品/承诺/情感发展。') + `\n`;
+        prompt += I18n.t('- 直接陈述事实，使用简洁清晰语言，避免修辞与修饰。') + `\n`;
+        prompt += I18n.t('- 不回避敏感内容，保证记录完全还原前文含义。') + `\n`;
+        prompt += I18n.t('- 保留未解决的伏笔、待办事项与数值/状态变化。') + `\n`;
+        prompt += I18n.t('- 字数控制在{n}字以内。', { n: this.config.recentSummaryMaxChars }) + `\n\n`;
 
-        prompt += `待总结的对话：\n---\n`;
+        prompt += I18n.t('待总结的对话：') + `\n---\n`;
 
-        const userName = PersonaManager.current?.name || '玩家';
-        const aiName = Storage.getSettings()?.aiName || '故事之声';
+        const userName = PersonaManager.current?.name || I18n.pick({ zh: '玩家', en: 'Player' });
+        const aiName = Storage.getSettings()?.aiName || I18n.pick({ zh: '故事之声', en: 'Narrator' });
 
       // 完整保留，不做缩略
         for (const msg of messages) {
@@ -299,7 +299,7 @@ class SummarizerSystem {
             prompt += `${role}: ${msg.content}\n\n`;
         }
 
-        prompt += `---\n\n请仅输出总结内容，使用以下标签包裹：\n<summary>\n内容\n</summary>`;
+        prompt += `---\n\n` + I18n.t('请仅输出总结内容，使用以下标签包裹：') + `\n<summary>\n` + I18n.pick({ zh: '内容', en: 'content' }) + `\n</summary>`;
 
         return [{ role: 'user', content: prompt }];
     }
@@ -309,25 +309,25 @@ class SummarizerSystem {
      */
     _buildCompressPrompt(summaries, maxChars, level) {
         const levelDesc = {
-            mid: '中期压缩（保留主要事件和关键信息）',
-            ancient: '远古压缩（只保留最重要的里程碑事件）'
-        }[level] || '压缩';
+            mid: I18n.t('中期压缩（保留主要事件和关键信息）'),
+            ancient: I18n.t('远古压缩（只保留最重要的里程碑事件）')
+        }[level] || I18n.pick({ zh: '压缩', en: 'compression' });
 
-        let prompt = `【系统指令：总结压缩】\n\n`;
-        prompt += `请将以下多段总结压缩为一段，进行${levelDesc}。\n\n`;
-        prompt += `要求：\n`;
-        prompt += `1. 合并相似内容，去除重复\n`;
-        prompt += `2. 保留最重要的信息点\n`;
-        prompt += `3. 字数控制在${maxChars}字以内\n`;
-        prompt += `4. 越久远的信息可以越简略\n\n`;
+        let prompt = I18n.t('【系统指令：总结压缩】') + `\n\n`;
+        prompt += I18n.t('请将以下多段总结压缩为一段，进行{level}。', { level: levelDesc }) + `\n\n`;
+        prompt += I18n.pick({ zh: '要求：', en: 'Requirements:' }) + `\n`;
+        prompt += I18n.t('1. 合并相似内容，去除重复') + `\n`;
+        prompt += I18n.t('2. 保留最重要的信息点') + `\n`;
+        prompt += I18n.t('3. 字数控制在{n}字以内', { n: maxChars }) + `\n`;
+        prompt += I18n.t('4. 越久远的信息可以越简略') + `\n\n`;
 
-        prompt += `待压缩的总结：\n---\n`;
+        prompt += I18n.t('待压缩的总结：') + `\n---\n`;
 
         for (let i = 0; i < summaries.length; i++) {
-            prompt += `【第${i + 1}段】\n${summaries[i].content}\n\n`;
+            prompt += I18n.t('【第{n}段】', { n: i + 1 }) + `\n${summaries[i].content}\n\n`;
         }
 
-        prompt += `---\n\n请输出压缩后的总结：\n<summary>\n内容\n</summary>`;
+        prompt += `---\n\n` + I18n.t('请输出压缩后的总结：') + `\n<summary>\n` + I18n.pick({ zh: '内容', en: 'content' }) + `\n</summary>`;
 
         return [{ role: 'user', content: prompt }];
     }
@@ -336,30 +336,30 @@ class SummarizerSystem {
      * 构建插件总结Prompt
      */
     _buildPluginSummaryPrompt(pluginType, identifier, data) {
-        let prompt = `【系统指令：${pluginType}内容总结】\n\n`;
+        let prompt = I18n.t('【系统指令：{type}内容总结】', { type: pluginType }) + `\n\n`;
 
         switch (pluginType) {
             case 'phone':
-                prompt += `请总结与"${identifier}"的手机聊天记录要点：\n\n`;
-                prompt += `要求：保留重要话题、约定、情感变化\n`;
-                prompt += `字数：${this.config.pluginSummaryMaxChars}字以内\n\n`;
-                prompt += `聊天记录：\n---\n`;
+                prompt += I18n.t('请总结与"{name}"的手机聊天记录要点：', { name: identifier }) + `\n\n`;
+                prompt += I18n.t('要求：保留重要话题、约定、情感变化') + `\n`;
+                prompt += I18n.t('字数：{n}字以内', { n: this.config.pluginSummaryMaxChars }) + `\n\n`;
+                prompt += I18n.pick({ zh: '聊天记录：', en: 'Chat log:' }) + `\n---\n`;
                 for (const msg of data.slice(-20)) {  // 只取最近20条
                     prompt += `[${msg.sender}]: ${msg.content}\n`;
                 }
                 break;
 
             case 'notes':
-                prompt += `请总结这些传纸条的内容要点：\n\n`;
-                prompt += `字数：300字以内\n\n`;
-                prompt += `纸条内容：\n---\n`;
+                prompt += I18n.t('请总结这些传纸条的内容要点：') + `\n\n`;
+                prompt += I18n.t('字数：{n}字以内', { n: 300 }) + `\n\n`;
+                prompt += I18n.t('纸条内容：') + `\n---\n`;
                 for (const note of data) {
                     prompt += `→${note.target}: ${note.content}\n`;
                 }
                 break;
         }
 
-        prompt += `---\n\n请输出总结：\n<summary>\n内容\n</summary>`;
+        prompt += `---\n\n` + I18n.t('请输出总结：') + `\n<summary>\n` + I18n.pick({ zh: '内容', en: 'content' }) + `\n</summary>`;
 
         return [{ role: 'user', content: prompt }];
     }
@@ -383,25 +383,25 @@ class SummarizerSystem {
 
         // 远古总结（高度压缩）
         if (global.ancient.length > 0) {
-            parts.push('【远古记忆】');
+            parts.push(I18n.t('【远古记忆】'));
             parts.push(global.ancient.map(s => s.content).join('\n'));
         }
 
         // 中期总结
         if (global.mid.length > 0) {
-            parts.push('【过往总结】');
+            parts.push(I18n.t('【过往总结】'));
             parts.push(global.mid.map(s => s.content).join('\n---\n'));
         }
 
         // 最近总结（最详细）
         if (global.recent.length > 0) {
-            parts.push('【近期记录】');
+            parts.push(I18n.t('【近期记录】'));
             parts.push(global.recent.map(s => s.content).join('\n---\n'));
         }
 
         // 重要事件
         if (plugins.events.length > 0) {
-            parts.push('【重要事件】');
+            parts.push(I18n.t('【重要事件】'));
             parts.push(plugins.events.slice(-10).map(e =>
                 `- ${e.type}: ${e.description}`
             ).join('\n'));

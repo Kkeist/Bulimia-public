@@ -37,7 +37,7 @@ Object.assign(DebugModuleJump, {
                 return { ok: false, error: e };
             }
             console.error('模组编辑出错', e);
-            this._meToast('修改没有成功：' + (e && e.message ? e.message : '未知原因'), 'error');
+            this._meToast(I18n.t('修改没有成功：') + (e && e.message ? e.message : I18n.t('未知原因')), 'error');
             return { ok: false, error: e };
         }
     },
@@ -62,7 +62,7 @@ Object.assign(DebugModuleJump, {
         if (!box) return;
         const ms = this.moduleSystem;
         if (!ms || !ms.rootModuleId) {
-            box.innerHTML = '<div class="mjx"><div class="mjx-empty">还没有加载模组。</div></div>';
+            box.innerHTML = `<div class="mjx"><div class="mjx-empty">${I18n.t('还没有加载模组。')}</div></div>`;
             return;
         }
         this._meEditor();
@@ -76,7 +76,7 @@ Object.assign(DebugModuleJump, {
                 '<div class="me-header" id="me-header"></div>' +
                 '<div class="mjx-pl-wrap me-wrap">' +
                 '<div class="mjx-pl-left me-left">' +
-                '<div class="me-search"><input type="text" id="me-search" placeholder="搜索事件" autocomplete="off"><button type="button" class="me-x" id="me-search-clear" aria-label="清空搜索">×</button></div>' +
+                `<div class="me-search"><input type="text" id="me-search" placeholder="${I18n.t('搜索事件')}" autocomplete="off"><button type="button" class="me-x" id="me-search-clear" aria-label="${I18n.t('清空搜索')}">×</button></div>` +
                 '<div class="me-crumb" id="me-crumb"></div>' +
                 '<div class="me-clipbar" id="me-clipbar" hidden></div>' +
                 '<div class="me-tree" id="me-tree"></div></div>' +
@@ -138,16 +138,16 @@ Object.assign(DebugModuleJump, {
         const btn = (act, label, kind = '', extra = '') => `<button type="button" class="mjx-b me-btn${kind ? ' is-' + kind : ''}" data-meact="${act}" ${extra}>${label}</button>`;
         // 左边是撤回、重做与丢弃改动，右边是模组文件操作，「覆盖原模组」是这一页的主操作
         const html =
-            btn('undo', '撤回' + (ed.undoCount ? `（${ed.undoCount}）` : ''), 'ghost', ed.undoCount ? '' : 'disabled') +
-            btn('redo', '重做' + (ed.redoCount ? `（${ed.redoCount}）` : ''), 'ghost', ed.redoCount ? '' : 'disabled') +
-            btn('restore', '恢复导入状态', 'danger') +
+            btn('undo', (ed.undoCount ? I18n.t('撤回（{n}）', { n: ed.undoCount }) : I18n.t('撤回')), 'ghost', ed.undoCount ? '' : 'disabled') +
+            btn('redo', (ed.redoCount ? I18n.t('重做（{n}）', { n: ed.redoCount }) : I18n.t('重做')), 'ghost', ed.redoCount ? '' : 'disabled') +
+            btn('restore', I18n.t('恢复导入状态'), 'danger') +
             `<span class="me-spacer"></span>` +
-            btn('newmod', '新建模组') +
-            btn('import', '导入模组') +
-            btn('export', '导出新模组') +
-            btn('overwrite', '覆盖原模组', 'primary') +
-            `<span class="me-status${dirty ? ' is-dirty' : ''}">${dirty ? '有未保存的改动' : '没有未保存的改动'}</span>` +
-            (pc ? `<button type="button" class="me-problems" data-meact="problems">${pc} 条提示</button>` : '');
+            btn('newmod', I18n.t('新建模组')) +
+            btn('import', I18n.t('导入模组')) +
+            btn('export', I18n.t('导出新模组')) +
+            btn('overwrite', I18n.t('覆盖原模组'), 'primary') +
+            `<span class="me-status${dirty ? ' is-dirty' : ''}">${dirty ? I18n.t('有未保存的改动') : I18n.t('没有未保存的改动')}</span>` +
+            (pc ? `<button type="button" class="me-problems" data-meact="problems">${I18n.t('{n} 条提示', { n: pc })}</button>` : '');
         if (h.__html !== html) { h.innerHTML = html; h.__html = html; }
     },
 
@@ -156,7 +156,7 @@ Object.assign(DebugModuleJump, {
         const check = ed.problems();
         const esc = this._esc.bind(this);
         const rows = [...check.errors, ...check.warnings].map((p) => `<li>${esc(p.message)}</li>`).join('');
-        if (window.Modal) Modal.alert('模组检查', `<ul class="me-problist">${rows || '<li>没有发现问题。</li>'}</ul>`);
+        if (window.Modal) Modal.alert(I18n.t('模组检查'), `<ul class="me-problist">${rows || `<li>${I18n.t('没有发现问题。')}</li>`}</ul>`);
     },
 
     _meRenderCrumb() {
@@ -167,7 +167,7 @@ Object.assign(DebugModuleJump, {
         const chain = [];
         let cur = ms.getModule(this._meSel);
         while (cur) { chain.unshift(cur); cur = cur.parentModuleId ? ms.getModule(cur.parentModuleId) : null; }
-        el.innerHTML = chain.map((m, i) => `<button type="button" class="me-crumbbtn${i === chain.length - 1 ? ' on' : ''}" data-mesel="${esc(m.id)}">${esc(m.name || '未命名')}</button>`).join('<span class="me-sep">/</span>');
+        el.innerHTML = chain.map((m, i) => `<button type="button" class="me-crumbbtn${i === chain.length - 1 ? ' on' : ''}" data-mesel="${esc(m.id)}">${esc(m.name || I18n.t('未命名'))}</button>`).join('<span class="me-sep">/</span>');
     },
 
     _meRenderClip() {
@@ -177,7 +177,7 @@ Object.assign(DebugModuleJump, {
         if (!cb) { el.hidden = true; el.innerHTML = ''; return; }
         const m = this.moduleSystem.getModule(cb.id);
         el.hidden = false;
-        el.innerHTML = `<span>${cb.mode === 'copy' ? '已复制' : '已剪切'}「${this._esc(m ? m.name : '')}」，在目标事件的编辑面板里点粘贴。</span><button type="button" class="me-x" data-meact="clipclear" aria-label="取消">×</button>`;
+        el.innerHTML = `<span>${I18n.t(cb.mode === 'copy' ? '已复制「{name}」，在目标事件的编辑面板里点粘贴。' : '已剪切「{name}」，在目标事件的编辑面板里点粘贴。', { name: this._esc(m ? m.name : '') })}</span><button type="button" class="me-x" data-meact="clipclear" aria-label="${I18n.t('取消')}">×</button>`;
     },
 
     // ---- 左侧事件树 ----
@@ -220,10 +220,10 @@ Object.assign(DebugModuleJump, {
             const sel = s.id === this._meSel && !this._meFlowSel;
             const cut = this._meClipboard && this._meClipboard.mode === 'cut' && this._meClipboard.id === s.id;
             out.push(`<div class="mjx-me-node${sel ? ' on' : ''}${cut ? ' mjx-cut' : ''}${searching && !this._meMatches(s) ? ' mjx-faded' : ''}" style="--d:${Math.min(depth, 8)}">` +
-                (hasKids ? `<button type="button" class="mjx-cw mjx-cbtn" data-mecol="${esc(ck)}" aria-label="展开或收起">${this._caretHtml(collapsed)}</button>` : '<span class="mjx-cw"></span>') +
-                `<button type="button" class="mjx-me-name" data-mesel="${esc(s.id)}"><span class="mjx-pl-n">${esc(s.name || '未命名')}</span>` +
+                (hasKids ? `<button type="button" class="mjx-cw mjx-cbtn" data-mecol="${esc(ck)}" aria-label="${I18n.t('展开或收起')}">${this._caretHtml(collapsed)}</button>` : '<span class="mjx-cw"></span>') +
+                `<button type="button" class="mjx-me-name" data-mesel="${esc(s.id)}"><span class="mjx-pl-n">${esc(s.name || I18n.t('未命名'))}</span>` +
                 `<span class="mjx-pl-t">${esc(this._TYC[s.type] || '')}</span>` +
-                (total > 1 && s.type !== 'free_trigger' ? `<span class="mjx-me-ord">第 ${idx + 1}/${total}</span>` : '') + '</button></div>');
+                (total > 1 && s.type !== 'free_trigger' ? `<span class="mjx-me-ord">${I18n.t('第 {i}/{total}', { i: idx + 1, total })}</span>` : '') + '</button></div>');
             if (hasKids) {
                 out.push(`<div class="mjx-children" data-childof="${esc(ck)}" data-collapsed="${collapsed ? '1' : '0'}">`);
                 flowsOf(s, depth + 1);
@@ -232,7 +232,7 @@ Object.assign(DebugModuleJump, {
         };
         const groups = (mod, fn, depth) => {
             const list = [...mod.getFlowSubModules(fn).values()];
-            if (!list.length) { out.push('<div class="me-emptyflow">还没有事件。</div>'); return; }
+            if (!list.length) { out.push(`<div class="me-emptyflow">${I18n.t('还没有事件。')}</div>`); return; }
             const byType = {};
             list.forEach((x) => { (byType[x.type] = byType[x.type] || []).push(x); });
             const types = this._ME_TYPES.filter((t) => byType[t]).concat(Object.keys(byType).filter((t) => !this._ME_TYPES.includes(t)));
@@ -241,7 +241,7 @@ Object.assign(DebugModuleJump, {
                     : (t === 'timeline' ? this.moduleSystem._getTimelinesInGroup(fn, mod.id) : byType[t]);
                 const tk = 'MET|T|' + mod.id + '|' + fn + '|' + t;
                 const tcol = col(tk) && !searching;
-                out.push(`<div class="mjx-typegroup mjx-tg-${esc(t)}" style="--d:${Math.min(depth, 8)}"><div class="mjx-typehead" data-mecol="${esc(tk)}"><span class="mjx-cw mjx-cae">${this._caretHtml(tcol)}</span><span class="mjx-th-t">${esc(this._TYC[t] || '其他')}（${ordered.length}）</span></div>` +
+                out.push(`<div class="mjx-typegroup mjx-tg-${esc(t)}" style="--d:${Math.min(depth, 8)}"><div class="mjx-typehead" data-mecol="${esc(tk)}"><span class="mjx-cw mjx-cae">${this._caretHtml(tcol)}</span><span class="mjx-th-t">${esc(this._TYC[t] || I18n.t('其他'))}${I18n.t('（{n}）', { n: ordered.length })}</span></div>` +
                     `<div class="mjx-typebody" data-childof="${esc(tk)}" data-collapsed="${tcol ? '1' : '0'}">`);
                 ordered.forEach((s, i) => node(s, depth, i, ordered.length));
                 out.push('</div></div>');
@@ -258,8 +258,8 @@ Object.assign(DebugModuleJump, {
                 const fcol = col(fk) && !searching;
                 const selF = this._meFlowSel && this._meFlowSel.parentId === mod.id && this._meFlowSel.flow === fn;
                 out.push(`<div class="mjx-flowgroup${fn === 'main' ? '' : ' mjx-fg-br'}"><div class="mjx-flowhead${selF ? ' me-on' : ''}">` +
-                    `<button type="button" class="mjx-cw mjx-cbtn" data-mecol="${esc(fk)}" aria-label="展开或收起">${this._caretHtml(fcol)}</button>` +
-                    `<button type="button" class="me-flowname" data-meflow="${esc(mod.id)}\u0001${esc(fn)}">${fn === 'main' ? '主流程' : '分流程：' + esc(this._flowName(fn, mod))}（${count}）</button></div>` +
+                    `<button type="button" class="mjx-cw mjx-cbtn" data-mecol="${esc(fk)}" aria-label="${I18n.t('展开或收起')}">${this._caretHtml(fcol)}</button>` +
+                    `<button type="button" class="me-flowname" data-meflow="${esc(mod.id)}\u0001${esc(fn)}">${fn === 'main' ? I18n.t('主流程') : I18n.t('分流程：{name}', { name: esc(this._flowName(fn, mod)) })}${I18n.t('（{n}）', { n: count })}</button></div>` +
                     `<div class="mjx-flowbody" data-childof="${esc(fk)}" data-collapsed="${fcol ? '1' : '0'}">`);
                 groups(mod, fn, depth);
                 out.push('</div></div>');
@@ -267,8 +267,8 @@ Object.assign(DebugModuleJump, {
         };
         const rootCol = col('MET|ROOT') && !searching;
         out.push(`<div class="mjx-me-node mjx-node-root${this._meSel === root.id && !this._meFlowSel ? ' on' : ''}">` +
-            `<button type="button" class="mjx-cw mjx-cbtn" data-mecol="MET|ROOT" aria-label="展开或收起">${this._caretHtml(rootCol)}</button>` +
-            `<button type="button" class="mjx-me-name" data-mesel="${esc(root.id)}"><span class="mjx-pl-n">${esc(root.name || '未命名')}</span><span class="mjx-pl-t">故事</span></button></div>`);
+            `<button type="button" class="mjx-cw mjx-cbtn" data-mecol="MET|ROOT" aria-label="${I18n.t('展开或收起')}">${this._caretHtml(rootCol)}</button>` +
+            `<button type="button" class="mjx-me-name" data-mesel="${esc(root.id)}"><span class="mjx-pl-n">${esc(root.name || I18n.t('未命名'))}</span><span class="mjx-pl-t">${I18n.t('故事')}</span></button></div>`);
         out.push(`<div class="mjx-root-children" data-childof="MET|ROOT" data-collapsed="${rootCol ? '1' : '0'}">`);
         flowsOf(root, 0);
         out.push('</div>');
@@ -321,40 +321,40 @@ Object.assign(DebugModuleJump, {
 
     _meUndo() {
         const ed = this._meEditor();
-        if (!ed.undo()) { this._meToast('没有可撤回的操作。', 'warning'); return; }
+        if (!ed.undo()) { this._meToast(I18n.t('没有可撤回的操作。'), 'warning'); return; }
         this._meAfterEdit();
     },
 
     _meRedo() {
         const ed = this._meEditor();
-        if (!ed.redo()) { this._meToast('没有可重做的操作。', 'warning'); return; }
+        if (!ed.redo()) { this._meToast(I18n.t('没有可重做的操作。'), 'warning'); return; }
         this._meAfterEdit();
     },
 
     async _meRestoreImport() {
         const ed = this._meEditor();
-        const ok = await Modal.confirm('恢复导入状态', ed.isDirty() ? '当前的修改会全部放弃，回到导入时的内容。可以用撤回找回。' : '当前没有修改，内容与导入时一致。', { confirmLabel: '恢复' });
+        const ok = await Modal.confirm(I18n.t('恢复导入状态'), ed.isDirty() ? I18n.t('当前的修改会全部放弃，回到导入时的内容。可以用撤回找回。') : I18n.t('当前没有修改，内容与导入时一致。'), { confirmLabel: I18n.t('恢复') });
         if (!ok) return;
         ed.restoreBaseline();
         this._meAfterEdit();
-        this._meToast('已恢复导入状态。');
+        this._meToast(I18n.t('已恢复导入状态。'));
     },
 
     // ---- 新建、导入、导出、覆盖 ----
 
     async _meNewModule() {
-        const name = await Modal.prompt('新建模组', '模组名称');
+        const name = await Modal.prompt(I18n.t('新建模组'), I18n.t('模组名称'));
         if (name == null) return;
         let cfg;
         try { cfg = ModuleEditor.createBlank(name); }
         catch (e) { this._meToast(e.message, 'error'); return; }
-        await this._meLoadConfig(cfg, '已新建模组。');
+        await this._meLoadConfig(cfg, I18n.t('已新建模组。'));
     },
 
     /** 把一份配置作为新模组加入并切换过去，调试页随之重建 */
     async _meLoadConfig(cfg, doneText) {
         const module = ModuleManager.addFromConfig(cfg);
-        if (!ModuleManager.load(module.id)) { this._meToast('切换到新模组失败。', 'error'); return; }
+        if (!ModuleManager.load(module.id)) { this._meToast(I18n.t('切换到新模组失败。'), 'error'); return; }
         window.__debugBridgeModuleId = null;
         if (window.App && App.setEngineConfig) App.setEngineConfig(JSON.parse(JSON.stringify(cfg)));
         this._editor = null;
@@ -369,23 +369,23 @@ Object.assign(DebugModuleJump, {
     async _meImportFile(file) {
         let data;
         try { data = JSON.parse(await file.text()); }
-        catch (e) { await Modal.alert('导入模组', '文件内容不是有效的模组，请确认导入的是导出的模组文件。'); return; }
+        catch (e) { await Modal.alert(I18n.t('导入模组'), I18n.t('文件内容不是有效的模组，请确认导入的是导出的模组文件。')); return; }
         if (!data || typeof data !== 'object' || Array.isArray(data) || data.content) {
-            await Modal.alert('导入模组', '文件内容不是有效的模组。');
+            await Modal.alert(I18n.t('导入模组'), I18n.t('文件内容不是有效的模组。'));
             return;
         }
         const check = ModuleSystem.validateConfig(data);
         const esc = this._esc.bind(this);
         const list = (items) => `<ul class="me-problist">${items.map((p) => `<li>${esc(p.message)}</li>`).join('')}</ul>`;
         if (check.errors.length) {
-            await Modal.alert('无法导入', `这个文件有以下问题，需要先修正：${list(check.errors)}`);
+            await Modal.alert(I18n.t('无法导入'), I18n.t('这个文件有以下问题，需要先修正：{list}', { list: list(check.errors) }));
             return;
         }
         if (check.warnings.length) {
-            const ok = await Modal.confirm('导入模组', `这个文件有以下提示，仍然导入吗？${list(check.warnings)}`, { confirmLabel: '仍然导入' });
+            const ok = await Modal.confirm(I18n.t('导入模组'), I18n.t('这个文件有以下提示，仍然导入吗？{list}', { list: list(check.warnings) }), { confirmLabel: I18n.t('仍然导入') });
             if (!ok) return;
         }
-        await this._meLoadConfig(data, '已导入模组。');
+        await this._meLoadConfig(data, I18n.t('已导入模组。'));
     },
 
     _meExportNewModule() {
@@ -393,10 +393,10 @@ Object.assign(DebugModuleJump, {
         try {
             const data = ed.getConfig();
             FileDownload.save(JSON.stringify(data, null, 2), data.name || 'module', 'json', 'application/json');
-            this._meToast('已开始下载。');
+            this._meToast(I18n.t('已开始下载。'));
         } catch (e) {
             console.error('导出失败', e);
-            this._meToast('导出失败：' + e.message, 'error');
+            this._meToast(I18n.t('导出失败：') + e.message, 'error');
         }
     },
 
@@ -405,26 +405,26 @@ Object.assign(DebugModuleJump, {
         const caps = window.APIConnection ? await APIConnection.probeCapabilities() : null;
         const folder = (window.ModuleManager && ModuleManager.currentModule && ModuleManager.currentModule.folderKey) || '';
         if ((caps && !caps.moduleWrite) || !folder) {
-            this._meToast(folder ? '在线版本不能覆盖原模组文件，已改为下载新的模组文件。' : '这个模组没有对应的文件，已改为下载新的模组文件。', 'warning', 6000);
+            this._meToast(folder ? I18n.t('在线版本不能覆盖原模组文件，已改为下载新的模组文件。') : I18n.t('这个模组没有对应的文件，已改为下载新的模组文件。'), 'warning', 6000);
             this._meExportNewModule();
             return;
         }
         const check = ed.problems();
-        if (check.errors.length) { await Modal.alert('覆盖原模组', '模组还有必须处理的问题，不能保存。'); return; }
-        const ok = await Modal.confirm('覆盖原模组', '原文件会被当前内容替换，替换前自动备份一份。', { confirmLabel: '覆盖', danger: true });
+        if (check.errors.length) { await Modal.alert(I18n.t('覆盖原模组'), I18n.t('模组还有必须处理的问题，不能保存。')); return; }
+        const ok = await Modal.confirm(I18n.t('覆盖原模组'), I18n.t('原文件会被当前内容替换，替换前自动备份一份。'), { confirmLabel: I18n.t('覆盖'), danger: true });
         if (!ok) return;
         const data = ed.getConfig();
         try {
             const bk = await fetch(`/api/modules/${encodeURIComponent(folder)}/backup`, { method: 'POST' });
-            if (!bk.ok) throw new Error('备份没有成功，原文件未改动。');
+            if (!bk.ok) throw new Error(I18n.t('备份没有成功，原文件未改动。'));
             const res = await fetch(`/api/modules/${encodeURIComponent(folder)}/save`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
             if (!res.ok) {
                 const body = await res.json().catch(() => ({}));
-                throw new Error((body && body.message) || '保存没有成功，原文件未改动。');
+                throw new Error((body && body.message) || I18n.t('保存没有成功，原文件未改动。'));
             }
             ed.markSaved();
             this._meRenderHeader();
-            this._meToast('已覆盖原模组，原文件已备份。');
+            this._meToast(I18n.t('已覆盖原模组，原文件已备份。'));
         } catch (e) {
             this._meToast(e.message, 'error', 6000);
         }
@@ -433,25 +433,25 @@ Object.assign(DebugModuleJump, {
     // ---- 剪切、复制、粘贴（快捷键与编辑面板共用）----
 
     _meCutNode(id) {
-        if (id === this.moduleSystem.rootModuleId) { this._meToast('故事根不能剪切。', 'error'); return; }
+        if (id === this.moduleSystem.rootModuleId) { this._meToast(I18n.t('故事根不能剪切。'), 'error'); return; }
         this._meClipboard = { mode: 'cut', id };
         this._meRenderClip(); this._meRenderTree();
     },
 
     _meCopyNode(id) {
-        if (id === this.moduleSystem.rootModuleId) { this._meToast('故事根不能复制。', 'error'); return; }
+        if (id === this.moduleSystem.rootModuleId) { this._meToast(I18n.t('故事根不能复制。'), 'error'); return; }
         this._meClipboard = { mode: 'copy', id };
         this._meRenderClip(); this._meRenderTree();
     },
 
     _mePasteNode(targetId, flow) {
         const cb = this._meClipboard;
-        if (!cb) { this._meToast('没有可粘贴的内容，先剪切或复制一个事件。', 'warning'); return; }
+        if (!cb) { this._meToast(I18n.t('没有可粘贴的内容，先剪切或复制一个事件。'), 'warning'); return; }
         const r = this._meDo((ed) => (cb.mode === 'cut' ? ed.moveTo(cb.id, targetId, flow || 'main') : ed.duplicate(cb.id, targetId, flow || 'main')));
         if (r.ok) {
             if (cb.mode === 'cut') this._meClipboard = null;
             this._meRenderClip();
-            this._meToast(cb.mode === 'cut' ? '已移动。' : '已复制。');
+            this._meToast(cb.mode === 'cut' ? I18n.t('已移动。') : I18n.t('已复制。'));
         }
     },
 
@@ -461,7 +461,7 @@ Object.assign(DebugModuleJump, {
         const version = ed.version;
         Toast.undo(text, () => {
             if (this._meEditor() !== ed || ed.version !== version) {
-                this._meToast('删除之后又做了别的修改，请用上方的撤回。', 'warning');
+                this._meToast(I18n.t('删除之后又做了别的修改，请用上方的撤回。'), 'warning');
                 return;
             }
             this._meUndo();
@@ -474,9 +474,9 @@ Object.assign(DebugModuleJump, {
         const id = this._meSel || this._selId;
         const m = ms.getModule(id);
         if (!m) return;
-        if (m.id === ms.rootModuleId) { this._meToast('故事根不能删除。', 'error'); return; }
+        if (m.id === ms.rootModuleId) { this._meToast(I18n.t('故事根不能删除。'), 'error'); return; }
         const n = ms._getAllDescendantIds(id).length - 1;
-        const ok = await Modal.confirm('删除事件', `删除「${this._esc(m.name || '未命名')}」${n > 0 ? `及其下 ${n} 个事件` : ''}。`, { confirmLabel: '删除', danger: true });
+        const ok = await Modal.confirm(I18n.t('删除事件'), n > 0 ? I18n.t('删除「{name}」及其下 {n} 个事件。', { name: this._esc(m.name || I18n.t('未命名')), n }) : I18n.t('删除「{name}」。', { name: this._esc(m.name || I18n.t('未命名')) }), { confirmLabel: I18n.t('删除'), danger: true });
         if (!ok) return;
         const parent = m.parentModuleId;
         const r = this._meDo((ed) => ed.deleteNode(id), { panel: false });
@@ -485,7 +485,7 @@ Object.assign(DebugModuleJump, {
             this._selId = this._meSel;
             this._meFlowSel = null;
             this._meAfterEdit();
-            this._meUndoSnapshotToast(`已删除「${m.name || '未命名'}」。`);
+            this._meUndoSnapshotToast(I18n.t('已删除「{name}」。', { name: m.name || I18n.t('未命名') }));
         }
     }
 });
