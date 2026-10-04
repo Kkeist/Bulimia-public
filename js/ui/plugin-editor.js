@@ -15,12 +15,12 @@ const PluginEditor = {
     _lastCheckpoint: 0,
 
     FACE: { display: 1, interactive: 1, display_interactive: 1 },
-    SEND_MODES: [['default', '默认文字'], ['none', '不发送'], ['custom', '自定义文字']],
-    REPLY_MODES: [['set', '覆盖原来的内容'], ['append_line', '追加一行'], ['append_text', '接在后面']],
-    TEMPLATE_TYPES: [['free_trigger', '自由触发器'], ['trigger_chain', '触发器链'], ['timeline', '时间线']],
-    DELETE_TEXT: { 'blk-del': '已删除内容块。', 'req-del': '已移除变量。', 'act-del': '已删除按钮设置。', 'op-del': '已删除变量操作。', 'tv-del': '已删除写入。' },
-    SIDES: [['', '默认'], ['left', '左侧'], ['right', '右侧']],
-    COND_MODES: [['always', '始终启用'], ['precondition', '满足条件时启用']],
+    SEND_MODES: [['default', I18n.t('默认文字')], ['none', I18n.t('不发送')], ['custom', I18n.t('自定义文字')]],
+    REPLY_MODES: [['set', I18n.t('覆盖原来的内容')], ['append_line', I18n.t('追加一行')], ['append_text', I18n.t('接在后面')]],
+    TEMPLATE_TYPES: [['free_trigger', I18n.t('自由触发器')], ['trigger_chain', I18n.t('触发器链')], ['timeline', I18n.t('时间线')]],
+    DELETE_TEXT: { 'blk-del': I18n.t('已删除内容块。'), 'req-del': I18n.t('已移除变量。'), 'act-del': I18n.t('已删除按钮设置。'), 'op-del': I18n.t('已删除变量操作。'), 'tv-del': I18n.t('已删除写入。') },
+    SIDES: [['', I18n.t('默认')], ['left', I18n.t('左侧')], ['right', I18n.t('右侧')]],
+    COND_MODES: [['always', I18n.t('始终启用')], ['precondition', I18n.t('满足条件时启用')]],
 
     esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); },
 
@@ -31,7 +31,7 @@ const PluginEditor = {
         const ms = dbg.moduleSystem;
         const mods = [];
         const walk = (mod, depth) => {
-            mods.push({ id: mod.id, name: mod.name || '未命名', depth });
+            mods.push({ id: mod.id, name: mod.name || I18n.t('未命名'), depth });
             if (mod.getAllSubModules) Array.from(mod.getAllSubModules()).forEach(c => walk(c, depth + 1));
         };
         walk(ms.getModule(ms.rootModuleId), 0);
@@ -52,21 +52,21 @@ const PluginEditor = {
     select(attrs, pairs, current) { return '<select class="pe-in" ' + attrs + '>' + pairs.map(x => this.option(x[0], x[1], String(x[0]) === String(current))).join('') + '</select>'; },
 
     varSelect(ctx, attrs, current, placeholder) {
-        const pairs = [['', placeholder || '（不选）']].concat(ctx.vars.map(v => [v.id, v.name + '（' + this.typeCN(v.type) + '）']));
-        if (current && !ctx.vars.some(v => v.id === current)) pairs.push([current, current + '（不存在）']);
+        const pairs = [['', placeholder || I18n.t('（不选）')]].concat(ctx.vars.map(v => [v.id, I18n.t('{name}（{type}）', { name: v.name, type: this.typeCN(v.type) })]));
+        if (current && !ctx.vars.some(v => v.id === current)) pairs.push([current, I18n.t('{id}（不存在）', { id: current })]);
         return this.select(attrs, pairs, current || '');
     },
 
-    typeCN(t) { return ({ number: '数值', string: '文字', boolean: '开关', switch: '开关', list: '列表', object: '对象', list_of_object: '对象列表' })[t] || t || '文字'; },
+    typeCN(t) { return ({ number: I18n.t('数值'), string: I18n.t('文字'), boolean: I18n.t('开关'), switch: I18n.t('开关'), list: I18n.t('列表'), object: I18n.t('对象'), list_of_object: I18n.t('对象列表') })[t] || t || I18n.t('文字'); },
 
     field(label, inner, hint) { return '<div class="pe-field"><label class="pe-label">' + this.esc(label) + '</label>' + inner + (hint ? '<div class="pe-hint">' + this.esc(hint) + '</div>' : '') + '</div>'; },
 
     /** 文本框旁边的「插入变量」下拉；选中后把 {{变量}} 插进文本框光标处 */
     insertBox(ctx, target, withText) {
-        const opts = [['', '插入变量']];
-        if (withText) opts.push(['{{text}}', '玩家输入的文字']);
-        ctx.vars.forEach(v => opts.push(['{{' + v.id + '}}', v.name + '（' + this.typeCN(v.type) + '）']));
-        return '<select class="pe-in pe-ins" data-pe-ins="' + this.esc(target) + '" aria-label="插入变量">' + opts.map(o => this.option(o[0], o[1], false)).join('') + '</select>';
+        const opts = [['', I18n.t('插入变量')]];
+        if (withText) opts.push(['{{text}}', I18n.t('玩家输入的文字')]);
+        ctx.vars.forEach(v => opts.push(['{{' + v.id + '}}', I18n.t('{name}（{type}）', { name: v.name, type: this.typeCN(v.type) })]));
+        return '<select class="pe-in pe-ins" data-pe-ins="' + this.esc(target) + '" aria-label="' + I18n.t('插入变量') + '">' + opts.map(o => this.option(o[0], o[1], false)).join('') + '</select>';
     },
 
     textareaWithInsert(ctx, pf, value, rows, withText, placeholder) {
@@ -77,7 +77,7 @@ const PluginEditor = {
     // ---------- 总体 ----------
     html(dbg, m) {
         const list = Array.isArray(m.plugins) ? m.plugins : [];
-        if (!list.length) return '<div class="mjx-empty">这个事件还没有插件。</div>';
+        if (!list.length) return '<div class="mjx-empty">' + I18n.t('这个事件还没有插件。') + '</div>';
         const ctx = this.ctxFor(dbg, m);
         return list.map((p, i) => this.card(ctx, p, i)).join('');
     },
@@ -89,8 +89,8 @@ const PluginEditor = {
         const typeLabel = PluginRuntime.typeLabel(def.type || def.rawType);
         return '<div class="pe-card" data-pi="' + i + '" data-pid="' + esc(p.id) + '">' +
             '<div class="pe-head"><button type="button" class="pe-toggle" data-pe="toggle" aria-expanded="' + (open ? 'true' : 'false') + '">' +
-            '<span class="pe-name">' + esc(p.name || '未命名插件') + '</span><span class="pe-type">' + esc(typeLabel) + '</span><span class="pe-badge" data-pe-badge="1"></span></button>' +
-            '<button type="button" class="mjx-b mjx-b-untrig" data-pe="del">删除</button></div>' +
+            '<span class="pe-name">' + esc(p.name || I18n.t('未命名插件')) + '</span><span class="pe-type">' + esc(typeLabel) + '</span><span class="pe-badge" data-pe-badge="1"></span></button>' +
+            '<button type="button" class="mjx-b mjx-b-untrig" data-pe="del">' + I18n.t('删除') + '</button></div>' +
             '<div class="pe-body"' + (open ? '' : ' hidden') + '>' + (open ? this.body(ctx, p, i, def) : '') + '</div></div>';
     },
 
@@ -105,8 +105,8 @@ const PluginEditor = {
         if (type === 'variable_op') h += this.sectionOps(ctx, p, def);
         if (type === 'module_generator') h += this.sectionGenerator(ctx, p, def);
         if (type === 'summary') h += this.sectionSummary(ctx, p, def);
-        h += '<div class="pe-actions"><button type="button" class="mjx-b mjx-b-jump" data-pe="test">在插件测试里试一试</button></div>';
-        h += '<details class="pe-details"><summary>源码（只读）</summary><textarea class="pe-in pe-ta pe-src" rows="10" readonly data-native="1" data-pe-src="1"></textarea></details>';
+        h += '<div class="pe-actions"><button type="button" class="mjx-b mjx-b-jump" data-pe="test">' + I18n.t('在插件测试里试一试') + '</button></div>';
+        h += '<details class="pe-details"><summary>' + I18n.t('源码（只读）') + '</summary><textarea class="pe-in pe-ta pe-src" rows="10" readonly data-native="1" data-pe-src="1"></textarea></details>';
         return h;
     },
 
@@ -114,23 +114,23 @@ const PluginEditor = {
     sectionBasic(ctx, p, def) {
         const esc = this.esc;
         const typePairs = PluginRuntime.TYPE_ORDER.map(t => [t, PluginRuntime.typeLabel(t)]);
-        if (!def.type) typePairs.unshift([String(p.type == null ? '' : p.type), String(p.type || '（空）') + '（不认识）']);
+        if (!def.type) typePairs.unshift([String(p.type == null ? '' : p.type), I18n.t('{id}（不认识）', { id: String(p.type || I18n.t('（空）')) })]);
         const modPairs = ctx.mods.map(x => [x.id, new Array(x.depth + 1).join('　') + x.name]);
         const condMode = def.condition && def.condition.type && def.condition.type !== 'always' ? 'precondition' : 'always';
-        return '<section class="pe-sec"><h5>基本</h5>' +
-            this.field('名称', '<input type="text" class="pe-in" data-pf="name" value="' + esc(p.name || '') + '">') +
-            this.field('类型', this.select('data-pf="type" data-pe-struct="1"', typePairs, def.type || String(p.type == null ? '' : p.type)), '改类型会保留已填的内容，只是不用的部分不再生效。') +
-            this.field('挂在哪个模块', this.select('data-pe-attach="1"', modPairs, ctx.m.id), '插件只在这个模块里显示和运行，旗下的子模块自动继承。') +
-            this.field('启用', '<label class="pe-check"><input type="checkbox" data-pf="enabled" data-kind="bool"' + (p.enabled === false ? '' : ' checked') + '><span>启用这个插件</span></label>') +
-            this.field('什么时候生效', this.select('data-pe-cond="1"', this.COND_MODES, condMode) + '<div class="pe-cond-host" data-pe-cond-host="1"' + (condMode === 'always' ? ' hidden' : '') + '></div>') +
+        return '<section class="pe-sec"><h5>' + I18n.t('基本') + '</h5>' +
+            this.field(I18n.t('名称'), '<input type="text" class="pe-in" data-pf="name" value="' + esc(p.name || '') + '">') +
+            this.field(I18n.t('类型'), this.select('data-pf="type" data-pe-struct="1"', typePairs, def.type || String(p.type == null ? '' : p.type)), I18n.t('改类型会保留已填的内容，只是不用的部分不再生效。')) +
+            this.field(I18n.t('挂在哪个模块'), this.select('data-pe-attach="1"', modPairs, ctx.m.id), I18n.t('插件只在这个模块里显示和运行，旗下的子模块自动继承。')) +
+            this.field(I18n.t('启用'), '<label class="pe-check"><input type="checkbox" data-pf="enabled" data-kind="bool"' + (p.enabled === false ? '' : ' checked') + '><span>' + I18n.t('启用这个插件') + '</span></label>') +
+            this.field(I18n.t('什么时候生效'), this.select('data-pe-cond="1"', this.COND_MODES, condMode) + '<div class="pe-cond-host" data-pe-cond-host="1"' + (condMode === 'always' ? ' hidden' : '') + '></div>') +
             '</section>';
     },
 
     chips(ctx, ids) {
-        if (!ids.length) return '<div class="pe-hint">页面里没有用到变量。</div>';
+        if (!ids.length) return '<div class="pe-hint">' + I18n.t('页面里没有用到变量。') + '</div>';
         return '<div class="pe-chips">' + ids.map(id => {
             const ok = ctx.vars.some(v => v.id === id);
-            return '<span class="pe-chip' + (ok ? '' : ' pe-chip-bad') + '">' + this.esc(ok ? this.varName(ctx, id) : id + '（不存在）') + '</span>';
+            return '<span class="pe-chip' + (ok ? '' : ' pe-chip-bad') + '">' + this.esc(ok ? this.varName(ctx, id) : I18n.t('{id}（不存在）', { id: id })) + '</span>';
         }).join('') + '</div>';
     },
 
@@ -145,64 +145,64 @@ const PluginEditor = {
         const cfg = def.config || {};
         const req = Array.isArray(cfg.requiredVariables) ? cfg.requiredVariables : [];
         const mode = this.pageMode(def);
-        const fileNote = (def.files.display ? '使用文件「' + def.files.display + '」；改动后改用这里的内容。' : '');
+        const fileNote = (def.files.display ? I18n.t('使用文件「{file}」；改动后改用这里的内容。', { file: def.files.display }) : '');
         let content;
         if (mode === 'build') {
             const blocks = Array.isArray(cfg.pageBlocks) ? cfg.pageBlocks : [];
-            content = this.field('页面内容', '<div data-pe-blocks="1">' + this.blocksHtml(ctx, blocks) + '</div><div class="pe-row">' + this.select('data-pe-blk-add="1"', [['', '添加内容块']].concat(PluginPageBuilder.ORDER.map(t => [t, PluginPageBuilder.TYPES[t].label])), '') + '</div>', '按钮点击后做什么，在下面「页面里的按钮」里设置。') +
-                '<details class="pe-details"><summary>页面源码（只读）</summary>' +
+            content = this.field(I18n.t('页面内容'), '<div data-pe-blocks="1">' + this.blocksHtml(ctx, blocks) + '</div><div class="pe-row">' + this.select('data-pe-blk-add="1"', [['', I18n.t('添加内容块')]].concat(PluginPageBuilder.ORDER.map(t => [t, PluginPageBuilder.TYPES[t].label])), '') + '</div>', I18n.t('按钮点击后做什么，在下面「页面里的按钮」里设置。')) +
+                '<details class="pe-details"><summary>' + I18n.t('页面源码（只读）') + '</summary>' +
                 '<textarea class="pe-in pe-ta pe-code" rows="8" readonly data-pe-doc="html" data-native="1" spellcheck="false">' + esc(def.inlineHtml) + '</textarea>' +
                 '<textarea class="pe-in pe-ta pe-code" rows="6" readonly data-pe-doc="css" data-native="1" spellcheck="false">' + esc(def.inlineStyle) + '</textarea></details>';
         } else {
-            content = this.field('页面内容（HTML）', '<textarea class="pe-in pe-ta pe-code" rows="10" data-pf="inlineHtml" data-pe-doc="html" data-native="1" spellcheck="false">' + esc(def.inlineHtml) + '</textarea>' +
-                '<div class="pe-row"><button type="button" class="mjx-b" data-pe="import-html">导入 HTML 文件</button><input type="file" accept=".html,.htm,.txt" hidden data-pe-file="html"></div>', fileNote || '粘贴页面代码或导入文件。页面里可以写 {{变量}}，用 data-bind 让数值自动更新。') +
-                this.field('样式（CSS）', '<textarea class="pe-in pe-ta pe-code" rows="6" data-pf="inlineStyle" data-pe-doc="css" data-native="1" spellcheck="false">' + esc(def.inlineStyle) + '</textarea>' +
-                    '<div class="pe-row"><button type="button" class="mjx-b" data-pe="import-css">导入 CSS 文件</button><input type="file" accept=".css,.txt" hidden data-pe-file="css"></div>');
+            content = this.field(I18n.t('页面内容（HTML）'), '<textarea class="pe-in pe-ta pe-code" rows="10" data-pf="inlineHtml" data-pe-doc="html" data-native="1" spellcheck="false">' + esc(def.inlineHtml) + '</textarea>' +
+                '<div class="pe-row"><button type="button" class="mjx-b" data-pe="import-html">' + I18n.t('导入 HTML 文件') + '</button><input type="file" accept=".html,.htm,.txt" hidden data-pe-file="html"></div>', fileNote || I18n.t('粘贴页面代码或导入文件。页面里可以写 {{变量}}，用 data-bind 让数值自动更新。')) +
+                this.field(I18n.t('样式（CSS）'), '<textarea class="pe-in pe-ta pe-code" rows="6" data-pf="inlineStyle" data-pe-doc="css" data-native="1" spellcheck="false">' + esc(def.inlineStyle) + '</textarea>' +
+                    '<div class="pe-row"><button type="button" class="mjx-b" data-pe="import-css">' + I18n.t('导入 CSS 文件') + '</button><input type="file" accept=".css,.txt" hidden data-pe-file="css"></div>');
         }
-        return '<section class="pe-sec"><h5>页面</h5>' +
-            this.field('制作方式', this.select('data-pe-pagemode="1"', [['build', '点选搭建'], ['custom', '自己的页面内容']], mode)) +
+        return '<section class="pe-sec"><h5>' + I18n.t('页面') + '</h5>' +
+            this.field(I18n.t('制作方式'), this.select('data-pe-pagemode="1"', [['build', I18n.t('点选搭建')], ['custom', I18n.t('自己的页面内容')]], mode)) +
             content +
-            this.field('预览', '<div class="pe-row"><label class="pe-hint">宽度</label>' + this.select('data-pe-prevw="1"', [['320', '手机窄屏（320）'], ['390', '手机（390）'], ['600', '平板（600）'], ['0', '占满']], '390') + '</div><div class="pe-preview" data-pe-preview="1"></div><div class="pe-hint" data-pe-prevmsg="1"></div>', '预览用的是现在的变量值，点击不会改动游戏。') +
-            this.field('显示位置', this.select('data-pf="config.side"', this.SIDES, cfg.side || ''), '默认：显示器在右侧，其余在左侧。') +
-            this.field('页面里用到的变量', '<div data-pe-detected="1"></div>', '自动找出页面里写的 {{变量}} 和 data-bind。') +
-            this.field('另外绑定的变量', this.reqList(ctx, req)) +
-            this.field('网络图片', '<label class="pe-check"><input type="checkbox" data-pf="config.allowExternalImages" data-kind="bool"' + (cfg.allowExternalImages === true ? ' checked' : '') + '><span>允许页面加载网络上的图片</span></label>', '打开后页面会向图片所在的网站发出请求；默认关闭。') +
+            this.field(I18n.t('预览'), '<div class="pe-row"><label class="pe-hint">' + I18n.t('宽度') + '</label>' + this.select('data-pe-prevw="1"', [['320', I18n.t('手机窄屏（320）')], ['390', I18n.t('手机（390）')], ['600', I18n.t('平板（600）')], ['0', I18n.t('占满')]], '390') + '</div><div class="pe-preview" data-pe-preview="1"></div><div class="pe-hint" data-pe-prevmsg="1"></div>', I18n.t('预览用的是现在的变量值，点击不会改动游戏。')) +
+            this.field(I18n.t('显示位置'), this.select('data-pf="config.side"', this.SIDES, cfg.side || ''), I18n.t('默认：显示器在右侧，其余在左侧。')) +
+            this.field(I18n.t('页面里用到的变量'), '<div data-pe-detected="1"></div>', I18n.t('自动找出页面里写的 {{变量}} 和 data-bind。')) +
+            this.field(I18n.t('另外绑定的变量'), this.reqList(ctx, req)) +
+            this.field(I18n.t('网络图片'), '<label class="pe-check"><input type="checkbox" data-pf="config.allowExternalImages" data-kind="bool"' + (cfg.allowExternalImages === true ? ' checked' : '') + '><span>' + I18n.t('允许页面加载网络上的图片') + '</span></label>', I18n.t('打开后页面会向图片所在的网站发出请求；默认关闭。')) +
             '</section>';
     },
 
     /** 点选搭建的内容块列表 */
     blocksHtml(ctx, blocks) {
-        if (!blocks.length) return '<div class="pe-hint">还没有内容块。</div>';
+        if (!blocks.length) return '<div class="pe-hint">' + I18n.t('还没有内容块。') + '</div>';
         const probs = PluginPageBuilder.problems(blocks);
         const inp = (f, v, extra) => '<input type="text" class="pe-in" data-pe-bf="' + f + '" value="' + this.esc(v == null ? '' : v) + '"' + (extra || '') + '>';
         return blocks.map((b, k) => {
             const def = PluginPageBuilder.TYPES[b.type];
             let fields = '';
-            if (!def) fields = '<div class="pe-hint">这个内容块不认识，删掉后重新添加。</div>';
+            if (!def) fields = '<div class="pe-hint">' + this.esc(I18n.t('这个内容块不认识，删掉后重新添加。')) + '</div>';
             else if (b.type === 'title' || b.type === 'text') {
                 const id = this.uid();
-                fields = this.field('文字', '<textarea class="pe-in pe-ta" rows="2" data-pe-bf="text" data-uid="' + id + '">' + this.esc(b.text || '') + '</textarea>' + this.insertBox(ctx, id, false));
+                fields = this.field(I18n.t('文字'), '<textarea class="pe-in pe-ta" rows="2" data-pe-bf="text" data-uid="' + id + '">' + this.esc(b.text || '') + '</textarea>' + this.insertBox(ctx, id, false));
             } else if (b.type === 'value') {
-                fields = this.field('名称', inp('label', b.label)) + this.field('变量', this.varSelect(ctx, 'data-pe-bf="variableId"', b.variableId || '', '选变量'));
+                fields = this.field(I18n.t('名称'), inp('label', b.label)) + this.field(I18n.t('变量'), this.varSelect(ctx, 'data-pe-bf="variableId"', b.variableId || '', I18n.t('选变量')));
             } else if (b.type === 'bar') {
-                fields = this.field('名称', inp('label', b.label)) + this.field('变量', this.varSelect(ctx, 'data-pe-bf="variableId"', b.variableId || '', '选变量')) +
-                    this.field('变量等于多少时是满的', '<input type="number" step="any" min="0" class="pe-in" data-pe-bf="max" value="' + this.esc(b.max == null ? '' : b.max) + '">');
+                fields = this.field(I18n.t('名称'), inp('label', b.label)) + this.field(I18n.t('变量'), this.varSelect(ctx, 'data-pe-bf="variableId"', b.variableId || '', I18n.t('选变量'))) +
+                    this.field(I18n.t('变量等于多少时是满的'), '<input type="number" step="any" min="0" class="pe-in" data-pe-bf="max" value="' + this.esc(b.max == null ? '' : b.max) + '">');
             } else if (b.type === 'button') {
-                fields = this.field('按钮上的字', inp('label', b.label));
+                fields = this.field(I18n.t('按钮上的字'), inp('label', b.label));
             } else if (b.type === 'input') {
-                fields = this.field('输入框的提示文字', inp('placeholder', b.placeholder)) + this.field('发送按钮上的字', inp('label', b.label));
+                fields = this.field(I18n.t('输入框的提示文字'), inp('placeholder', b.placeholder)) + this.field(I18n.t('发送按钮上的字'), inp('label', b.label));
             }
             const prob = probs.filter(x => x.index === k).map(x => '<div class="pe-hint pe-bad">' + this.esc(x.text) + '</div>').join('');
-            return '<div class="pe-blk" data-bk="' + k + '"><div class="pe-blk-head"><b>' + this.esc(def ? def.label : '未知') + '</b><span class="pe-blk-ops">' +
-                '<button type="button" class="mjx-b" data-pe="blk-up"' + (k === 0 ? ' disabled' : '') + '>上移</button>' +
-                '<button type="button" class="mjx-b" data-pe="blk-down"' + (k === blocks.length - 1 ? ' disabled' : '') + '>下移</button>' +
-                '<button type="button" class="mjx-b mjx-b-untrig" data-pe="blk-del">删除</button></span></div>' + fields + prob + '</div>';
+            return '<div class="pe-blk" data-bk="' + k + '"><div class="pe-blk-head"><b>' + this.esc(def ? def.label : I18n.t('未知')) + '</b><span class="pe-blk-ops">' +
+                '<button type="button" class="mjx-b" data-pe="blk-up"' + (k === 0 ? ' disabled' : '') + '>' + I18n.t('上移') + '</button>' +
+                '<button type="button" class="mjx-b" data-pe="blk-down"' + (k === blocks.length - 1 ? ' disabled' : '') + '>' + I18n.t('下移') + '</button>' +
+                '<button type="button" class="mjx-b mjx-b-untrig" data-pe="blk-del">' + I18n.t('删除') + '</button></span></div>' + fields + prob + '</div>';
         }).join('');
     },
 
     reqList(ctx, req) {
-        const chips = req.map((id, k) => '<span class="pe-chip">' + this.esc(this.varName(ctx, id)) + '<button type="button" class="pe-chip-x" data-pe="req-del" data-ri="' + k + '" aria-label="移除">×</button></span>').join('');
-        return '<div class="pe-chips">' + (chips || '<span class="pe-hint">没有。</span>') + '</div><div class="pe-row">' + this.varSelect(ctx, 'data-pe-req-add="1"', '', '添加变量') + '</div>';
+        const chips = req.map((id, k) => '<span class="pe-chip">' + this.esc(this.varName(ctx, id)) + '<button type="button" class="pe-chip-x" data-pe="req-del" data-ri="' + k + '" aria-label="' + I18n.t('移除') + '">×</button></span>').join('');
+        return '<div class="pe-chips">' + (chips || '<span class="pe-hint">' + I18n.t('没有。') + '</span>') + '</div><div class="pe-row">' + this.varSelect(ctx, 'data-pe-req-add="1"', '', I18n.t('添加变量')) + '</div>';
     },
 
     /** 页面里的按钮 → 点击后的效果 */
@@ -215,24 +215,24 @@ const PluginEditor = {
     },
 
     sectionActions(ctx, p, def) {
-        return '<section class="pe-sec"><h5>页面里的按钮</h5><div class="pe-hint">自动列出页面里的按钮。给每个按钮选择点击后做什么，不用写代码。</div><div data-pe-actions="1">' + this.actionsHtml(ctx, p, def) + '</div></section>';
+        return '<section class="pe-sec"><h5>' + I18n.t('页面里的按钮') + '</h5><div class="pe-hint">' + I18n.t('自动列出页面里的按钮。给每个按钮选择点击后做什么，不用写代码。') + '</div><div data-pe-actions="1">' + this.actionsHtml(ctx, p, def) + '</div></section>';
     },
 
     actionsHtml(ctx, p, def) {
         const esc = this.esc;
         const rows = this.detectedActions(p, def, def.logicText);
-        if (!rows.length) return '<div class="pe-hint">页面里还没有按钮。给按钮加上 data-action=\"名称\"，这里就会列出来。</div>';
+        if (!rows.length) return '<div class="pe-hint">' + this.esc(I18n.t('页面里还没有按钮。给按钮加上 data-action="名称"，这里就会列出来。')) + '</div>';
         const isDisplay = def.type === 'display';
         return rows.map(r => {
             const cfg = PluginRuntime.findAction(def, r.action) || {};
             const mode = cfg.sendMode || (cfg.send == null ? 'default' : (String(cfg.send).trim() === '' ? 'none' : 'custom'));
             const id = this.uid();
-            const note = r.source === 'config' ? '页面里没有这个按钮' : (r.source === 'script' ? '来自页面脚本' : '');
+            const note = r.source === 'config' ? I18n.t('页面里没有这个按钮') : (r.source === 'script' ? I18n.t('来自页面脚本') : '');
             return '<div class="pe-act" data-pe-an="' + esc(r.action) + '">' +
-                '<div class="pe-act-head"><b>' + esc(r.label || r.action) + '</b>' + (note ? '<span class="pe-hint">' + esc(note) + '</span>' : '') + (r.source === 'config' ? '<button type="button" class="mjx-b mjx-b-untrig" data-pe="act-del">删除</button>' : '') + '</div>' +
-                (isDisplay ? '' : this.field('点击后发给 AI', this.select('data-pe-sendmode="1"', this.SEND_MODES, mode) +
+                '<div class="pe-act-head"><b>' + esc(r.label || r.action) + '</b>' + (note ? '<span class="pe-hint">' + esc(note) + '</span>' : '') + (r.source === 'config' ? '<button type="button" class="mjx-b mjx-b-untrig" data-pe="act-del">' + I18n.t('删除') + '</button>' : '') + '</div>' +
+                (isDisplay ? '' : this.field(I18n.t('点击后发给 AI'), this.select('data-pe-sendmode="1"', this.SEND_MODES, mode) +
                     (mode === 'custom' ? '<textarea class="pe-in pe-ta" rows="2" data-pe-send="1" data-uid="' + id + '">' + esc(cfg.send || '') + '</textarea>' + this.insertBox(ctx, id, true) : ''))) +
-                this.field('点击后改变量', '<div data-pe-ops="1">' + (cfg.ops || []).map((o, k) => this.opRow(ctx, o, k, 'act-op')).join('') + '</div><div class="pe-row"><button type="button" class="mjx-b" data-pe="act-op-add">添加变量操作</button></div>') +
+                this.field(I18n.t('点击后改变量'), '<div data-pe-ops="1">' + (cfg.ops || []).map((o, k) => this.opRow(ctx, o, k, 'act-op')).join('') + '</div><div class="pe-row"><button type="button" class="mjx-b" data-pe="act-op-add">' + I18n.t('添加变量操作') + '</button></div>') +
                 '</div>';
         }).join('');
     },
@@ -249,9 +249,9 @@ const PluginEditor = {
             if (type === 'number' && (op === 'add' || op === 'subtract' || op === 'multiply' || op === 'set')) valueHtml = '<input type="number" step="any" class="pe-in" data-pe-opv="1" value="' + this.esc(o.value == null ? '' : o.value) + '">';
             else valueHtml = '<textarea class="pe-in pe-ta" rows="1" data-pe-opv="1" data-uid="' + id + '">' + this.esc(o.value == null ? '' : o.value) + '</textarea>' + this.insertBox(ctx, id, true);
         }
-        return '<div class="pe-oprow" data-ok="' + k + '" data-pe-kind="' + kind + '">' + this.varSelect(ctx, 'data-pe-opvar="1"', o.variableId || '', '选变量') +
+        return '<div class="pe-oprow" data-ok="' + k + '" data-pe-kind="' + kind + '">' + this.varSelect(ctx, 'data-pe-opvar="1"', o.variableId || '', I18n.t('选变量')) +
             this.select('data-pe-opop="1"', ops.map(x => [x, PluginRuntime.OPS[x].label]), op) + valueHtml +
-            '<button type="button" class="mjx-b mjx-b-untrig" data-pe="op-del">删除</button></div>';
+            '<button type="button" class="mjx-b mjx-b-untrig" data-pe="op-del">' + I18n.t('删除') + '</button></div>';
     },
 
     opsFor(type) {
@@ -264,67 +264,67 @@ const PluginEditor = {
         const cfg = def.config || {};
         const isInter = def.type === 'interactive';
         const rb = cfg.replyBinding || {};
-        return '<section class="pe-sec"><h5>发给 AI 的内容</h5>' +
-            this.field(isInter ? '提示词' : '每次发送时附带的内容', this.textareaWithInsert(ctx, isInter ? 'config.promptTemplate' : 'config.updatePrompt', isInter ? cfg.promptTemplate : cfg.updatePrompt, 4, false), '写给 AI 看的说明。用「插入变量」把变量的当前值放进去。') +
-            this.field('玩家怎么操作', '<textarea class="pe-in pe-ta" rows="2" data-pf="config.userInteraction">' + esc(cfg.userInteraction || '') + '</textarea>', '一句话告诉 AI 玩家在这个插件里能做什么，可以不填。') +
-            this.field('要求 AI 怎么回复', '<textarea class="pe-in pe-ta" rows="2" data-pf="config.outputFormat">' + esc(cfg.outputFormat || '') + '</textarea>', '例如：在 <名字> 块内只回复一行。') +
-            this.field('回复块的名字', '<input type="text" class="pe-in" data-pf="config.blockId" value="' + esc(cfg.blockId || '') + '" placeholder="只用字母、数字、下划线">', 'AI 把回复放在 <这个名字></这个名字> 里，系统据此认出是给这个插件的。') +
-            this.field('AI 的回复写进哪个变量', this.varSelect(ctx, 'data-pf="config.replyBinding.variableId" data-struct="1"', rb.variableId || '', '不保存回复') +
-                (rb.variableId ? '<div class="pe-row">' + this.select('data-pf="config.replyBinding.mode"', this.REPLY_MODES, rb.mode || 'set') + '<textarea class="pe-in pe-ta" rows="1" data-pf="config.replyBinding.prefix" placeholder="每条回复前面加的文字（可不填）">' + esc(rb.prefix || '') + '</textarea></div>' : '')) +
+        return '<section class="pe-sec"><h5>' + I18n.t('发给 AI 的内容') + '</h5>' +
+            this.field(isInter ? I18n.t('提示词') : I18n.t('每次发送时附带的内容'), this.textareaWithInsert(ctx, isInter ? 'config.promptTemplate' : 'config.updatePrompt', isInter ? cfg.promptTemplate : cfg.updatePrompt, 4, false), I18n.t('写给 AI 看的说明。用「插入变量」把变量的当前值放进去。')) +
+            this.field(I18n.t('玩家怎么操作'), '<textarea class="pe-in pe-ta" rows="2" data-pf="config.userInteraction">' + esc(cfg.userInteraction || '') + '</textarea>', I18n.t('一句话告诉 AI 玩家在这个插件里能做什么，可以不填。')) +
+            this.field(I18n.t('要求 AI 怎么回复'), '<textarea class="pe-in pe-ta" rows="2" data-pf="config.outputFormat">' + esc(cfg.outputFormat || '') + '</textarea>', I18n.t('例如：在 <名字> 块内只回复一行。')) +
+            this.field(I18n.t('回复块的名字'), '<input type="text" class="pe-in" data-pf="config.blockId" value="' + esc(cfg.blockId || '') + '" placeholder="' + I18n.t('只用字母、数字、下划线') + '">', I18n.t('AI 把回复放在 <这个名字></这个名字> 里，系统据此认出是给这个插件的。')) +
+            this.field(I18n.t('AI 的回复写进哪个变量'), this.varSelect(ctx, 'data-pf="config.replyBinding.variableId" data-struct="1"', rb.variableId || '', I18n.t('不保存回复')) +
+                (rb.variableId ? '<div class="pe-row">' + this.select('data-pf="config.replyBinding.mode"', this.REPLY_MODES, rb.mode || 'set') + '<textarea class="pe-in pe-ta" rows="1" data-pf="config.replyBinding.prefix" placeholder="' + I18n.t('每条回复前面加的文字（可不填）') + '">' + esc(rb.prefix || '') + '</textarea></div>' : '')) +
             '</section>';
     },
 
     sectionRandomizer(ctx, p, def) {
         const cfg = def.config || {};
-        const poolNote = def.files.pool ? '使用文件「' + def.files.pool + '」；改动后改用这里的内容。' : '';
-        return '<section class="pe-sec"><h5>随机池</h5>' +
-            this.field('池的内容（JSON）', '<textarea class="pe-in pe-ta pe-code" rows="10" data-pe-pool="1" data-native="1" spellcheck="false"></textarea>' +
-                '<div class="pe-row"><button type="button" class="mjx-b" data-pe="import-pool">导入池文件</button><input type="file" accept=".json,.txt" hidden data-pe-file="pool"></div><div class="pe-hint" data-pe-poolmsg="1"></div>', poolNote || '导入文件，或直接粘贴。每一项一个对象，可以带 id、名称、权重等。') +
-            this.field('抽到的结果存进哪个变量', this.varSelect(ctx, 'data-pf="config.tempStorage"', cfg.tempStorage || '', '不存放'), '变量读取器可以从这里读取抽到的结果；变量类型要是对象。') +
+        const poolNote = def.files.pool ? I18n.t('使用文件「{file}」；改动后改用这里的内容。', { file: def.files.pool }) : '';
+        return '<section class="pe-sec"><h5>' + I18n.t('随机池') + '</h5>' +
+            this.field(I18n.t('池的内容（JSON）'), '<textarea class="pe-in pe-ta pe-code" rows="10" data-pe-pool="1" data-native="1" spellcheck="false"></textarea>' +
+                '<div class="pe-row"><button type="button" class="mjx-b" data-pe="import-pool">' + I18n.t('导入池文件') + '</button><input type="file" accept=".json,.txt" hidden data-pe-file="pool"></div><div class="pe-hint" data-pe-poolmsg="1"></div>', poolNote || I18n.t('导入文件，或直接粘贴。每一项一个对象，可以带 id、名称、权重等。')) +
+            this.field(I18n.t('抽到的结果存进哪个变量'), this.varSelect(ctx, 'data-pf="config.tempStorage"', cfg.tempStorage || '', I18n.t('不存放')), I18n.t('变量读取器可以从这里读取抽到的结果；变量类型要是对象。')) +
             '</section>';
     },
 
     sectionReader(ctx, p, def) {
         const cfg = def.config || {};
         const upstream = ctx.plugins.filter(x => x.p.id !== p.id && PluginRuntime.canonicalType(x.p.type) === 'randomizer');
-        const pairs = [['', '（选一个插件）']].concat(upstream.map(x => [x.p.id, (x.p.name || x.p.id) + '（' + x.modName + '）']));
-        if (cfg.inputSource && !upstream.some(x => x.p.id === cfg.inputSource)) pairs.push([cfg.inputSource, cfg.inputSource + '（不存在）']);
+        const pairs = [['', I18n.t('（选一个插件）')]].concat(upstream.map(x => [x.p.id, I18n.t('{name}（{mod}）', { name: x.p.name || x.p.id, mod: x.modName })]));
+        if (cfg.inputSource && !upstream.some(x => x.p.id === cfg.inputSource)) pairs.push([cfg.inputSource, I18n.t('{id}（不存在）', { id: cfg.inputSource })]);
         const targets = Array.isArray(cfg.targetVariables) ? cfg.targetVariables : [];
-        return '<section class="pe-sec"><h5>读取</h5>' +
-            this.field('读取哪个插件的结果', this.select('data-pf="config.inputSource"', pairs, cfg.inputSource || ''), '一般选一个随机器。') +
-            this.field('写进哪些变量', '<div data-pe-targets="1">' + targets.map((t, k) => '<div class="pe-oprow" data-tk="' + k + '">' + this.varSelect(ctx, 'data-pe-tvar="1"', t.variableId || '', '选变量') +
-                '<textarea class="pe-in pe-ta" rows="1" data-pe-tmap="1" placeholder="结果里的哪一项（留空 = 整个结果）">' + this.esc(t.mapping || '') + '</textarea>' +
-                '<button type="button" class="mjx-b mjx-b-untrig" data-pe="tv-del">删除</button></div>').join('') + '</div><div class="pe-row"><button type="button" class="mjx-b" data-pe="tv-add">添加写入</button></div>', '「哪一项」填结果里的字段名，例如 id、name。') +
+        return '<section class="pe-sec"><h5>' + I18n.t('读取') + '</h5>' +
+            this.field(I18n.t('读取哪个插件的结果'), this.select('data-pf="config.inputSource"', pairs, cfg.inputSource || ''), I18n.t('一般选一个随机器。')) +
+            this.field(I18n.t('写进哪些变量'), '<div data-pe-targets="1">' + targets.map((t, k) => '<div class="pe-oprow" data-tk="' + k + '">' + this.varSelect(ctx, 'data-pe-tvar="1"', t.variableId || '', I18n.t('选变量')) +
+                '<textarea class="pe-in pe-ta" rows="1" data-pe-tmap="1" placeholder="' + I18n.t('结果里的哪一项（留空 = 整个结果）') + '">' + this.esc(t.mapping || '') + '</textarea>' +
+                '<button type="button" class="mjx-b mjx-b-untrig" data-pe="tv-del">' + I18n.t('删除') + '</button></div>').join('') + '</div><div class="pe-row"><button type="button" class="mjx-b" data-pe="tv-add">' + I18n.t('添加写入') + '</button></div>', I18n.t('「哪一项」填结果里的字段名，例如 id、name。')) +
             '</section>';
     },
 
     sectionOps(ctx, p, def) {
         const ops = Array.isArray(def.config.operations) ? def.config.operations : [];
-        return '<section class="pe-sec"><h5>变量操作</h5><div class="pe-hint">进入所属模块时，按顺序执行下面的操作。</div><div data-pe-oplist="1">' + ops.map((o, k) => this.opRow(ctx, o, k, 'op')).join('') +
-            '</div><div class="pe-row"><button type="button" class="mjx-b" data-pe="op-add">添加变量操作</button></div></section>';
+        return '<section class="pe-sec"><h5>' + I18n.t('变量操作') + '</h5><div class="pe-hint">' + I18n.t('进入所属模块时，按顺序执行下面的操作。') + '</div><div data-pe-oplist="1">' + ops.map((o, k) => this.opRow(ctx, o, k, 'op')).join('') +
+            '</div><div class="pe-row"><button type="button" class="mjx-b" data-pe="op-add">' + I18n.t('添加变量操作') + '</button></div></section>';
     },
 
     sectionGenerator(ctx, p, def) {
         const cfg = def.config || {};
         const tpl = cfg.moduleTemplate || {};
         const rand = ctx.plugins.filter(x => x.p.id !== p.id && PluginRuntime.canonicalType(x.p.type) === 'randomizer');
-        const srcPairs = [['builtin', '不读别的插件（每次生成同样的模块）']].concat(rand.map(x => [x.p.id, '读取「' + (x.p.name || x.p.id) + '」的结果']));
-        const flowPairs = [['', '（选一条流程）']].concat(ctx.flows.map(f => [f, f === 'main' ? '主流程' : ctx.dbg._flowName(f, ctx.m)]));
-        if (cfg.outputFlow && ctx.flows.indexOf(cfg.outputFlow) < 0) flowPairs.push([cfg.outputFlow, cfg.outputFlow + '（不存在）']);
+        const srcPairs = [['builtin', I18n.t('不读别的插件（每次生成同样的模块）')]].concat(rand.map(x => [x.p.id, I18n.t('读取「{name}」的结果', { name: x.p.name || x.p.id })]));
+        const flowPairs = [['', I18n.t('（选一条流程）')]].concat(ctx.flows.map(f => [f, f === 'main' ? I18n.t('主流程') : ctx.dbg._flowName(f, ctx.m)]));
+        if (cfg.outputFlow && ctx.flows.indexOf(cfg.outputFlow) < 0) flowPairs.push([cfg.outputFlow, I18n.t('{id}（不存在）', { id: cfg.outputFlow })]);
         const info = Array.isArray(tpl.info) ? tpl.info.map(x => (x && x.content) || '').filter(Boolean).join('\n') : (tpl.info || '');
         const subPlugins = Array.isArray(tpl.plugins) ? tpl.plugins.length : 0;
-        return '<section class="pe-sec"><h5>生成的模块</h5>' +
-            this.field('生成的模块放到哪条流程', this.select('data-pf="config.outputFlow"', flowPairs, cfg.outputFlow || '')) +
-            this.field('读取什么', this.select('data-pf="config.inputSource"', srcPairs, cfg.inputSource || 'builtin'), '读取随机器时，模块里写的 {{名字}} 会换成结果里同名的内容。') +
-            this.field('模块名称', '<input type="text" class="pe-in" data-pe-tpl="name" value="' + this.esc(tpl.name || '') + '">') +
-            this.field('模块类型', this.select('data-pe-tpl="type"', this.TEMPLATE_TYPES, tpl.type || 'free_trigger')) +
-            this.field('模块的背景', '<textarea class="pe-in pe-ta" rows="3" data-pe-tpl="info">' + this.esc(info) + '</textarea>') +
-            '<div class="pe-hint">生成的模块里带 ' + subPlugins + ' 个插件（在「源码」里查看）。</div></section>';
+        return '<section class="pe-sec"><h5>' + I18n.t('生成的模块') + '</h5>' +
+            this.field(I18n.t('生成的模块放到哪条流程'), this.select('data-pf="config.outputFlow"', flowPairs, cfg.outputFlow || '')) +
+            this.field(I18n.t('读取什么'), this.select('data-pf="config.inputSource"', srcPairs, cfg.inputSource || 'builtin'), I18n.t('读取随机器时，模块里写的 {{名字}} 会换成结果里同名的内容。')) +
+            this.field(I18n.t('模块名称'), '<input type="text" class="pe-in" data-pe-tpl="name" value="' + this.esc(tpl.name || '') + '">') +
+            this.field(I18n.t('模块类型'), this.select('data-pe-tpl="type"', this.TEMPLATE_TYPES, tpl.type || 'free_trigger')) +
+            this.field(I18n.t('模块的背景'), '<textarea class="pe-in pe-ta" rows="3" data-pe-tpl="info">' + this.esc(info) + '</textarea>') +
+            '<div class="pe-hint">' + this.esc(I18n.t('生成的模块里带 {n} 个插件（在「源码」里查看）。', { n: subPlugins })) + '</div></section>';
     },
 
     sectionSummary(ctx, p, def) {
-        return '<section class="pe-sec"><h5>总结</h5>' +
-            this.field('总结的内容', this.textareaWithInsert(ctx, 'config.summaryTemplate', def.config.summaryTemplate, 4, false), '一段文字，会随提示词发给 AI。用「插入变量」放进变量的当前值。') + '</section>';
+        return '<section class="pe-sec"><h5>' + I18n.t('总结') + '</h5>' +
+            this.field(I18n.t('总结的内容'), this.textareaWithInsert(ctx, 'config.summaryTemplate', def.config.summaryTemplate, 4, false), I18n.t('一段文字，会随提示词发给 AI。用「插入变量」放进变量的当前值。')) + '</section>';
     },
 
     // ---------- 绑定 ----------
@@ -409,9 +409,9 @@ const PluginEditor = {
             const r = await PluginRenderer.fetchText((ctx.modulePath ? ctx.modulePath.replace(/\/+$/, '') + '/' : '') + file, label, this.cache);
             return r.text || '';
         };
-        if (!def.inlineHtml && def.files.display) jobs.push(read(def.files.display, '显示文件').then(t => put('[data-pe-doc="html"]', t)));
-        if (!def.inlineStyle && def.files.style) jobs.push(read(def.files.style, '样式文件').then(t => put('[data-pe-doc="css"]', t)));
-        if (def.files.logic) jobs.push(read(def.files.logic, '脚本文件').then(t => { card._logicText = t; }));
+        if (!def.inlineHtml && def.files.display) jobs.push(read(def.files.display, I18n.t('显示文件')).then(t => put('[data-pe-doc="html"]', t)));
+        if (!def.inlineStyle && def.files.style) jobs.push(read(def.files.style, I18n.t('样式文件')).then(t => put('[data-pe-doc="css"]', t)));
+        if (def.files.logic) jobs.push(read(def.files.logic, I18n.t('脚本文件')).then(t => { card._logicText = t; }));
         await Promise.all(jobs);
     },
 
@@ -421,7 +421,7 @@ const PluginEditor = {
         let text = '';
         if (def.config.pool) text = JSON.stringify(def.config.pool, null, 2);
         else if (def.files.pool) {
-            const r = await PluginRenderer.fetchText((ctx.modulePath ? ctx.modulePath.replace(/\/+$/, '') + '/' : '') + def.files.pool, '随机池文件', this.cache);
+            const r = await PluginRenderer.fetchText((ctx.modulePath ? ctx.modulePath.replace(/\/+$/, '') + '/' : '') + def.files.pool, I18n.t('随机池文件'), this.cache);
             text = r.text || '';
         }
         if (ta.dataset.touched !== '1') ta.value = text;
@@ -431,15 +431,15 @@ const PluginEditor = {
     checkPool(card, text) {
         const msg = card.querySelector('[data-pe-poolmsg]');
         if (!msg) return null;
-        if (!String(text).trim()) { msg.textContent = '还没有随机池。'; msg.className = 'pe-hint pe-bad'; return null; }
+        if (!String(text).trim()) { msg.textContent = I18n.t('还没有随机池。'); msg.className = 'pe-hint pe-bad'; return null; }
         try {
             const v = JSON.parse(text);
             const list = Array.isArray(v) ? v : (v && (v.items || v.events || v.entries)) || null;
-            msg.textContent = Array.isArray(list) ? '格式正确，共 ' + list.length + ' 项。' : '格式正确。';
+            msg.textContent = Array.isArray(list) ? I18n.t('格式正确，共 {n} 项。', { n: list.length }) : I18n.t('格式正确。');
             msg.className = 'pe-hint';
             return v;
         } catch (e) {
-            msg.textContent = '格式不对：' + e.message + '。修好之前不会保存这次修改。';
+            msg.textContent = I18n.t('格式不对：{error}。修好之前不会保存这次修改。', { error: e.message });
             msg.className = 'pe-hint pe-bad';
             return null;
         }
@@ -475,7 +475,7 @@ const PluginEditor = {
         const css = (card.querySelector('[data-pe-doc="css"]') || {}).value || '';
         const msg = card.querySelector('[data-pe-prevmsg]');
         if (msg) msg.textContent = '';
-        if (!html.trim()) { if (msg) msg.textContent = '还没有页面内容。'; return; }
+        if (!html.trim()) { if (msg) msg.textContent = I18n.t('还没有页面内容。'); return; }
         const w = (card.querySelector('[data-pe-prevw]') || {}).value || '390';
         host.style.maxWidth = w === '0' ? '' : w + 'px';
         const def = PluginRuntime.normalize(p);
@@ -498,9 +498,9 @@ const PluginEditor = {
             };
             const issues = PluginRuntime.validate(def, env);
             const box = card.querySelector('[data-pe-issues]');
-            if (box) box.innerHTML = issues.length ? '<section class="pe-sec pe-sec-warn"><h5>需要处理的问题（' + issues.length + '）</h5>' + issues.map(i => '<div class="pe-issue"><div>' + this.esc(i.text) + '</div>' + (i.hint ? '<div class="pe-hint">' + this.esc(i.hint) + '</div>' : '') + '</div>').join('') + '</section>' : '';
+            if (box) box.innerHTML = issues.length ? '<section class="pe-sec pe-sec-warn"><h5>' + this.esc(I18n.t('需要处理的问题（{n}）', { n: issues.length })) + '</h5>' + issues.map(i => '<div class="pe-issue"><div>' + this.esc(i.text) + '</div>' + (i.hint ? '<div class="pe-hint">' + this.esc(i.hint) + '</div>' : '') + '</div>').join('') + '</section>' : '';
             const badge = card.querySelector('[data-pe-badge]');
-            if (badge) badge.textContent = issues.filter(i => i.level === 'error').length ? issues.filter(i => i.level === 'error').length + ' 个问题' : '';
+            if (badge) badge.textContent = issues.filter(i => i.level === 'error').length ? I18n.t('{n} 个问题', { n: issues.filter(i => i.level === 'error').length }) : '';
         });
     },
 
@@ -626,7 +626,7 @@ const PluginEditor = {
         t.classList.remove('pe-bad');
         this.mutate(card, (p) => {
             this.setPath(p, path, value);
-            if (path === 'name') { const n = card.querySelector('.pe-name'); if (n) n.textContent = value || '未命名插件'; }
+            if (path === 'name') { const n = card.querySelector('.pe-name'); if (n) n.textContent = value || I18n.t('未命名插件'); }
             if (path === 'config.replyBinding.variableId') {
                 if (!value) { delete p.config.replyBinding; }
                 else { p.config.replyBinding.mode = p.config.replyBinding.mode || 'set'; p.config.replyBinding.prefix = p.config.replyBinding.prefix || ''; }
@@ -687,7 +687,7 @@ const PluginEditor = {
         if (mode === this.pageMode(def)) return;
         if (mode === 'build') {
             const hasContent = !!(def.inlineHtml || def.files.display);
-            if (hasContent && !(window.Modal && await Modal.confirm('改用点选搭建', '现在的页面内容会被替换，可以撤销。', { danger: true, confirmLabel: '替换' }))) {
+            if (hasContent && !(window.Modal && await Modal.confirm(I18n.t('改用点选搭建'), I18n.t('现在的页面内容会被替换，可以撤销。'), { danger: true, confirmLabel: I18n.t('替换') }))) {
                 this.rerenderCard(card);
                 return;
             }
@@ -743,7 +743,7 @@ const PluginEditor = {
         input.value = '';
         if (!file) return;
         let text;
-        try { text = await file.text(); } catch (e) { if (window.Toast) Toast.show('读取文件失败。', 'error'); return; }
+        try { text = await file.text(); } catch (e) { if (window.Toast) Toast.show(I18n.t('读取文件失败。'), 'error'); return; }
         const kind = input.getAttribute('data-pe-file');
         const ta = kind === 'pool' ? card.querySelector('[data-pe-pool]') : card.querySelector('[data-pe-doc="' + kind + '"]');
         if (!ta) return;
@@ -765,7 +765,7 @@ const PluginEditor = {
         dbg._meSel = target.id;
         dbg._selId = target.id;
         dbg._meAfterEdit();
-        if (window.Toast) Toast.show('已移到「' + (target.name || '未命名') + '」。', 'success');
+        if (window.Toast) Toast.show(I18n.t('已移到「{name}」。', { name: target.name || I18n.t('未命名') }), 'success');
     },
 
     onClick(e) {
@@ -817,11 +817,11 @@ const PluginEditor = {
         const { m, p, i } = this.ctxOf(card);
         const dbg = this.dbg;
         dbg._meEditor().checkpoint();
-        const nm = p.name || '插件';
+        const nm = p.name || I18n.t('插件');
         this.destroyPreview(p.id);
         m.plugins.splice(i, 1);
         dbg._meAfterEdit();
-        if (window.Toast && Toast.undo) Toast.undo('已删除插件「' + nm + '」。', () => dbg._meUndo());
+        if (window.Toast && Toast.undo) Toast.undo(I18n.t('已删除插件「{name}」。', { name: nm }), () => dbg._meUndo());
     },
 
     openTest(card) {
@@ -834,11 +834,11 @@ const PluginEditor = {
     add(dbg) {
         const ms = dbg.moduleSystem;
         const m = ms && ms.getModule ? ms.getModule(dbg._selId) : null;
-        if (!m) { if (window.Toast) Toast.show('没有选中事件。', 'error'); return; }
+        if (!m) { if (window.Toast) Toast.show(I18n.t('没有选中事件。'), 'error'); return; }
         if (!Array.isArray(m.plugins)) m.plugins = [];
         dbg._meEditor().checkpoint();
         const id = 'plugin_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-        m.plugins.push({ id, name: '新插件', type: 'display', condition: { type: 'always' }, config: {}, files: {} });
+        m.plugins.push({ id, name: I18n.t('新插件'), type: 'display', condition: { type: 'always' }, config: {}, files: {} });
         this.openCards[m.id + '|' + id] = true;
         dbg._meAfterEdit();
     }

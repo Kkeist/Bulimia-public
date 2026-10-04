@@ -107,8 +107,8 @@ Object.assign(App, {
         const userMessage = (roleplay != null && String(roleplay).trim()) ? String(roleplay).trim() : '';
         const metaContent = (meta != null && String(meta).trim()) ? String(meta).trim() : '';
         const displaySettings = Storage.getSettings() || {};
-        const userName = PersonaManager.current?.name || State.gameState?.playerName || I18n.pick({ zh: '玩家', en: 'Player' });
-        const aiName = displaySettings.aiName || I18n.pick({ zh: '故事之声', en: 'Narrator' });
+        const userName = PersonaManager.current?.name || State.gameState?.playerName || I18n.t('玩家');
+        const aiName = displaySettings.aiName || I18n.t('故事之声');
         // function 形式的 replace，避免 userName 含 $& 等替换标记被解释
         const replaceUser = (s) => (typeof s === 'string' ? s.replace(/\{\{user\}\}/g, () => userName) : s);
 

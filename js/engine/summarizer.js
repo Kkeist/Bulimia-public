@@ -290,8 +290,8 @@ class SummarizerSystem {
 
         prompt += I18n.t('待总结的对话：') + `\n---\n`;
 
-        const userName = PersonaManager.current?.name || I18n.pick({ zh: '玩家', en: 'Player' });
-        const aiName = Storage.getSettings()?.aiName || I18n.pick({ zh: '故事之声', en: 'Narrator' });
+        const userName = PersonaManager.current?.name || I18n.t('玩家');
+        const aiName = Storage.getSettings()?.aiName || I18n.t('故事之声');
 
       // 完整保留，不做缩略
         for (const msg of messages) {

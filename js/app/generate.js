@@ -42,20 +42,21 @@ Object.assign(App, {
 
     /** 回复没收完时给玩家看的说明 */
     _incompleteNotice(reason, detail) {
-        const keep = '已保留收到的部分，没有影响游戏进度，可以点「重Roll」重新生成。';
-        if (reason === 'stopped') return '已停止生成。' + keep;
-        if (reason === 'timeout') return '等待太久，回复没有收完。' + keep;
-        if (reason === 'error') return '服务商在回复过程中报错' + (detail ? '：' + detail : '') + '。' + keep;
-        if (reason === 'interrupted') return '网络中断，回复没有收完。' + keep;
-        return '服务提前结束了连接，回复没有收完。' + keep;
+        const keep = I18n.t('已保留收到的部分，没有影响游戏进度，可以点「重Roll」重新生成。');
+        const sp = I18n.pick({ zh: '', en: ' ' });
+        if (reason === 'stopped') return I18n.t('已停止生成。') + sp + keep;
+        if (reason === 'timeout') return I18n.t('等待太久，回复没有收完。') + sp + keep;
+        if (reason === 'error') return (detail ? I18n.t('服务商在回复过程中报错：{detail}。', { detail }) : I18n.t('服务商在回复过程中报错。')) + sp + keep;
+        if (reason === 'interrupted') return I18n.t('网络中断，回复没有收完。') + sp + keep;
+        return I18n.t('服务提前结束了连接，回复没有收完。') + sp + keep;
     },
 
     /** 没有收到可用内容时的错误说明 */
     _emptyIncompleteMessage(reason, detail) {
-        if (reason === 'timeout') return '等待太久，没有收到可用的内容，请重试。';
-        if (reason === 'error') return '服务商在回复过程中报错' + (detail ? '：' + detail : '') + '，没有收到可用的内容，请重试。';
-        if (reason === 'interrupted') return '网络中断，没有收到可用的内容，请重试。';
-        return '服务提前结束了连接，没有收到可用的内容，请重试。';
+        if (reason === 'timeout') return I18n.t('等待太久，没有收到可用的内容，请重试。');
+        if (reason === 'error') return detail ? I18n.t('服务商在回复过程中报错：{detail}，没有收到可用的内容，请重试。', { detail }) : I18n.t('服务商在回复过程中报错，没有收到可用的内容，请重试。');
+        if (reason === 'interrupted') return I18n.t('网络中断，没有收到可用的内容，请重试。');
+        return I18n.t('服务提前结束了连接，没有收到可用的内容，请重试。');
     },
 
     /** 请求失败后收尾：玩家主动停止且已有内容就保留，否则撤掉占位消息 */
@@ -85,7 +86,7 @@ Object.assign(App, {
     /** 把失败原因告诉玩家（停止不算失败） */
     _reportGenerateError(error) {
         if (error && error.name === 'AbortError') return;
-        Toast.show(error && error.message ? error.message : '生成失败，请重试。', 'error', 8000);
+        Toast.show(error && error.message ? error.message : I18n.t('生成失败，请重试。'), 'error', 8000);
     },
 
     /** 回复在流到一半时结束：保留收到的内容，不应用到游戏状态 */
@@ -117,9 +118,9 @@ Object.assign(App, {
     /** 回复正常结束但有需要提醒的情况（被长度上限截断、被过滤） */
     _noteFinishReason(response) {
         if (response.finishReason === 'length') {
-            Toast.show('回复被长度上限截断了，可以在输出预设里调大最大长度。', 'warning', 6000);
+            Toast.show(I18n.t('回复被长度上限截断了，可以在输出预设里调大最大长度。'), 'warning', 6000);
         } else if (response.finishReason === 'content_filter') {
-            Toast.show('回复被服务商的内容过滤截断了，可以重Roll。', 'warning', 6000);
+            Toast.show(I18n.t('回复被服务商的内容过滤截断了，可以重Roll。'), 'warning', 6000);
         }
     },
 
@@ -274,13 +275,13 @@ Object.assign(App, {
      */
     async getAIResponseForSwipe(userMessageOrObj, assistantIndex) {
         this._lastReplyIncomplete = false;
-        if (this.isGenerating) throw new Error('正在生成中，请先点停止。');
+        if (this.isGenerating) throw new Error(I18n.t('正在生成中，请先点停止。'));
         const problem = APIConnection.checkConfigured();
         if (problem) throw new Error(problem);
 
         const targetMsg = ChatDisplay.messages?.[assistantIndex];
         if (!targetMsg || targetMsg.role !== 'assistant') {
-            throw new Error('这条消息不能重新生成。');
+            throw new Error(I18n.t('这条消息不能重新生成。'));
         }
 
         let roleplay;
@@ -431,13 +432,13 @@ Object.assign(App, {
      */
     async advanceTime(unit = 'day') {
         if (!Engine.isRunning) {
-            Toast.show('请先开始游戏', 'warning');
+            Toast.show(I18n.t('请先开始游戏'), 'warning');
             return;
         }
 
         // 推进必须在“当前没有输出/生成”时才能触发（避免联动混乱）
         if (this.isGenerating) {
-            Toast.show('正在生成中，不能时间推进。请先停止生成。', 'warning');
+            Toast.show(I18n.t('正在生成中，不能时间推进。请先停止生成。'), 'warning');
             return;
         }
 
@@ -457,8 +458,8 @@ Object.assign(App, {
         switch (unit) {
             case 'event':
                 // 事件 = 到队列下一项（由队列逻辑处理；此处仅作占位）
-                timeUpdateText = '推进到队列下一项';
-                displayLabel = '推进到队列下一项';
+                timeUpdateText = I18n.t('推进到队列下一项');
+                displayLabel = I18n.t('推进到队列下一项');
                 break;
             case 'hour':
                 time.hour = (time.hour || 0) + 1;
@@ -467,28 +468,28 @@ Object.assign(App, {
                     time.hour = 0;
                     this._advanceOneDay(time);
                 }
-                timeUpdateText = `时间推进到 ${String(time.hour).padStart(2, '0')}:${String(time.minute || 0).padStart(2, '0')}`;
+                timeUpdateText = I18n.t('时间推进到 {time}', { time: `${String(time.hour).padStart(2, '0')}:${String(time.minute || 0).padStart(2, '0')}` });
                 break;
             case 'day':
                 this._advanceOneDay(time);
                 time.hour = 8;
                 time.minute = time.minute != null ? time.minute : 0;
-                timeUpdateText = `${time.year}年${time.month}月${time.day}日`;
-                displayLabel = '推进到今天结束';
+                timeUpdateText = I18n.t('{y}年{m}月{d}日', { y: time.year, m: time.month, d: time.day });
+                displayLabel = I18n.t('推进到今天结束');
                 break;
             case 'week':
                 for (let i = 0; i < 7; i++) {
                     this._advanceOneDay(time);
                 }
                 time.hour = 8;
-                timeUpdateText = `一周过去了，现在是第${time.day}天`;
+                timeUpdateText = I18n.t('一周过去了，现在是第{day}天', { day: time.day });
                 break;
         }
 
         if (State.gameState && typeof formatDateForDisplay === 'function') {
             State.gameState.currentDate = formatDateForDisplay(State.variables);
         } else if (State.gameState && time) {
-            State.gameState.currentDate = `${time.year}年${time.month}月${time.day}日 ${String(time.hour || 8).padStart(2, '0')}:${String(time.minute != null ? time.minute : 0).padStart(2, '0')}`;
+            State.gameState.currentDate = `${I18n.t('{y}年{m}月{d}日', { y: time.year, m: time.month, d: time.day })} ${String(time.hour || 8).padStart(2, '0')}:${String(time.minute != null ? time.minute : 0).padStart(2, '0')}`;
         }
 
         const prevDate = State.gameState ? State.gameState.currentDate : undefined;
@@ -500,13 +501,13 @@ Object.assign(App, {
             timestamp: Date.now()
         });
 
-        const fromStr = prevTime ? `${prevTime.year}年${prevTime.month}月${prevTime.day}日 ${String(prevTime.hour || 8).padStart(2, '0')}:${String(prevTime.minute != null ? prevTime.minute : 0).padStart(2, '0')}` : '';
-        const toStr = time ? `${time.year}年${time.month}月${time.day}日 ${String(time.hour || 8).padStart(2, '0')}:${String(time.minute != null ? time.minute : 0).padStart(2, '0')}` : '';
+        const fromStr = prevTime ? `${I18n.t('{y}年{m}月{d}日', { y: prevTime.year, m: prevTime.month, d: prevTime.day })} ${String(prevTime.hour || 8).padStart(2, '0')}:${String(prevTime.minute != null ? prevTime.minute : 0).padStart(2, '0')}` : '';
+        const toStr = time ? `${I18n.t('{y}年{m}月{d}日', { y: time.year, m: time.month, d: time.day })} ${String(time.hour || 8).padStart(2, '0')}:${String(time.minute != null ? time.minute : 0).padStart(2, '0')}` : '';
         const aiPrompt =
-            `[时间推进]\n` +
-            `从：${fromStr}\n` +
-            `到：${toStr}\n\n` +
-            `请用简洁叙事概括这段时间推进期间发生的事件与状态变化（如果无事发生也要说明），然后从当前时间点继续剧情。`;
+            I18n.t('[时间推进]') + `\n` +
+            I18n.t('从：{from}', { from: fromStr }) + `\n` +
+            I18n.t('到：{to}', { to: toStr }) + `\n\n` +
+            I18n.t('请用简洁叙事概括这段时间推进期间发生的事件与状态变化（如果无事发生也要说明），然后从当前时间点继续剧情。');
 
         // 不在聊天里显示这条prompt，只是自动触发AI回复
         // 推进也属于“生成”，必须可停止
@@ -558,18 +559,18 @@ Object.assign(App, {
      */
     async advanceTimeCustom() {
         if (!Engine.isRunning) {
-            Toast.show('请先开始游戏', 'warning');
+            Toast.show(I18n.t('请先开始游戏'), 'warning');
             return;
         }
 
         if (this.isGenerating) {
-            Toast.show('正在生成中，请先停止生成。', 'warning');
+            Toast.show(I18n.t('正在生成中，请先停止生成。'), 'warning');
             return;
         }
 
         const customPrompt = await Modal.prompt(
-            '自定义时间推进',
-            '描述你想推进到的时间点（例如："到下午"、"到第二天早上"、"一周后"）：'
+            I18n.t('自定义时间推进'),
+            I18n.t('描述你想推进到的时间点（例如："到下午"、"到第二天早上"、"一周后"）：')
         );
 
         if (!customPrompt || customPrompt.trim() === '') {
@@ -580,7 +581,7 @@ Object.assign(App, {
         const chatLengthBefore = ChatDisplay.messages.length;
         const systemMessage = {
             role: 'user',
-            content: `[时间推进请求] ${customPrompt.trim()}`,
+            content: I18n.t('[时间推进请求] {request}', { request: customPrompt.trim() }),
             timestamp: Date.now()
         };
         ChatDisplay.addMessage(systemMessage);
@@ -607,7 +608,7 @@ Object.assign(App, {
     async rerollLastMessage() {
         const lastMsg = ChatDisplay.messages?.[ChatDisplay.messages.length - 1];
         if (!lastMsg) {
-            Toast.show('没有可重Roll的消息', 'warning');
+            Toast.show(I18n.t('没有可重Roll的消息'), 'warning');
             return;
         }
 
@@ -620,12 +621,12 @@ Object.assign(App, {
         // 兼容：如果没有AI消息（最后一条是user/system），默认重新发送最近一条用户消息
         const lastUser = ChatDisplay.getLastUserMessage?.();
         if (!lastUser?.content) {
-            Toast.show('找不到可重新发送的用户消息', 'warning');
+            Toast.show(I18n.t('找不到可重新发送的用户消息'), 'warning');
             return;
         }
 
         if (this.isGenerating) {
-            Toast.show('正在生成中，请先停止生成。', 'warning');
+            Toast.show(I18n.t('正在生成中，请先停止生成。'), 'warning');
             return;
         }
         this._showGenerating(true);
@@ -671,19 +672,19 @@ Object.assign(App, {
                     html += `<div class="pending-section"><strong>${p.name || pluginId}</strong><ul>`;
                     msgs.forEach(m => {
                         const c = contacts.get && contacts.get(m.contactId);
-                        html += `<li>给 ${c?.name || m.contactId} 发短信: ${m.content}</li>`;
+                        html += `<li>${I18n.t('给 {name} 发短信: {content}', { name: c?.name || m.contactId, content: m.content })}</li>`;
                     });
                     calls.forEach(c => {
                         const contact = contacts.get && contacts.get(c.contactId);
-                        html += `<li>拨打 ${contact?.name || c.contactId}</li>`;
+                        html += `<li>${I18n.t('拨打 {name}', { name: contact?.name || c.contactId })}</li>`;
                     });
                     html += '</ul></div>';
                 }
             }
         }
-        if (!html) html = '<div class="item-list-empty">暂无暂存操作</div>';
-        Modal.show('暂存操作', html, {
-            buttons: [{ label: '关闭', action: 'close' }],
+        if (!html) html = `<div class="item-list-empty">${I18n.t('暂无暂存操作')}</div>`;
+        Modal.show(I18n.t('暂存操作'), html, {
+            buttons: [{ label: I18n.t('关闭'), action: 'close' }],
             onAction: () => Modal.close()
         });
     },
@@ -694,6 +695,6 @@ Object.assign(App, {
     clearPendingActions() {
         if (window.InteractiveSaveDriver) InteractiveSaveDriver.clearAllPending();
         if (window.Events && window.EVENT_TYPES) Events.emit(EVENT_TYPES.PLUGIN_PENDING_CLEARED, {});
-        Toast.show('已清空暂存', 'success');
+        Toast.show(I18n.t('已清空暂存'), 'success');
     }
 });

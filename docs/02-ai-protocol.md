@@ -1,3 +1,5 @@
+[English](en/02-ai-protocol.md) | 中文
+
 # 02 - AI交互协议
 
 本文档定义Bulimia模块系统与AI的完整交互协议，包括统一的回复格式、操作指令、Prompt生成规范等。
