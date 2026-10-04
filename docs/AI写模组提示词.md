@@ -1,3 +1,5 @@
+[English](en/AI-module-writing-prompt.md) | 中文
+
 # 让 AI 写模组：提示词
 
 用法：
